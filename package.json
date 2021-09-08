@@ -1,0 +1,32 @@
+{
+  "dependencies": {
+    "axios": "^0.21.1",
+    "chalk": "^4.1.2",
+    "dotenv": "^10.0.0",
+    "form-data": "^4.0.0"
+  },
+  "name": "mintknight",
+  "description": "Scripts to interact with the Mintknight API",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MintKnight/mintknight.git"
+  },
+  "keywords": [
+    "Mintknight",
+    "nft",
+    "erc20",
+    "blockchain"
+  ],
+  "author": "Alex Puig <alex@mintknight.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/MintKnight/mintknight/issues"
+  },
+  "homepage": "https://github.com/MintKnight/mintknight#readme"
+}
