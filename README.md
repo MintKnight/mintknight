@@ -1,15 +1,43 @@
 # mintknight-demo
 Scripts to interact with the Mintknight API
+
 ## Install
 ```bash
 npm install
+```
+
+Example:
+```javascript
+const MintKnight = require('mintknight');
+const mintknight = new MintKnight(process.env.MINTKNIGHT_API);
+
+const user = await mintknight.addUser(
+    process.env.MK_USERNAME,
+    process.env.MK_EMAIL,
+    process.env.MK_PASSWORD,
+    process.env.MK_PHONE,
+  );
+
+```
+
+## Using the Playground
+```bash
+cd playground
 cp .env.example .env
 ```
 Edit the basic fields you need:
 - MK_USERNAME
 - MK_EMAIL
 - MK_PASSWORD
+- MK_PHONE
 (minimum 5 letters)
+
+```bash
+node 1.setup.js
+```
+
+This will add a new user to the Sandbox, setup a company, a project and a campaign.
+You are now ready to play with contracts.
 
 ## Users
 First add a new user, login and set the company details

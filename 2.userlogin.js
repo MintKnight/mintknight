@@ -5,7 +5,7 @@ const log = console.log;
 
 
 const user = {
-  email: process.env.MK_EMAIL, 
+  email: process.env.MK_EMAIL,
   password: process.env.MK_PASSWORD,
 };
 
