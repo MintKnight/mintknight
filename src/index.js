@@ -1,5 +1,7 @@
 const axios = require('axios');
 const chalk = require('chalk');
+const FormData = require('form-data');
+const fs = require('fs');
 const log = console.log;
 const parameters = require('./config/parameters')
 
@@ -8,21 +10,22 @@ module.exports = class MintKnight {
   constructor(api, props = {}) {
     this.api = api;
     this.debug = props.debug || false;
-    this.token = false;
+    this.token = props.token || false;
+    this.apiKey = props.apiKey || false;
   }
 
   /*
    * mintknight Log
    */
-  mkLog(res) {
-    if (this.debug) log(chalk.blue('Log'), res);
+  mkLog(msg) {
+    if (this.debug) log(chalk.blue('Log'), msg);
   }
 
   /*
    * mintknight Error
    */
-  mkError(e) {
-    if (this.debug) log(chalk.red('Error'), e.message);
+  mkError(msg) {
+    if (this.debug) log(chalk.red('Error'), msg);
   }
 
   /*
@@ -30,9 +33,12 @@ module.exports = class MintKnight {
    */
   validate(params, auth) {
     return new Promise((resolve, reject) => {
-      if (auth && this.token === false) {
+      if (auth == 'userAuth' && this.token === false) {
         reject(new Error(`You are not authorized. Login First.`));
-      }
+      } else if (auth == 'tokenAuth' && this.apiKey === false) {
+          reject(new Error(`You are not authorized. You need the API KEY for the project.`));
+	  }
+
       const keys = Object.keys(params);
       for (let i=0; i<keys.length; i++) {
         // Check special parameters from config.
@@ -47,6 +53,7 @@ module.exports = class MintKnight {
           if (parameters[keys[i]].valid && !parameters[keys[i]].valid.includes(params[keys[i]]))
             reject(new Error(`Parameter ${keys[i]} is not valid : ${parameters[keys[i]].valid}`));
         } else if (!params[keys[i]] || params[keys[i]].length < 3) {
+		  console.log(keys, params);
           reject(new Error(`Parameter ${keys[i]} should be at least 5 chars`));
         }
       }
@@ -60,16 +67,23 @@ module.exports = class MintKnight {
    * @param {string} method Method : get, post, put, delete
    * @param {object} params Parameters to be used to call.
    */
-  apiCall(method, call, params, auth) {
+  apiCall(method, call, params = {}, auth = 'noAuth') {
     return new Promise(resolve => {
       this.validate(params, auth)
        .then((params) => {
-         const config = { headers: { Authorization: `Bearer ${this.token}` } };
+		 let config = {}
+         if (auth !== 'noAuth') {
+           config = (auth === 'userAuth')
+             ? { headers: { Authorization: `Bearer ${this.token}` } }
+             : { headers: { Authorization: `Bearer ${this.apiKey}` } }
+         }
          switch (method) {
            case 'POST':
              return axios.post(`${this.api}${call}`, params, config);
            case 'PUT':
-             return axios.put(`${this.api}${call}`, paramsi, config);
+             return axios.put(`${this.api}${call}`, params, config);
+           case 'GET':
+             return axios.get(`${this.api}${call}`, config);
          }
        })
         .then((res) => {
@@ -81,7 +95,7 @@ module.exports = class MintKnight {
           resolve(res.data);
        })
        .catch((e) => {
-         this.mkError(e);
+         this.mkError(`${method} ${call} => ${e.message}`);
          resolve(false);
         });
     });
@@ -122,8 +136,8 @@ module.exports = class MintKnight {
    * @param {string} email Email
    * @param {string} password Password
    */
-  setCompany(name, taxId, address, country) {
-    return this.apiCall('POST', 'companies', { name, taxId, address, country });
+  setCompany(name, taxId, address, country ) {
+    return this.apiCall('POST', 'companies', { name, taxId, address, country }, 'userAuth');
   }
 
   /*
@@ -134,7 +148,80 @@ module.exports = class MintKnight {
    * @param {string} network Netowrk (mimbai, polygon, testnet)
    */
   addProject(name, description, network) {
-    return this.apiCall('POST', 'projects', { name, description, network});
+    return this.apiCall('POST', 'projects', { name, description, network }, 'userAuth');
   }
 
+  /*
+   * Get an API KEY for the project.
+   *
+   * @param {string} projectId ProjectId
+   */
+  getApiKey(projectId) {
+    return new Promise(resolve => {
+      this.apiCall('GET', `projects/apikey/${projectId}`, {}, 'userAuth')
+        .then(res => {
+          this.apiKey = res.token;
+          resolve(res);
+        });
+    });
+  }
+
+  /*
+   * Get an API KEY for the project.
+   *
+   * @param {string} projectId ProjectId
+   */
+  addCampaign(name, description, projectId) {
+    return this.apiCall('POST', 'campaigns', { name, description, projectId }, 'tokenAuth');
+  }
+
+   /*
+   * Add a wallet
+   *
+   * @param {string} projectId ProjectId
+   */
+  addWallet(userRef) {
+    return this.apiCall('POST', 'nfts/wallet', { userRef }, 'tokenAuth');
+  }
+	
+   /*
+   * Wait for a Task to end.
+   *
+   * @param {string} taskId task ID
+   * @param {integer} times It will try every 5 seconds for n times.
+   */
+  waitTask(taskId, times = 20) {
+    return new Promise(async (resolve) => {
+      this.mkLog('waiting for Task to end...');
+      for (let i = 0; i < times; i += 1) {	
+        const result = await this.apiCall('GET', `tasks/${taskId}`, {}, 'tokenAuth');
+        if (result.task.state === 'writing') {
+          await new Promise((r) => setTimeout(r, 5000));
+		} else {
+          this.mkLog('Task ended');
+		  return resolve(result.task);
+		}
+	  }
+    });
+  }
+
+  /*
+   * Upload One Image to Arweave.
+   *
+   * @param {string} file File name with path
+   */
+  uploadImage(imageFile) {
+    return new Promise((resolve) => {
+      const form = new FormData();
+      const image = fs.readFileSync(imageFile);
+      form.append('nftImage', image, 'image.png');
+      const config = { headers: { ...form.getHeaders(), Authorization: `Bearer ${this.apiKey}` } };
+      axios.post(`${this.api}nfts/upload`, form, config)
+      .then((res) => {
+        log(res.data);
+        resolve(res.data);
+      })
+      .catch((e) => log(chalk.red('Error'), e.message));
+    });
+  }
 }
