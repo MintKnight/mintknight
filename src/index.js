@@ -178,12 +178,12 @@ module.exports = class MintKnight {
    /*
    * Add a wallet
    *
-   * @param {string} projectId ProjectId
+   * @param {string} userRef UserRef
    */
   addWallet(userRef) {
     return this.apiCall('POST', 'nfts/wallet', { userRef }, 'tokenAuth');
   }
-	
+
    /*
    * Wait for a Task to end.
    *
@@ -191,9 +191,10 @@ module.exports = class MintKnight {
    * @param {integer} times It will try every 5 seconds for n times.
    */
   waitTask(taskId, times = 20) {
+    if (!taskId) return {addressTo: false};
     return new Promise(async (resolve) => {
       this.mkLog('waiting for Task to end...');
-      for (let i = 0; i < times; i += 1) {	
+      for (let i = 0; i < times; i += 1) {
         const result = await this.apiCall('GET', `tasks/${taskId}`, {}, 'tokenAuth');
         if (result.task.state === 'writing') {
           await new Promise((r) => setTimeout(r, 5000));
@@ -223,5 +224,23 @@ module.exports = class MintKnight {
       })
       .catch((e) => log(chalk.red('Error'), e.message));
     });
+  }
+  /*
+   * Add a Contract
+   *
+   * @param {string} projectId ProjectId
+   */
+  writeTokenContract(name, description, symbol, campaignId, walletId) {
+    const contract= {
+      erc: 20,
+      name,
+      symbol,
+      description,
+      campaignId,
+      walletId,
+      maxSupply: 1000,
+      decimals: 2
+    };
+    return this.apiCall('POST', 'contracts', contract, 'tokenAuth');
   }
 }
