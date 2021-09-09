@@ -34,6 +34,7 @@ const main = async () => {
   );
   conf.companyId = company._id;
 
+  // Add a new project.
   const project = await mintknight.addProject(
     process.env.PROJECT_NAME,
     process.env.PROJECT_DESCRIPTION,
@@ -41,8 +42,30 @@ const main = async () => {
   );
   conf.projectId = project._id;
 
+  // Get the API KEy fro that project.
   const apiKey = await mintknight.getApiKey(conf.projectId);
   conf.apiKey = apiKey.token;
+
+  // Add wallet : minter for the contracts. Th id is internal to your organization.
+  let task = await mintknight.addWallet('id_minter');
+  const minter = { walletId: task.wallet._id, skey: task.skey1 };
+  task = await mintknight.waitTask(task.taskId);
+  minter.address = task.addressTo;
+  fs.writeFileSync( path.join(__dirname, 'json', 'minter.json'), JSON.stringify(minter), 'utf8');
+	//
+  // Add Wallet 1 for the contract.
+  task = await mintknight.addWallet('id_user_wallet_1');
+  const wallet1 = { walletId: task.wallet._id, skey: task.skey1 };
+  task = await mintknight.waitTask(task.taskId);
+  wallet1.address = task.addressTo;
+  fs.writeFileSync( path.join(__dirname, 'json', 'wallet1.json'), JSON.stringify(wallet1), 'utf8');
+
+  // Add Wallet 2 for the contract.
+  task = await mintknight.addWallet('id_user_wallet_2');
+  const wallet2 = { walletId: task.wallet._id, skey: task.skey1 };
+  task = await mintknight.waitTask(task.taskId);
+  wallet2.address = task.addressTo;
+  fs.writeFileSync( path.join(__dirname, 'json', 'wallet2.json'), JSON.stringify(wallet2), 'utf8');
 
   const campaign = await mintknight.addCampaign(
     process.env.CAMPAIGN_NAME,
@@ -51,27 +74,7 @@ const main = async () => {
   );
   conf.campaignId = campaign._id;
   fs.writeFileSync( path.join(__dirname, 'json', 'project.json'), JSON.stringify(conf), 'utf8');
-
-  // Add minter for the contract.
-  let task = await mintknight.addWallet('id_user_internal_1');
-  const minter = { walletId: task.wallet._id, skey: task.skey1 };
-  task = await mintknight.waitTask(task.taskId);
-  minter.address = task.addressTo;
-  fs.writeFileSync( path.join(__dirname, 'json', 'minter.json'), JSON.stringify(minter), 'utf8');
-
-  // Add Wallet 1 for the contract.
-  task = await mintknight.addWallet('id_user_internal_2');
-  const wallet1 = { walletId: task.wallet._id, skey: task.skey1 };
-  task = await mintknight.waitTask(task.taskId);
-  wallet1.address = task.addressTo;
-  fs.writeFileSync( path.join(__dirname, 'json', 'wallet1.json'), JSON.stringify(wallet1), 'utf8');
-
-  // Add Wallet 2 for the contract.
-  task = await mintknight.addWallet('id_user_internal_3');
-  const wallet2 = { walletId: task.wallet._id, skey: task.skey1 };
-  task = await mintknight.waitTask(task.taskId);
-  wallet2.address = task.addressTo;
-  fs.writeFileSync( path.join(__dirname, 'json', 'wallet2.json'), JSON.stringify(wallet2), 'utf8');
+console.log(campaign);
 };
 
 main();

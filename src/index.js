@@ -53,7 +53,7 @@ module.exports = class MintKnight {
           if (parameters[keys[i]].valid && !parameters[keys[i]].valid.includes(params[keys[i]]))
             reject(new Error(`Parameter ${keys[i]} is not valid : ${parameters[keys[i]].valid}`));
         } else if (!params[keys[i]] || params[keys[i]].length < 3) {
-		  console.log(keys, params);
+		  log(keys, params);
           reject(new Error(`Parameter ${keys[i]} should be at least 5 chars`));
         }
       }
@@ -181,8 +181,9 @@ module.exports = class MintKnight {
    * @param {string} userRef UserRef
    */
   addWallet(userRef) {
-    return this.apiCall('POST', 'nfts/wallet', { userRef }, 'tokenAuth');
+    return this.apiCall('POST', 'wallets', { userRef }, 'tokenAuth');
   }
+	
 
    /*
    * Wait for a Task to end.
@@ -231,7 +232,7 @@ module.exports = class MintKnight {
    * @param {string} projectId ProjectId
    */
   writeTokenContract(name, description, symbol, campaignId, walletId) {
-    const contract= {
+    const contract = {
       erc: 20,
       name,
       symbol,
@@ -243,4 +244,28 @@ module.exports = class MintKnight {
     };
     return this.apiCall('POST', 'contracts', contract, 'tokenAuth');
   }
+
+  /*
+   * Mint a token
+   *
+   * @param {string} contractId Contract ID
+   * @param {string} walletId Minter Wallet ID
+   * @param {string} skey MInter Wallet SKEY
+   * @param {string} to Wallet ID receiving the tokens
+   * @param {number} value Tokens minted.
+   */
+  mintToken(contractId, walletId, skey, to, value) {
+    return this.apiCall('POST', 'tokens', { contractId, walletId, skey, to, value }, 'tokenAuth');
+  }
+
+  /*
+   * Get a token
+   *
+   * @param {string} contractId contract ID
+   */
+  getToken(contractId) {
+    return this.apiCall('GET', `tokens/${contractId}`, {}, 'tokenAuth');
+  }
+
+
 }

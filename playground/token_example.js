@@ -7,7 +7,7 @@ let project, minter, wallet1, wallet2
 try {
   project = require('./json/project.json');
   minter = require('./json/minter.json');
-  wallet1= require('./json/wallet1.json');
+  wallet1 = require('./json/wallet1.json');
   wallet2 = require('./json/wallet2.json');
 } catch (e) {
   console.log(e);
@@ -20,6 +20,7 @@ const main = async () => {
   const mintknight = new MintKnight(process.env.MINTKNIGHT_API, {debug: true, ...project});
 
   // 1. Add the contract to the project ERC20.
+ /*
   let task = await mintknight.writeTokenContract(
      process.env.TOKEN_NAME,
      process.env.TOKEN_DESCRIPTION,
@@ -31,9 +32,23 @@ const main = async () => {
   task = await mintknight.waitTask(task.taskId);
   token.address = task.addressTo;
   fs.writeFileSync( path.join(__dirname, 'json', 'erc20.json'), JSON.stringify(token), 'utf8');
-
+*/
+  const token = require('./json/erc20.json');
+  // 2. get Token.
+  const erc20 = await mintknight.getToken(token.contractId);
+  console.log(erc20);
+  process.exit();
 
   // 2. Mint 500 tokens to wallet 1.
+  task = await mintknight.mintToken(
+    token.contractId,
+    minter.walletId,
+    minter.skey,
+	wallet1.walletId,
+	50,
+  );
+  task = await mintknight.waitTask(task.taskId);
+  console.log(task);
 
 
   // 3. Transfer 100 tokens to Wallet2.
