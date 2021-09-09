@@ -183,7 +183,7 @@ module.exports = class MintKnight {
   addWallet(userRef) {
     return this.apiCall('POST', 'wallets', { userRef }, 'tokenAuth');
   }
-	
+
 
    /*
    * Wait for a Task to end.
@@ -231,7 +231,7 @@ module.exports = class MintKnight {
    *
    * @param {string} projectId ProjectId
    */
-  writeTokenContract(name, description, symbol, campaignId, walletId) {
+  writeTokenContract(name, description, symbol, campaignId, walletId, maxSupply, decimals) {
     const contract = {
       erc: 20,
       name,
@@ -239,8 +239,8 @@ module.exports = class MintKnight {
       description,
       campaignId,
       walletId,
-      maxSupply: 1000,
-      decimals: 2
+      maxSupply,
+      decimals,
     };
     return this.apiCall('POST', 'contracts', contract, 'tokenAuth');
   }
