@@ -35,10 +35,8 @@ const main = async () => {
   token.address = task.addressTo;
   fs.writeFileSync( path.join(__dirname, 'json', 'erc20.json'), JSON.stringify(token), 'utf8');
   */
+
   const token = require('./json/erc20.json');
-  // 2. get Token.
-  const erc20 = await mintknight.getToken(token.contractId);
-  console.log(erc20);
 
   // 2. Mint 50 tokens to wallet 1.
   /*
@@ -47,12 +45,20 @@ const main = async () => {
     minter.walletId,
     minter.skey,
 	wallet1.walletId,
-	50,
+	200,
   );
   task = await mintknight.waitTask(task.taskId);
   */
 
-  // 3. Transfer 100 tokens to Wallet2.
+  const erc20 = await mintknight.getToken(token.contractId);
+  console.log(erc20);
+  let wallet = await mintknight.getWallet(wallet1.walletId);
+  console.log(wallet);
+  wallet = await mintknight.getWallet(wallet2.walletId);
+  console.log(wallet);
+
+  // 3. Transfer 10 tokens to Wallet2.
+  // await mintknight.transferToken(token.contractId, wallet1.walletId, wallet1.skey, wallet2.walletId, 10);
 
   // 4. Transfer 100 tokens back to Wallet1
 

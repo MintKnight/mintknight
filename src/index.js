@@ -226,8 +226,9 @@ module.exports = class MintKnight {
       .catch((e) => log(chalk.red('Error'), e.message));
     });
   }
+
   /*
-   * Add a Contract
+   * Add a ERC20 Contract
    *
    * @param {string} projectId ProjectId
    */
@@ -246,6 +247,24 @@ module.exports = class MintKnight {
   }
 
   /*
+   * Add a NFT Contract
+   *
+   * @param {string} projectId ProjectId
+   */
+  writeNFTContract(name, description, symbol, campaignId, walletId, maxSupply) {
+    const contract = {
+      erc: 721,
+      name,
+      symbol,
+      description,
+      campaignId,
+      walletId,
+      maxSupply,
+    };
+    return this.apiCall('POST', 'contracts', contract, 'tokenAuth');
+  }
+
+  /*
    * Mint a token
    *
    * @param {string} contractId Contract ID
@@ -259,12 +278,49 @@ module.exports = class MintKnight {
   }
 
   /*
+   * Mint an NFT
+   *
+   * @param {string} contractId Contract ID
+   * @param {string} walletId Minter Wallet ID
+   * @param {string} skey MInter Wallet SKEY
+   * @param {string} to Wallet ID receiving the tokens
+   * @param {object} metadata NFT minted.
+   */
+  mintNFT(contractId, walletId, skey, to, metadata) {
+    return this.apiCall('POST', 'nfts', {contractId, walletId, skey, to, metadata}, 'tokenAuth');
+  }
+
+
+  /*
+   * Transfer a token
+   *
+   * @param {string} contractId Contract ID
+   * @param {string} walletId From Wallet ID
+   * @param {string} skey From Wallet SKEY
+   * @param {string} to Wallet ID receiving the tokens
+   * @param {number} value Tokens minted.
+   */
+  transferToken(contractId, walletId, skey, to, value) {
+    return this.apiCall('PUT', 'tokens', { contractId, walletId, skey, to, value }, 'tokenAuth');
+  }
+
+
+  /*
    * Get a token
    *
    * @param {string} contractId contract ID
    */
   getToken(contractId) {
     return this.apiCall('GET', `tokens/${contractId}`, {}, 'tokenAuth');
+  }
+
+  /*
+   * Get a wallet
+   *
+   * @param {string} walletId wallet ID
+   */
+  getWallet(walletId) {
+    return this.apiCall('GET', `wallets/${walletId}`, {}, 'tokenAuth');
   }
 
 
