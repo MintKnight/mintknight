@@ -304,15 +304,38 @@ module.exports = class MintKnight {
     return this.apiCall('PUT', 'tokens', { contractId, walletId, skey, to, value }, 'tokenAuth');
   }
 
+  /*
+   * Transfer one NFT
+   *
+   * @param {string} contractId Contract ID
+   * @param {string} walletId From Wallet ID
+   * @param {string} skey From Wallet SKEY
+   * @param {string} to Wallet ID receiving the tokens
+   * @param {number} tokenId tokenId.
+   */
+  transferNFT(contractId, walletId, skey, to, tokenId) {
+    return this.apiCall('PUT', 'nfts', { contractId, walletId, skey, to, tokenId}, 'tokenAuth');
+  }
+
+
+  /*
+   * Get a contract
+   *
+   * @param {string} contractId contract ID
+   */
+  getContract(contractId) {
+    return this.apiCall('GET', `contracts/${contractId}`, {}, 'tokenAuth');
+  }
 
   /*
    * Get a token
    *
    * @param {string} contractId contract ID
    */
-  getToken(contractId) {
-    return this.apiCall('GET', `tokens/${contractId}`, {}, 'tokenAuth');
+  getNFT(contractId) {
+    return this.apiCall('GET', `nfts/${contractId}`, {}, 'tokenAuth');
   }
+
 
   /*
    * Get a wallet

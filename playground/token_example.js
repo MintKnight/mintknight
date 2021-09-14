@@ -2,6 +2,7 @@ require('dotenv').config();
 const fs = require('fs')
 const path = require('path')
 const MintKnight = require('../src/index')
+// const MintKnight = require('mintknight')
 let project, minter, wallet1, wallet2
 
 try {
@@ -14,13 +15,11 @@ try {
   console.log('Environment not ready. Be sure to read README.md and rund the setup script first');
 }
 
-// const MintKnight = require('mintknight')
 
 const main = async () => {
   const mintknight = new MintKnight(process.env.MINTKNIGHT_API, {debug: true, ...project});
 
   // 1. Add the contract to the project ERC20.
-  /*
   let task = await mintknight.writeTokenContract(
      process.env.TOKEN_NAME,
      process.env.TOKEN_DESCRIPTION,
@@ -33,39 +32,34 @@ const main = async () => {
   const token = {contractId: task.contract._id};
   task = await mintknight.waitTask(task.taskId);
   token.address = task.addressTo;
-  fs.writeFileSync( path.join(__dirname, 'json', 'erc20.json'), JSON.stringify(token), 'utf8');
-  */
 
-  const token = require('./json/erc20.json');
+  // Save INFO.
+  fs.writeFileSync( path.join(__dirname, 'json', 'erc20.json'), JSON.stringify(token), 'utf8');
 
   // 2. Mint 50 tokens to wallet 1.
-  /*
   task = await mintknight.mintToken(
     token.contractId,
     minter.walletId,
     minter.skey,
 	wallet1.walletId,
-	200,
+	100,
   );
   task = await mintknight.waitTask(task.taskId);
-  */
+  
+  // 3. Transfer 10 tokens to Wallet2.
+  task = await mintknight.transferToken(token.contractId, wallet1.walletId, wallet1.skey, wallet2.walletId, 10);
+  task = await mintknight.waitTask(task.taskId);
 
-  const erc20 = await mintknight.getToken(token.contractId);
-  console.log(erc20);
+  // 4. Transfer 10 tokens to one address
+  task = await mintknight.transferToken(token.contractId, wallet1.walletId, wallet1.skey, process.env.MINTKNIGHT_ADDR, 10);
+  await mintknight.waitTask(task.taskId);
+
+  // 5. Check Balance for Both wallets
   let wallet = await mintknight.getWallet(wallet1.walletId);
   console.log(wallet);
   wallet = await mintknight.getWallet(wallet2.walletId);
   console.log(wallet);
 
-  // 3. Transfer 10 tokens to Wallet2.
-  // await mintknight.transferToken(token.contractId, wallet1.walletId, wallet1.skey, wallet2.walletId, 10);
-
-  // 4. Transfer 100 tokens back to Wallet1
-
-  // 5. Send tokens to an external address (No Wallet).
-
-  // 5. Check Balance for Both wallets
-  // Save token Info (JSON)
 };
 
 main();

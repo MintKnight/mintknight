@@ -18,8 +18,8 @@ try {
 
 const main = async () => {
   const mintknight = new MintKnight(process.env.MINTKNIGHT_API, {debug: true, ...project});
+	/*
   // 1. Add the NFT contract to the project.
-  /*
   let task = await mintknight.writeNFTContract(
      process.env.TOKEN_NAME,
      process.env.TOKEN_DESCRIPTION,
@@ -32,18 +32,19 @@ const main = async () => {
   const nft = {contractId: task.contract._id};
   task = await mintknight.waitTask(task.taskId);
   nft.address = task.addressTo;
-  fs.writeFileSync( path.join(__dirname, 'json', 'nft.json'), JSON.stringify(nft), 'utf8');*/
-  const nft = require('./json/nft.json');
+  fs.writeFileSync( path.join(__dirname, 'json', 'nft.json'), JSON.stringify(nft), 'utf8');
+	*/
+   const nft = require('./json/nft.json');
 
   // 2. Mint 1 NFT to wallet 1.
-  /*
+/*
   task = await mintknight.mintNFT(
     nft.contractId,
     minter.walletId,
     minter.skey,
 	wallet1.walletId,
 	{
-      name: 'NFT #1',
+      name: 'NFT #2',
       description: "First NFT to be created on Mintknight",
       external_url: "https://company.org/test/1",
       image: 'https://sandbox.mintknight.com/img/nft2.png',
@@ -57,17 +58,18 @@ const main = async () => {
     },
   );
   task = await mintknight.waitTask(task.taskId);
-  */
+*/
+  const erc721 = await mintknight.getContract(nft.contractId);
+  console.log(erc721);
+  let wallet = await mintknight.getWallet(wallet1.walletId);
+  console.log(wallet);
 
-  // const erc20 = await mintknight.getToken(token.contractId);
-  // console.log(erc20);
-  // let wallet = await mintknight.getWallet(wallet1.walletId);
-  // console.log(wallet);
+  // 3. Transfer NFT to Wallet2.
+  // task = await mintknight.transferNFT(nft.contractId, wallet1.walletId, wallet1.skey, wallet2.walletId, 3);
+  // task = await mintknight.waitTask(task.taskId);
 
-  // 3. Transfer 10 tokens to Wallet2.
-  task = await mintknight.transferToken(nft.contractId, wallet1.walletId, wallet1.skey, wallet2.walletId, 1);
-  task = await mintknight.waitTask(task.taskId);
-
+  wallet = await mintknight.getWallet(wallet2.walletId);
+  console.log(wallet);
   // 4. Transfer 100 tokens back to Wallet1
 
   // 5. Send tokens to an external address (No Wallet).
