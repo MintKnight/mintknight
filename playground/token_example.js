@@ -1,8 +1,7 @@
 require('dotenv').config();
 const fs = require('fs')
 const path = require('path')
-const MintKnight = require('../src/index')
-// const MintKnight = require('mintknight')
+const { MintKnight } = require('../src/index')
 let project, minter, wallet1, wallet2
 
 try {
@@ -17,41 +16,45 @@ try {
 
 
 const main = async () => {
-  const mintknight = new MintKnight(process.env.MINTKNIGHT_API, {debug: true, ...project});
+  const mintknight = new MintKnight(process.env.MINTKNIGHT_API_SERVICE, {debug: true, ...project});
 
+/*
   // 1. Add the contract to the project ERC20.
-  let task = await mintknight.writeTokenContract(
-     process.env.TOKEN_NAME,
-     process.env.TOKEN_DESCRIPTION,
-     process.env.TOKEN_SYMBOL,
-     project.campaignId,
+  let task = await mintknight.deployContract(
+     project.tokenId,
      minter.walletId,
-     100000,
-     2
   );
-  const token = {contractId: task.contract._id};
   task = await mintknight.waitTask(task.taskId);
-  token.address = task.addressTo;
+  project.tokenAddress = task.addressTo;
 
   // Save INFO.
-  fs.writeFileSync( path.join(__dirname, 'json', 'erc20.json'), JSON.stringify(token), 'utf8');
-
+  fs.writeFileSync( path.join(__dirname, 'json', 'project.json'), JSON.stringify(project),'utf8');
+  */
   // 2. Mint 50 tokens to wallet 1.
   task = await mintknight.mintToken(
-    token.contractId,
+    project.tokenId,
     minter.walletId,
     minter.skey,
 	wallet1.walletId,
-	100,
+	'50',
   );
   task = await mintknight.waitTask(task.taskId);
-  
+
   // 3. Transfer 10 tokens to Wallet2.
-  task = await mintknight.transferToken(token.contractId, wallet1.walletId, wallet1.skey, wallet2.walletId, 10);
+  task = await mintknight.transferToken(
+    project.tokenId,
+    wallet1.walletId,
+    wallet1.skey,
+    wallet2.walletId,
+    '10');
   task = await mintknight.waitTask(task.taskId);
 
   // 4. Transfer 10 tokens to one address
-  task = await mintknight.transferToken(token.contractId, wallet1.walletId, wallet1.skey, process.env.MINTKNIGHT_ADDR, 10);
+  task = await mintknight.transferToken(project.tokenId, wallet1.walletId, wallet1.skey, process.env.MINTKNIGHT_ADDR, '10');
+  await mintknight.waitTask(task.taskId);
+
+  // 5. Transfer from a contract address (not a contractId)
+  task = await mintknight.transferToken(project.tokenAddress, wallet1.walletId, wallet1.skey, process.env.MINTKNIGHT_ADDR, 5);
   await mintknight.waitTask(task.taskId);
 
   // 5. Check Balance for Both wallets

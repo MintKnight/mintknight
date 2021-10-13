@@ -1,28 +1,24 @@
 require('dotenv').config();
 const fs = require('fs')
 const path = require('path')
+const faker = require('faker');
 
-const MintKnight = require('../src/index')
-// const MintKnight = require('mintknight')
-
+const { MintKnightWeb } = require('../src/index')
 
 const main = async () => {
-  const conf = {}
-  const mintknight = new MintKnight(process.env.MINTKNIGHT_API, {debug: true});
+  const mintknight = new MintKnightWeb(process.env.MINTKNIGHT_API_WEB, {debug: true});
+  const conf = {
+    username: faker.internet.userName(),
+    email: faker.internet.email(),
+    password: faker.internet.password(),
+    phone: faker.phone.phoneNumber(),
+  }
 
   // Add a new admin user.
-  const user = await mintknight.addUser(
-    process.env.USER_USERNAME,
-    process.env.USER_EMAIL,
-    process.env.USER_PASSWORD,
-    process.env.USER_PHONE,
-  );
+  const user = await mintknight.addUser(conf.username, conf.email, conf.password, conf.phone);
 
   // Login as admin to knitghnight to get the user API KEY.
-  let result = await mintknight.loginUser(
-    process.env.USER_EMAIL,
-    process.env.USER_PASSWORD,
-  );
+  let result = await mintknight.loginUser(conf.email, conf.password);
   conf.token = result.token;
 
   // Add a new company for that user.
@@ -42,30 +38,9 @@ const main = async () => {
   );
   conf.projectId = project._id;
 
-  // Get the API KEy fro that project.
+  // Get the API KEY from that project.
   const apiKey = await mintknight.getApiKey(conf.projectId);
   conf.apiKey = apiKey.token;
-
-  // Add wallet : minter for the contracts. Th id is internal to your organization.
-  let task = await mintknight.addWallet('id_minter');
-  const minter = { walletId: task.wallet._id, skey: task.skey1 };
-  task = await mintknight.waitTask(task.taskId);
-  minter.address = task.addressTo;
-  fs.writeFileSync( path.join(__dirname, 'json', 'minter.json'), JSON.stringify(minter), 'utf8');
-	//
-  // Add Wallet 1 for the contract.
-  task = await mintknight.addWallet('id_user_wallet_1');
-  const wallet1 = { walletId: task.wallet._id, skey: task.skey1 };
-  task = await mintknight.waitTask(task.taskId);
-  wallet1.address = task.addressTo;
-  fs.writeFileSync( path.join(__dirname, 'json', 'wallet1.json'), JSON.stringify(wallet1), 'utf8');
-
-  // Add Wallet 2 for the contract.
-  task = await mintknight.addWallet('id_user_wallet_2');
-  const wallet2 = { walletId: task.wallet._id, skey: task.skey1 };
-  task = await mintknight.waitTask(task.taskId);
-  wallet2.address = task.addressTo;
-  fs.writeFileSync( path.join(__dirname, 'json', 'wallet2.json'), JSON.stringify(wallet2), 'utf8');
 
   const campaign = await mintknight.addCampaign(
     process.env.CAMPAIGN_NAME,
@@ -73,8 +48,28 @@ const main = async () => {
     conf.projectId,
   );
   conf.campaignId = campaign._id;
+
+  // Add the contract to the project ERC20.
+  let contract = await mintknight.writeTokenContract(
+     process.env.TOKEN_NAME,
+     process.env.TOKEN_SYMBOL,
+     process.env.TOKEN_DESCRIPTION,
+     conf.campaignId,
+  );
+  conf.tokenId = contract._id;
+
+  // Add the contract to the project NFTs.
+  contract = await mintknight.writeNFTContract(
+     process.env.TOKEN_NAME,
+     process.env.TOKEN_SYMBOL,
+     process.env.TOKEN_DESCRIPTION,
+     conf.campaignId,
+  );
+  conf.nftId = contract._id;
+
+  // Save INFO.
   fs.writeFileSync( path.join(__dirname, 'json', 'project.json'), JSON.stringify(conf), 'utf8');
-console.log(campaign);
+
 };
 
 main();
