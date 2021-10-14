@@ -52,21 +52,21 @@ const main = async () => {
   task = await mintknight.waitTask(task.taskId);
   minter.address = task.addressTo;
   fs.writeFileSync( path.join(__dirname, 'json', 'minter.json'), JSON.stringify(minter), 'utf8');
-	//
+
+/*
   // Add Wallet 1 for the contract.
   task = await mintknight.addWallet('id_user_wallet_1');
   const wallet1 = { walletId: task.wallet._id, skey: task.skey1 };
   task = await mintknight.waitTask(task.taskId);
   wallet1.address = task.addressTo;
   fs.writeFileSync( path.join(__dirname, 'json', 'wallet1.json'), JSON.stringify(wallet1), 'utf8');
-
   // Add Wallet 2 for the contract.
   task = await mintknight.addWallet('id_user_wallet_2');
   const wallet2 = { walletId: task.wallet._id, skey: task.skey1 };
   task = await mintknight.waitTask(task.taskId);
   wallet2.address = task.addressTo;
   fs.writeFileSync( path.join(__dirname, 'json', 'wallet2.json'), JSON.stringify(wallet2), 'utf8');
-
+*/
   const campaign = await mintknight.addCampaign(
     process.env.CAMPAIGN_NAME,
     process.env.CAMPAIGN_DESCRIPTION,
