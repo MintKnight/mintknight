@@ -10,5 +10,9 @@ module.exports = {
   network: {
     type: 'string',
     valid: ['mumbai', 'polygon', 'testnet']
+  },
+  value: {
+    type: 'string',
+    min: 1
   }
 }
