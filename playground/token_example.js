@@ -18,7 +18,6 @@ try {
 const main = async () => {
   const mintknight = new MintKnight(process.env.MINTKNIGHT_API_SERVICE, {debug: true, ...project});
 
-/*
   // 1. Add the contract to the project ERC20.
   let task = await mintknight.deployContract(
      project.tokenId,
@@ -29,7 +28,7 @@ const main = async () => {
 
   // Save INFO.
   fs.writeFileSync( path.join(__dirname, 'json', 'project.json'), JSON.stringify(project),'utf8');
-  */
+
   // 2. Mint 50 tokens to wallet 1.
   task = await mintknight.mintToken(
     project.tokenId,
