@@ -8,7 +8,7 @@ npm install
 
 Create a new .env file with connection Parameters:
 MINTKNIGHT_API_WEB=https://webapi.sandbox.mintknight.com/
-MINTKNIGHT_API_SERVICE=https://serviceapi.sandbox.mintknight.com/
+MINTKNIGHT_API_SERVICE=https://api.sandbox.mintknight.com/
 
 We have two APIs, one for management (users, companies, projects...) and one strictly for Blockchain. At Sandbox level it is possible to access the Web API, but in production it is restricted.
 
