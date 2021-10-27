@@ -6,18 +6,15 @@ Scripts to interact with the Mintknight API
 npm install
 ```
 
+On how to set up users (only sandbox) : playground/setup.js
+
+Tokens : [example](playground/token_exaimple.js)
+NFTs : [example](playground/nft_example.js
+)
 Example:
 ```javascript
 const MintKnight = require('mintknight');
-const mintknight = new MintKnight(process.env.MINTKNIGHT_API);
-
-const user = await mintknight.addUser(
-    process.env.MK_USERNAME,
-    process.env.MK_EMAIL,
-    process.env.MK_PASSWORD,
-    process.env.MK_PHONE,
-  );
-
+const mintknight = new MintKnight(process.env.MINTKNIGHT_API_WEB);
 ```
 
 ## Using the Playground
