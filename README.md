@@ -1,16 +1,17 @@
-# mintknight-demo
-Scripts to interact with the Mintknight API
+# mintknight
+Javascript Library to interact with the Mintknight API
 
 ## Install
 ```bash
 npm install
 ```
 
-On how to set up users (only sandbox) : playground/setup.js
+Create a new .env file with connection Parameters:
+MINTKNIGHT_API_WEB=https://webapi.sandbox.mintknight.com/
+MINTKNIGHT_API_SERVICE=https://serviceapi.sandbox.mintknight.com/
 
-Tokens : [example](playground/token_exaimple.js)
-NFTs : [example](playground/nft_example.js
-)
+We have two APIs, one for management (users, companies, projects...) and one strictly for Blockchain. At Sandbox level it is possible to access the Web API, but in production it is restricted.
+
 Example:
 ```javascript
 const MintKnight = require('mintknight');
@@ -36,71 +37,22 @@ node 1.setup.js
 This will add a new user to the Sandbox, setup a company, a project and a campaign.
 You are now ready to play with contracts.
 
-## Users
-First add a new user, login and set the company details
-```bash
-node 1.useradd.js
-node 2.userlogin.js 
-```
-
-open .env and set TOKEN
-
-```bash
-node 3.addcompany.js
-```
-
-## Project and Campaigns
-Now add a new project and get an API KEY
-```bash
-node 4.addproject.js
-```
-open .env and set PROJECTID
-
-```bash
-node 5.getapikey.js 
-```
-
-open .env and set APIKEY
-
-```bash
-node 6.addcampaign.js 
-```
-
-open .env and set CAMPAIGNID
+The Ids for project, campaign, wallets and tokens are stored inside /json
 
 ## Setup Wallets
 For this demo we need three wallets, the minter of the collection, the wallet we will mint the NFTs to and the wallet to transfer the NFT to.
 
 ```bash
-node 7.addwallet.js
+node wallet.js
 ```
-Save the ID and one of the skey returned (any) to ID and KEY for the three wallets to be created: MINTER, WALLET1 and WALLET2
+Every wallet is a Smart Contract deployed to the Blockchain. The call will return a taskId.
 
-Every wallet is a Smart Contract deployed to the Blockchain. The call will return a taskId, and you can get the state of the task by calling:
+## Tokens
 
-```bash
-node task.js <TASKID>
-```
-
-## Create a Collection (the NFT Smart Contract) and mint
-
-```bash
-node 8.addcollection.js
-node task.js <TASKID>
-```
-
-It also returns a task. You need to wait for the NFT (ERC721) smart contract to be deployed. The minter wallet is set as minter of the NFTs. You can now access the metadata with the tokenId (first one is zero).
-
-```bash
-node 9.mint.js
-node task.js <TASKID>
-node nft.js 0
-```
-
-## Transfer
-
-Now you van transfer the NFT to wallet2
-```bash
-node 10.transfer.js
-node task.js <TASKID>
-```
+The token_example.js wis an example of howto:
+1. Deploy the ERC20 contract
+2. Mint the first tokens
+3. Transfer tokens between wallets
+4. Transfer tokens to external address (not in MintKnight)
+5. Transfer tokens from an external ERC20 contract (not in MintKnight).
+6. Check The Balance

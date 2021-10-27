@@ -56,7 +56,7 @@ const main = async () => {
   task = await mintknight.transferToken(project.tokenAddress, wallet1.walletId, wallet1.skey, process.env.MINTKNIGHT_ADDR, 5);
   await mintknight.waitTask(task.taskId);
 
-  // 5. Check Balance for Both wallets
+  // 6. Check Balance for Both wallets
   let wallet = await mintknight.getWallet(wallet1.walletId);
   console.log(wallet);
   wallet = await mintknight.getWallet(wallet2.walletId);
