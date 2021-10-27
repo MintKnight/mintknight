@@ -8,10 +8,10 @@ const { MintKnightWeb } = require('../src/index')
 const main = async () => {
   const mintknight = new MintKnightWeb(process.env.MINTKNIGHT_API_WEB, {debug: true});
   const conf = {
-    username: faker.internet.userName(),
-    email: faker.internet.email(),
-    password: faker.internet.password(),
-    phone: faker.phone.phoneNumber(),
+    username: process.env.USER_USERNAME,
+    email: process.env.USER_EMAIL,
+    password: process.env.USER_PASSWORD,
+    phone: process.env.USER_PHONE,
   }
 
   // Add a new admin user.
