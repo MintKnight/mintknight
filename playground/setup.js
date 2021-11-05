@@ -42,31 +42,6 @@ const main = async () => {
   const apiKey = await mintknight.getApiKey(conf.projectId);
   conf.apiKey = apiKey.token;
 
-  const campaign = await mintknight.addCampaign(
-    process.env.CAMPAIGN_NAME,
-    process.env.CAMPAIGN_DESCRIPTION,
-    conf.projectId,
-  );
-  conf.campaignId = campaign._id;
-
-  // Add the contract to the project ERC20.
-  let contract = await mintknight.writeTokenContract(
-     process.env.TOKEN_NAME,
-     process.env.TOKEN_SYMBOL,
-     process.env.TOKEN_DESCRIPTION,
-     conf.campaignId,
-  );
-  conf.tokenId = contract._id;
-
-  // Add the contract to the project NFTs.
-  contract = await mintknight.writeNFTContract(
-     process.env.TOKEN_NAME,
-     process.env.TOKEN_SYMBOL,
-     process.env.TOKEN_DESCRIPTION,
-     conf.campaignId,
-  );
-  conf.nftId = contract._id;
-
   // Save INFO.
   fs.writeFileSync( path.join(__dirname, 'json', 'project.json'), JSON.stringify(conf), 'utf8');
 
