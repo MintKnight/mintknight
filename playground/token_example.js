@@ -19,26 +19,30 @@ const main = async () => {
   const mintknight = new MintKnight(process.env.MINTKNIGHT_API_SERVICE, {debug: true, ...project});
 
   // 1. Add the contract to the project ERC20.
+/*
   let task = await mintknight.deployContract(
-     project.tokenId,
+     20,
+     process.env.TOKEN_NAME,
+     process.env.TOKEN_SYMBOL,
+     process.env.TOKEN_DESCRIPTION,
      minter.walletId,
   );
+  project.contractId = task.contract._id;
   task = await mintknight.waitTask(task.taskId);
   project.tokenAddress = task.addressTo;
-
   // Save INFO.
   fs.writeFileSync( path.join(__dirname, 'json', 'project.json'), JSON.stringify(project),'utf8');
-
+  */
   // 2. Mint 50 tokens to wallet 1.
   task = await mintknight.mintToken(
-    project.tokenId,
+    project.contractId,
     minter.walletId,
     minter.skey,
 	wallet1.walletId,
 	'50',
   );
   task = await mintknight.waitTask(task.taskId);
-
+/*
   // 3. Transfer 10 tokens to Wallet2.
   task = await mintknight.transferToken(
     project.tokenId,
@@ -61,7 +65,7 @@ const main = async () => {
   console.log(wallet);
   wallet = await mintknight.getWallet(wallet2.walletId);
   console.log(wallet);
-
+  */
 };
 
 main();

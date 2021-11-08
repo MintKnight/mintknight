@@ -92,8 +92,15 @@ class MintKnight extends MintKnightBase {
    *
    * @param {string} projectId ProjectId
    */
-  deployContract(contractId, walletId) {
-    return this.apiCall('POST', `contracts/${contractId}/${walletId}`, {}, 'tokenAuth');
+  deployContract(erc, name, symbol, description, walletId ) {
+    const contract = {
+      erc,
+      name,
+      symbol,
+      description,
+      walletId
+    };
+    return this.apiCall('POST', `contracts/`, contract, 'tokenAuth');
   }
 
   /*

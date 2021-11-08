@@ -13,14 +13,13 @@ class MintKnightWeb extends MintKnightBase {
   /*
    * Add a user.
    *
-   * @param {string} username New user Name
    * @param {string} email Email
    * @param {string} password Password
    * @param {string} telephone Phone Number
    * @return {object} User object
    */
-  addUser(username, email, password, telephone) {
-    return this.apiCall('POST', 'users/register', { username, email, password, telephone }, false);
+  addUser(email, password, telephone) {
+    return this.apiCall('POST', 'users/register', { email, password, telephone }, false);
   }
 
   /*
@@ -80,41 +79,11 @@ class MintKnightWeb extends MintKnightBase {
    *
    * @param {string} projectId ProjectId
    */
+  /*
   addCampaign(name, description, projectId) {
     return this.apiCall('POST', 'campaigns', { name, description, projectId }, 'tokenAuth');
-  }
+  }*/
 
-  /*
-   * Add a ERC20 Contract
-   *
-   * @param {string} projectId ProjectId
-   */
-  writeTokenContract(name, symbol, description, campaignId) {
-    const contract = {
-      erc: 20,
-      name,
-      symbol,
-      description,
-      campaignId,
-    };
-    return this.apiCall('POST', 'contracts', contract, 'tokenAuth');
-  }
-
-  /*
-   * Add a NFT Contract
-   *
-   * @param {string} projectId ProjectId
-   */
-  writeNFTContract(name, symbol, description, campaignId, walletId ) {
-    const contract = {
-      erc: 721,
-      name,
-      symbol,
-      description,
-      campaignId,
-    };
-    return this.apiCall('POST', 'contracts', contract, 'tokenAuth');
-  }
 }
 
 module.exports = MintKnightWeb

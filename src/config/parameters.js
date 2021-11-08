@@ -9,7 +9,7 @@ module.exports = {
   },
   network: {
     type: 'string',
-    valid: ['mumbai', 'polygon', 'testnet']
+    valid: ['mumbai', 'polygon', 'mintknight']
   },
   value: {
     type: 'string',
