@@ -34,6 +34,7 @@ const main = async () => {
   task = await mintknight.waitTask(task.taskId);
   wallet2.address = task.addressTo;
   fs.writeFileSync( path.join(__dirname, 'json', 'wallet2.json'), JSON.stringify(wallet2), 'utf8');
+
 };
 
 main();

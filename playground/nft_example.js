@@ -17,16 +17,19 @@ try {
 
 const main = async () => {
   const mintknight = new MintKnight(process.env.MINTKNIGHT_API_SERVICE, {debug: true, ...project});
-/*
+
   // 1. Add the NFT contract to the project.
   let task = await mintknight.deployContract(
-     project.nftId,
-     minter.walletId,
+    721,
+    process.env.NFT_NAME,
+    process.env.NFT_SYMBOL,
+    process.env.NFT_DESCRIPTION,
+    minter.walletId,
   );
   task = await mintknight.waitTask(task.taskId);
   project.nftAaddress = task.addressTo;
   fs.writeFileSync( path.join(__dirname, 'json', 'nft.json'), JSON.stringify(project), 'utf8');
-  */
+/*
   // 2. Mint 1 NFT to wallet 1.
   task = await mintknight.uploadNFT(
     project.nftId,
@@ -42,7 +45,7 @@ const main = async () => {
     './assets/image.png'
   );
   task = await mintknight.waitTask(task.taskId);
-/*
+
   const erc721 = await mintknight.getContract(project.nftId);
   console.log(erc721);
   let wallet = await mintknight.getWallet(wallet1.walletId);

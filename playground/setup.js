@@ -15,7 +15,7 @@ const main = async () => {
   }
 
   // Add a new admin user.
-  const user = await mintknight.addUser(conf.username, conf.email, conf.password, conf.phone);
+  const user = await mintknight.addUser(conf.email, conf.password, conf.phone);
 
   // Login as admin to knitghnight to get the user API KEY.
   let result = await mintknight.loginUser(conf.email, conf.password);
