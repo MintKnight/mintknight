@@ -18,8 +18,14 @@ class MintKnightWeb extends MintKnightBase {
    * @param {string} telephone Phone Number
    * @return {object} User object
    */
-  addUser(email, password, telephone) {
-    return this.apiCall('POST', 'users/register', { email, password, telephone }, false);
+  registerUser(email, password ) {
+    return new Promise(resolve => {
+      this.apiCall('POST', 'users/register', { email, password }, false)
+        .then(res => {
+          this.token = res.token;
+          resolve(res);
+        });
+    });
   }
 
   /*
@@ -44,8 +50,8 @@ class MintKnightWeb extends MintKnightBase {
    * @param {string} email Email
    * @param {string} password Password
    */
-  setCompany(name, taxId, address, country ) {
-    return this.apiCall('POST', 'companies', { name, taxId, address, country }, 'userAuth');
+  setCompany(name) {
+    return this.apiCall('POST', 'companies', { name }, 'userAuth');
   }
 
   /*
@@ -55,8 +61,8 @@ class MintKnightWeb extends MintKnightBase {
    * @param {string} description Description
    * @param {string} network Netowrk (mimbai, polygon, testnet)
    */
-  addProject(name, description, network) {
-    return this.apiCall('POST', 'projects', { name, description, network }, 'userAuth');
+  addProject(name, network) {
+    return this.apiCall('POST', 'projects', { name, network }, 'userAuth');
   }
 
   /*

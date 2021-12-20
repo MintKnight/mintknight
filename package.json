@@ -4,11 +4,13 @@
     "chalk": "^4.1.2",
     "dotenv": "^10.0.0",
     "faker": "^5.5.3",
-    "form-data": "^4.0.0"
+    "form-data": "^4.0.0",
+    "prompt": "^1.2.0",
+    "prompts": "^2.4.2"
   },
   "name": "mintknight",
   "description": "Scripts to interact with the Mintknight API",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -28,5 +30,11 @@
   "bugs": {
     "url": "https://github.com/MintKnight/mintknight/issues"
   },
-  "homepage": "https://github.com/MintKnight/mintknight#readme"
+  "homepage": "https://github.com/MintKnight/mintknight#readme",
+  "bin": {
+    "mk": "./src/cli.js"
+  },
+  "devDependencies": {
+    "nconf": "^0.11.3"
+  }
 }

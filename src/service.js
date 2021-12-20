@@ -185,6 +185,20 @@ class MintKnight extends MintKnightBase {
     return this.apiCall('GET', `wallets/${walletId}`, {}, 'tokenAuth');
   }
 
+  /*
+   * Add a new Drop
+   */
+  addDrop(name, dropType, totalNfts, maxNfts, totalYield, price, imgBefore, imgAfter ,contractId, walletId, skey) {
+    return this.apiCall('POST', 'drops', {name, dropType, totalNfts, maxNfts, totalYield, price, imgBefore, imgAfter, contractId, walletId, skey}, 'tokenAuth');
+  }
+
+  /*
+   * Get a Code
+   */
+  getCode(dropHash) {
+    return this.apiCall('POST', 'drops/code', {dropHash}, 'tokenAuth');
+  }
+
 }
 
 module.exports = MintKnight

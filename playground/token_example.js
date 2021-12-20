@@ -20,7 +20,7 @@ const main = async () => {
 
   // 1. Add the contract to the project ERC20.
   let task = await mintknight.deployContract(
-     20,
+     'MKERC20',
      process.env.TOKEN_NAME,
      process.env.TOKEN_SYMBOL,
      process.env.TOKEN_DESCRIPTION,
