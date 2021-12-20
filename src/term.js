@@ -70,7 +70,7 @@ const promptProject = async () => {
   {
     type: 'text',
     name: 'name',
-    message: `What's the name of the projectl?`,
+    message: `What's the name of the project?`,
   },
   {
     type: 'select',
@@ -80,14 +80,27 @@ const promptProject = async () => {
       { title: 'mintknight', description: 'MinktKnight evm test network', value: 'mintknight' },
       { title: 'mumbai', description: 'Polygon testnet', value: 'mumbai' },
       { title: 'polygon', description: 'Polygon mainnet', value: 'polygon' },
-      { title: 'rinkeby', description: 'Ethereum testnet', value: 'rinkeby' },
-      { title: 'mainnet', description: 'Ethereum mainnet', value: 'mainnet' },
+ //     { title: 'rinkeby', description: 'Ethereum testnet', value: 'rinkeby' },
+ //     { title: 'mainnet', description: 'Ethereum mainnet', value: 'mainnet' },
     ]
   }];
   const answers = await prompt(questions, {onCancel:cleanup, onSubmit:cleanup});
-  console.log(answers);
   if (answers.name=== undefined || answers.network=== undefined) process.exit();
   return answers;
+}
+
+const selectProject = async (choices) => {
+  warning('\nSelect Project');
+  const questions = [
+  {
+    type: 'select',
+    name: 'project',
+    message: 'Choose a project',
+    choices
+  }];
+  const answers = await prompt(questions, {onCancel:cleanup, onSubmit:cleanup});
+  if (answers.project === undefined) process.exit();
+  return answers.project;
 }
 
 const inputText = async (message) => {
@@ -102,9 +115,14 @@ const inputText = async (message) => {
   return answers.name;
 }
 
-const detail = (label, value1, value2 = false) => {
-  log(chalk.hex('#FFA500').bold(label) + ': ' + value1 + ((value2 === false) ? '' : chalk.blue(` (${value2})`)));
-
+const detail = (label, value1, network = false) => {
+  let color = '';
+  switch (network) {
+    case 'mintknight': color = '#32afff'; break;
+    case 'mumbai': color = '#34e2e2'; break;
+    case 'polygon': color = '#4e9a06'; break;
+  }
+  log(chalk.hex('#FFA500').bold(label) + ': ' + value1 + ((network === false) ? '' : chalk.hex(color).bold(` (${network})`)));
 }
-module.exports = {log, title, error, warning, detail, proceed, promptUser, promptProject, inputText}
+module.exports = {log, title, error, warning, detail, proceed, promptUser, promptProject, selectProject, inputText}
 

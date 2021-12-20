@@ -1,6 +1,6 @@
 const fs = require('fs');
 const { log, title, error, warning, detail, proceed } = require('./term');
-const { promptUser, promptProject, inputText } = require('./term');
+const { promptUser, promptProject, inputText, selectProject } = require('./term');
 const { MintKnight, MintKnightWeb } = require('../src/index')
  const HOMEMK = (process.env.HOME || process.env.USERPROFILE) + '/.mintknight';
 
@@ -35,7 +35,11 @@ const connect = (nconf) => {
       urlService = 'https://webapi.mintknight.com/';
     break;
   }
-  const mintknight = new MintKnightWeb(urlWeb, {debug: nconf.get('DEBUG') || false});
+  const props = {
+    debug: nconf.get('DEBUG') || false,
+	token: nconf.get('user:token'),
+  }
+  const mintknight = new MintKnightWeb(urlWeb, props);
   const token = nconf.get('user:token') || false;
   return {token, mintknight};
 }
@@ -144,5 +148,54 @@ const info = async (nconf) => {
   detail('project', project.name, project.network);
 }
 
-module.exports = { login, register, logout, info };
+/**
+ * Add a new Project
+ *
+ * @param {string} nconf
+ */
+const newProject = async (nconf) => {
+  const {token, mintknight} = connect(nconf);
+	console.log(token);
+
+  // Add project.
+  const project = await promptProject()
+  log(project);
+  let result = await mintknight.addProject(project.name, project.network);
+  project.projectId = result._id;
+  log(result);
+
+  // Get Token.
+  result = await mintknight.getApiKey(project.projectId);
+  project.token = result.token;
+  await addProject(nconf, project);
+}
+
+/**
+ * Select a Project
+ *
+ * @param {string} nconf
+ */
+const selProject = async (nconf) => {
+	const projects = nconf.get('user:projects');
+	if (projects.length < 2) {
+	  warning('Only one project available. Already selected');
+	} else {
+	  const choices = [];
+      for (let i = 0;i < projects.length; i++) {
+		const project = nconf.get(projects[i]);
+		const choice = {
+		  title: project.name,
+		  description: `${project.name} (${project.network})`,
+		  value: projects[i]
+		}
+		choices.push(choice);
+	  }
+	  const projectId = await selectProject(choices);
+      nconf.set('user:projectId', projectId);
+      nconf.save();
+      log('Project changed');
+	}
+}
+
+module.exports = { login, register, logout, info, newProject, selProject };
 

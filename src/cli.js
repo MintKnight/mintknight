@@ -5,7 +5,23 @@ const nconf = require('nconf');
 const { log, title, error, warning, proceed } = require('./term');
 const { greet, init, saveUser, addProject } = require('./utils');
 const { login, register, logout, info } = require('./actions');
+const { newProject, selProject } = require('./actions');
 const HOMEMK = (process.env.HOME || process.env.USERPROFILE) + '/.mintknight';
+
+const add = async (nconf) => {
+  const element = process.argv[3];
+  switch (element) {
+    case 'project': newProject(nconf); break;
+    case 'image': addImage(nconf); brfeak;
+    case 'contract': addContract(nconf); break;
+    case 'drop': addDrop(nconf); break;
+    case 'nft': addNft(nconf); break;
+	default:
+	  error('Invalid element to add (project/image/contract/drop/nft)');
+    break;
+  }
+
+}
 
 const main = async () => {
   const action = process.argv[2] || false;
@@ -14,6 +30,8 @@ const main = async () => {
     case 'register': register(nconf); break;
     case 'login': login(nconf); break;
     case 'logout': logout(nconf); break;
+    case 'add': add(nconf); break;
+    case 'project': selProject(nconf); break;
     default: info(nconf); break;
   }
   return;

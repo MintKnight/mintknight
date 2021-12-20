@@ -17,8 +17,8 @@ const init = (action) => {
   nconf.file( path.resolve( HOMEMK, `config.${nconf.get('ENV')}.json` ));
   const token = nconf.get('user:token') || false;
   if ((token === false) && !['login', 'register'].includes(action)) {
-    log('\nFirst you need to login (mk login) or Register (mk register)');
     error('No user detected');
+    log('First you need to login (mk login) or Register (mk register)\n');
   }
   return nconf;
 }
