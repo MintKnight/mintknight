@@ -8,7 +8,6 @@ const { MintKnightWeb } = require('../src/index')
 const main = async () => {
   const mintknight = new MintKnightWeb(process.env.MINTKNIGHT_API_WEB, {debug: true});
   const conf = {
-    username: process.env.USER_USERNAME,
     email: process.env.USER_EMAIL,
     password: process.env.USER_PASSWORD,
     phone: process.env.USER_PHONE,
@@ -18,6 +17,7 @@ const main = async () => {
   const user = await mintknight.addUser(conf.email, conf.password, conf.phone);
 
   // Login as admin to knitghnight to get the user API KEY.
+  console.log(conf);
   let result = await mintknight.loginUser(conf.email, conf.password);
   conf.token = result.token;
 
