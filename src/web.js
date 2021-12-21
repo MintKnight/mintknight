@@ -81,15 +81,24 @@ class MintKnightWeb extends MintKnightBase {
   }
 
   /*
-   * Get an API KEY for the project.
+   * Upload One Image to Arweave.
    *
-   * @param {string} projectId ProjectId
+   * @param {string} file File name with path
    */
-  /*
-  addCampaign(name, description, projectId) {
-    return this.apiCall('POST', 'campaigns', { name, description, projectId }, 'tokenAuth');
-  }*/
-
+  addImage(imageFile, imageName) {
+    return new Promise((resolve) => {
+      const form = new FormData();
+      const image = fs.readFileSync(imageFile);
+      form.append('nftImage', image, imageName);
+      const config = { headers: { ...form.getHeaders(), Authorization: `Bearer ${this.token}` } };
+      console.log(config);
+      axios.post(`${this.api}media`, form, config)
+      .then((res) => {
+        resolve(res.data);
+      })
+      .catch((e) => log(chalk.red('Error'), e.message));
+    });
+  }
 }
 
 module.exports = MintKnightWeb

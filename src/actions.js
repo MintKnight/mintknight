@@ -1,8 +1,9 @@
 const fs = require('fs');
+const path = require('path');
 const { log, title, error, warning, detail, proceed } = require('./term');
 const { promptUser, promptProject, inputText, selectProject } = require('./term');
 const { MintKnight, MintKnightWeb } = require('../src/index')
- const HOMEMK = (process.env.HOME || process.env.USERPROFILE) + '/.mintknight';
+const HOMEMK = (process.env.HOME || process.env.USERPROFILE) + '/.mintknight';
 
 /**
  * Adds the conf dir if it does not exists
@@ -155,14 +156,11 @@ const info = async (nconf) => {
  */
 const newProject = async (nconf) => {
   const {token, mintknight} = connect(nconf);
-	console.log(token);
 
   // Add project.
   const project = await promptProject()
-  log(project);
   let result = await mintknight.addProject(project.name, project.network);
   project.projectId = result._id;
-  log(result);
 
   // Get Token.
   result = await mintknight.getApiKey(project.projectId);
@@ -197,5 +195,22 @@ const selProject = async (nconf) => {
 	}
 }
 
-module.exports = { login, register, logout, info, newProject, selProject };
+/**
+ * Add a newImage to media Lib.
+ *
+ * @param {string} nconf
+ */
+const newImage = async (nconf, img = false) => {
+  // Check
+  (img === false) && error('Image needed. mk add image nft.png');
+  (!fs.existsSync(img)) && error(`File ${img} does not exist`);
+  const { name, ext } = path.parse(img);
+  (!['.png'].includes(ext)) && error(`Invalid extension. Only png is valid`)
+
+  // Connect
+  const {token, mintknight} = connect(nconf);
+  const result = await mintknight.addImage(img, `${name}${ext}`);
+}
+
+module.exports = { login, register, logout, info, newProject, selProject, newImage };
 

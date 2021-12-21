@@ -5,14 +5,16 @@ const nconf = require('nconf');
 const { log, title, error, warning, proceed } = require('./term');
 const { greet, init, saveUser, addProject } = require('./utils');
 const { login, register, logout, info } = require('./actions');
-const { newProject, selProject } = require('./actions');
+const { newProject, selProject, newImage, getImages } = require('./actions');
 const HOMEMK = (process.env.HOME || process.env.USERPROFILE) + '/.mintknight';
 
 const add = async (nconf) => {
   const element = process.argv[3];
   switch (element) {
     case 'project': newProject(nconf); break;
-    case 'image': addImage(nconf); brfeak;
+    case 'image':
+      const img = process.argv[4] || false;
+      newImage(nconf, img); break;
     case 'contract': addContract(nconf); break;
     case 'drop': addDrop(nconf); break;
     case 'nft': addNft(nconf); break;
