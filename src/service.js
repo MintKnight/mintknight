@@ -85,8 +85,6 @@ class MintKnight extends MintKnightBase {
     });
   }
 
-
-
   /*
    * Add a ERC20 Contract
    *
@@ -129,7 +127,6 @@ class MintKnight extends MintKnightBase {
     return this.apiCall('POST', 'nfts', {contractId, walletId, skey, to, metadata}, 'tokenAuth');
   }
 
-
   /*
    * Transfer a token
    *
@@ -156,7 +153,6 @@ class MintKnight extends MintKnightBase {
     return this.apiCall('PUT', 'nfts', { contractId, walletId, skey, to, tokenId}, 'tokenAuth');
   }
 
-
   /*
    * Get a contract
    *
@@ -174,7 +170,6 @@ class MintKnight extends MintKnightBase {
   getNFT(contractId) {
     return this.apiCall('GET', `nfts/${contractId}`, {}, 'tokenAuth');
   }
-
 
   /*
    * Get a wallet

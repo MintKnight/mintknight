@@ -49,9 +49,6 @@ class MintKnightBase {
           // Check Valid values.
           if (parameters[keys[i]].valid && !parameters[keys[i]].valid.includes(params[keys[i]]))
             reject(new Error(`Parameter ${keys[i]} is not valid : ${parameters[keys[i]].valid}`));
-        } else if (!params[keys[i]] || params[keys[i]].length < 3) {
-		  log(keys, params);
-          reject(new Error(`Parameter ${keys[i]} should be at least 5 chars`));
         }
       }
       resolve(params);

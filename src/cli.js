@@ -5,13 +5,14 @@ const nconf = require('nconf');
 const { log, title, error, warning, proceed } = require('./term');
 const { greet, init, saveUser, addProject } = require('./utils');
 const { login, register, logout, info } = require('./actions');
-const { newProject, selProject, newImage, getImages } = require('./actions');
+const { newProject, selProject, newWallet, selWallet, newImage, getImages } = require('./actions');
 const HOMEMK = (process.env.HOME || process.env.USERPROFILE) + '/.mintknight';
 
 const add = async (nconf) => {
   const element = process.argv[3];
   switch (element) {
     case 'project': newProject(nconf); break;
+    case 'wallet': newWallet(nconf); break;
     case 'image':
       const img = process.argv[4] || false;
       newImage(nconf, img); break;
@@ -34,6 +35,7 @@ const main = async () => {
     case 'logout': logout(nconf); break;
     case 'add': add(nconf); break;
     case 'project': selProject(nconf); break;
+    case 'wallet': selWallet(nconf); break;
     default: info(nconf); break;
   }
   return;

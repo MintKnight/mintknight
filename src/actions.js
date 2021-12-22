@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
-const { log, title, error, warning, detail, proceed } = require('./term');
-const { promptUser, promptProject, inputText, selectProject } = require('./term');
+const { Prompt, Select } = require('./term');
+const { log, title, error, warning, detail } = require('./term');
 const { MintKnight, MintKnightWeb } = require('../src/index')
 const HOMEMK = (process.env.HOME || process.env.USERPROFILE) + '/.mintknight';
 
@@ -40,9 +40,16 @@ const connect = (nconf) => {
     debug: nconf.get('DEBUG') || false,
 	token: nconf.get('user:token'),
   }
-  const mintknight = new MintKnightWeb(urlWeb, props);
+  let service = false;
   const token = nconf.get('user:token') || false;
-  return {token, mintknight};
+  const projectId = nconf.get('user:projectId');
+  const mintknight = new MintKnightWeb(urlWeb, props);
+  if (projectId) {
+    props.apiKey = nconf.get(`${projectId}:token`);
+    console.log(urlService, props);
+    service = new MintKnight(urlService, props);
+  }
+  return {token, mintknight, service};
 }
 
 /**
@@ -78,6 +85,23 @@ const addProject = async (nconf, project) => {
 }
 
 /**
+ * Add a wallet to the config
+ *
+ * @param {object} nconf
+ * @param {object} project
+ */
+const addWallet = async (nconf, wallet) => {
+  const wallets = nconf.get('user:wallets') || [];
+  wallets.push(wallet.walletId);
+  nconf.set('user:wallets', wallets);
+  nconf.set(`${wallet.walletId}:name`, wallet.name);
+  nconf.set(`${wallet.walletId}:skey`, wallet.skey);
+  nconf.set(`${wallet.walletId}:address`, wallet.address);
+  nconf.set('user:walletId', wallet.walletId);
+  nconf.save();
+}
+
+/**
  * Login action
  *
  * @param {string} nconf
@@ -85,7 +109,7 @@ const addProject = async (nconf, project) => {
 const login = async (nconf) => {
   const {token, mintknight} = connect(nconf);
   (token !== false) && error('Already logged in. Logout first (mk logout)');
-  const user = await promptUser('Login');
+  const user = await Prompt.user('Login');
   let result = await mintknight.loginUser(user.email, user.password);
   nconf.set('user:token', result.token);
   nconf.save();
@@ -103,18 +127,18 @@ const register = async (nconf) => {
   (token !== false) && error('Already logged in. Logout first (mk logout)');
 
   // Register User
-  const user = await promptUser('Register new user');
+  const user = await Prompt.user('Register new user');
   const config = await mintknight.registerUser(user.email, user.password);
   (config.status === 'failed') && error(config.error);
 
   // Register company.
-  const name = await inputText('Name of the Company');
+  const name = await prompt.text('Name of the Company');
   result = await mintknight.setCompany(name);
   config.companyId = result._id;
   await saveConf(nconf, config);
 
   // Add project.
-  const project = await promptProject()
+  const project = await Prompt.project()
   result = await mintknight.addProject(project.name, project.network);
   project.projectId = result._id;
 
@@ -142,11 +166,14 @@ const logout = async (nconf) => {
  *
  * @param {string} nconf
  */
-const info = async (nconf) => {
+const info = (nconf) => {
   const user = nconf.get('user');
-  const project = nconf.get(`${user.projectId}`);
   detail('userId', user.userId);
+  const project = nconf.get(`${user.projectId}`);
   detail('project', project.name, project.network);
+  const wallet = nconf.get(`${user.walletId}`);
+  detail('wallet', wallet.name);
+  return {user, project, wallet};
 }
 
 /**
@@ -158,7 +185,7 @@ const newProject = async (nconf) => {
   const {token, mintknight} = connect(nconf);
 
   // Add project.
-  const project = await promptProject()
+  const project = await Prompt.project()
   let result = await mintknight.addProject(project.name, project.network);
   project.projectId = result._id;
 
@@ -188,11 +215,58 @@ const selProject = async (nconf) => {
 		}
 		choices.push(choice);
 	  }
-	  const projectId = await selectProject(choices);
+	  const projectId = await Select.project(choices);
       nconf.set('user:projectId', projectId);
       nconf.save();
       log('Project changed');
 	}
+}
+
+/**
+ * Select a Wallet
+ *
+ * @param {string} nconf
+ */
+const selWallet = async (nconf) => {
+	const wallets = nconf.get('user:wallets');
+	if (wallets.length < 2) {
+	  warning('Only one wallet available. Already selected');
+	} else {
+	  const choices = [];
+      for (let i = 0;i < wallets.length; i++) {
+		const wallet = nconf.get(wallets[i]);
+		const choice = {
+		  title: wallet.name,
+		  description: `${wallet.name} (${wallet.address})`,
+		  value: wallets[i]
+		}
+		choices.push(choice);
+	  }
+	  const walletId = await Select.wallet(choices);
+      nconf.set('user:walletId', walletId);
+      nconf.save();
+      log('Wallet changed');
+	}
+}
+
+/**
+ * Add a new Wallet
+ *
+ * @param {string} nconf
+ */
+const newWallet = async (nconf) => {
+  const {token, mintknight, service} = connect(nconf);
+
+  const {user, project} = info(nconf);
+  // Add wallet.
+  const wallet = await Prompt.wallet(project.name)
+  let task = await service.addWallet(wallet.ref);
+  const taskId = task.taskId;
+  wallet.walletId = task.wallet._id;
+  wallet.skey = task.skey1;
+  task = await service.waitTask(task.taskId);
+  wallet.address = task.addressTo;
+  await addWallet(nconf, wallet);
 }
 
 /**
@@ -212,5 +286,5 @@ const newImage = async (nconf, img = false) => {
   const result = await mintknight.addImage(img, `${name}${ext}`);
 }
 
-module.exports = { login, register, logout, info, newProject, selProject, newImage };
+module.exports = { login, register, logout, info, newProject, selProject, newWallet, selWallet, newImage };
 
