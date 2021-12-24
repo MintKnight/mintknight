@@ -46,7 +46,6 @@ const connect = (nconf) => {
   const mintknight = new MintKnightWeb(urlWeb, props);
   if (projectId) {
     props.apiKey = nconf.get(`${projectId}:token`);
-    console.log(urlService, props);
     service = new MintKnight(urlService, props);
   }
   return {token, mintknight, service};
@@ -132,7 +131,7 @@ const register = async (nconf) => {
   (config.status === 'failed') && error(config.error);
 
   // Register company.
-  const name = await prompt.text('Name of the Company');
+  const name = await Prompt.text('Name of the Company');
   result = await mintknight.setCompany(name);
   config.companyId = result._id;
   await saveConf(nconf, config);
@@ -172,7 +171,7 @@ const info = (nconf) => {
   const project = nconf.get(`${user.projectId}`);
   detail('project', project.name, project.network);
   const wallet = nconf.get(`${user.walletId}`);
-  detail('wallet', wallet.name);
+  (wallet) && detail('wallet', wallet.name);
   return {user, project, wallet};
 }
 
@@ -282,8 +281,8 @@ const newImage = async (nconf, img = false) => {
   (!['.png'].includes(ext)) && error(`Invalid extension. Only png is valid`)
 
   // Connect
-  const {token, mintknight} = connect(nconf);
-  const result = await mintknight.addImage(img, `${name}${ext}`);
+  const {token, mintknight, service } = connect(nconf);
+  const result = await service.addImage(img, `${name}${ext}`);
 }
 
 module.exports = { login, register, logout, info, newProject, selProject, newWallet, selWallet, newImage };

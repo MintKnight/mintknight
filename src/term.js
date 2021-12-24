@@ -25,7 +25,7 @@ const warning = (...args) => {
 const detail = (label, value1, network = false) => {
   let color = '';
   switch (network) {
-    case 'mintknight': color = '#32afff'; break;
+    case 'localhost': color = '#32afff'; break;
     case 'mumbai': color = '#34e2e2'; break;
     case 'polygon': color = '#4e9a06'; break;
   }
@@ -118,7 +118,6 @@ class Prompt {
     return answers;
   }
 
-
   static async project () {
     warning('\nProject information');
     const questions = [
@@ -132,7 +131,7 @@ class Prompt {
       name: 'network',
       message: 'Choose a network',
       choices: [
-        { title: 'mintknight', description: 'MinktKnight evm test network', value: 'mintknight' },
+        { title: 'localhost', description: 'Ganache local network', value: 'localhost' },
         { title: 'mumbai', description: 'Polygon testnet', value: 'mumbai' },
         { title: 'polygon', description: 'Polygon mainnet', value: 'polygon' },
  //     { title: 'rinkeby', description: 'Ethereum testnet', value: 'rinkeby' },
