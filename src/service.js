@@ -33,11 +33,12 @@ class MintKnight extends MintKnightBase {
       this.mkLog('waiting for Task to end...');
       for (let i = 0; i < times; i += 1) {
         const result = await this.apiCall('GET', `tasks/${taskId}`, {}, 'tokenAuth');
-        if (result.task.state === 'writing') {
+		console.log(result);
+        if (result.state === 'writing' || result.state === 'queued') {
           await new Promise((r) => setTimeout(r, 5000));
 		} else {
           this.mkLog('Task ended');
-		  return resolve(result.task);
+		  return resolve(result);
 		}
 	  }
     });
@@ -90,13 +91,12 @@ class MintKnight extends MintKnightBase {
    *
    * @param {string} projectId ProjectId
    */
-  deployContract(erc, name, symbol, description, walletId ) {
+  addContract(name, symbol, contractType, walletId ) {
     const contract = {
-      erc,
+      contractType,
       name,
       symbol,
-      description,
-      walletId
+      walletId,
     };
     return this.apiCall('POST', `contracts/`, contract, 'tokenAuth');
   }

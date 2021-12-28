@@ -154,12 +154,43 @@ class Prompt {
     }, {
       type: 'text',
       name: 'ref',
-      message: `iInternal reference of the wallet`,
+      message: `Internal reference of the wallet`,
     }];
     const answers = await prompt(questions, {onCancel:cleanup, onSubmit:cleanup});
     if (answers.name=== undefined || answers.ref=== undefined) process.exit();
     return answers;
   }
+
+  static async contract() {
+    warning('\nContract information');
+    const questions = [
+    {
+      type: 'text',
+      name: 'name',
+      message: `What's the name of the Contract?`,
+    },
+	{
+      type: 'text',
+      name: 'symbol',
+      message: `What's the symbol of the Contract?`,
+    },
+    {
+      type: 'select',
+      name: 'contractType',
+      message: 'Choose a contract Type',
+      choices: [
+        { title: 'erc20', description: 'Fungible Token (ERC20)', value: 1 },
+        { title: 'erc721', description: 'Non Fungible Token (ERC721)', value: 2 },
+        { title: 'voucher - whitelist', description: 'Voucher - Whitelist', value: 3 },
+        { title: 'voucher - code', description: 'Voucher - Codes', value: 4 },
+      ]
+    }];
+    const answers = await prompt(questions, {onCancel:cleanup, onSubmit:cleanup});
+    if (answers.name === undefined || answers.symbol === undefined || answers.contractType === undefined)
+	  process.exit();
+    return answers;
+  }
+
 }
 
 module.exports = {log, title, error, warning, detail, Prompt, Select}

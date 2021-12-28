@@ -169,8 +169,10 @@ const info = (nconf) => {
   const user = nconf.get('user');
   detail('userId', user.userId);
   const project = nconf.get(`${user.projectId}`);
+  project.projectId = user.projectId;
   detail('project', project.name, project.network);
   const wallet = nconf.get(`${user.walletId}`);
+  wallet.walletId = user.walletId;
   (wallet) && detail('wallet', wallet.name);
   return {user, project, wallet};
 }
@@ -269,6 +271,28 @@ const newWallet = async (nconf) => {
 }
 
 /**
+ * Add a new Contract
+ *
+ * @param {string} nconf
+ */
+const newContract = async (nconf) => {
+  const {token, mintknight, service} = connect(nconf);
+  const {user, project, wallet} = info(nconf);
+  // Add contract.
+  const contract = await Prompt.contract(project.name)
+  let task = await service.addContract(
+    contract.name,
+    contract.symbol,
+    contract.contractType,
+    wallet.walletId
+  );
+  const taskId = task.taskId;
+  task = await service.waitTask(task.taskId);
+//   wallet.address = task.addressTo;
+ //  await addWallet(nconf, wallet);
+}
+
+/**
  * Add a newImage to media Lib.
  *
  * @param {string} nconf
@@ -285,5 +309,5 @@ const newImage = async (nconf, img = false) => {
   const result = await service.addImage(img, `${name}${ext}`);
 }
 
-module.exports = { login, register, logout, info, newProject, selProject, newWallet, selWallet, newImage };
+module.exports = { login, register, logout, info, newProject, selProject, newWallet, selWallet, newImage, newContract };
 
