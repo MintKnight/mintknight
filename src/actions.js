@@ -22,7 +22,8 @@ const addConfDir = async () => {
  */
 const connect = (nconf) => {
   let urlWeb, urlService;
-  switch (nconf.get('ENV')) {
+  const env = nconf.get('env');
+  switch (env) {
     case 'local':
       urlWeb = 'http://localhost:5000/';
       urlService = 'http://localhost:5001/';
@@ -36,19 +37,28 @@ const connect = (nconf) => {
       urlService = 'https://webapi.mintknight.com/';
     break;
   }
-  const props = {
-    debug: nconf.get('DEBUG') || false,
-	token: nconf.get('user:token'),
-  }
   let service = false;
-  const token = nconf.get('user:token') || false;
-  const projectId = nconf.get('user:projectId');
+  const token = nconf.get(`${env}:token`) || false;
+  const props = {
+    debug: nconf.get('debug') || true,
+	  token,
+  }
+  const projectId = nconf.get(`${env}:projectId`);
   const mintknight = new MintKnightWeb(urlWeb, props);
   if (projectId) {
     props.apiKey = nconf.get(`${projectId}:token`);
     service = new MintKnight(urlService, props);
   }
   return {token, mintknight, service};
+}
+/**
+ * Toggle debug value
+ */
+const toggleDebug = async (nconf) => {
+  const debug = nconf.get('debug');
+  nconf.set('debug', !debug);
+  nconf.save();
+  log(`Debug set to ${!debug}`);
 }
 
 /**
@@ -57,12 +67,14 @@ const connect = (nconf) => {
  * @param {object} nconf
  * @param {object}user
  */
-const saveConf = async (nconf, user) => {
+const saveUser = async (nconf, user) => {
   (user.status === 'failed') && error(user.error);
   await addConfDir();
-  nconf.set('user:userId', user._id);
-  nconf.set('user:token', user.token);
-  nconf.set('user:companyId', user.companyId);
+  const env = nconf.get('env');
+  nconf.set('debug', false);
+  nconf.set(`${env}:userId`, user._id);
+  nconf.set(`${env}:token`, user.token);
+  nconf.set(`${env}:companyId`, user.companyId);
   nconf.save();
 }
 
@@ -73,13 +85,14 @@ const saveConf = async (nconf, user) => {
  * @param {object} project
  */
 const addProject = async (nconf, project) => {
-  const projects = nconf.get('user:projects') || [];
+  const env = nconf.get('env');
+  const projects = nconf.get(`${env}:projects`) || [];
   projects.push(project.projectId);
-  nconf.set('user:projects', projects);
-  nconf.set(`${project.projectId}:token`, project.token);
-  nconf.set(`${project.projectId}:name`, project.name);
-  nconf.set(`${project.projectId}:network`, project.network);
-  nconf.set('user:projectId', project.projectId);
+  nconf.set(`${env}:projects`, projects);
+  nconf.set(`${env}:projectId`, project.projectId);
+  nconf.set(`${env}:${project.projectId}:token`, project.token);
+  nconf.set(`${env}:${project.projectId}:name`, project.name);
+  nconf.set(`${env}:${project.projectId}:network`, project.network);
   nconf.save();
 }
 
@@ -121,20 +134,25 @@ const login = async (nconf) => {
  * @param {string} nconf
  */
 const register = async (nconf) => {
-  const {token, mintknight} = connect(nconf);
-  log(token);
-  (token !== false) && error('Already logged in. Logout first (mk logout)');
+  const env = nconf.get('env');
+  (env !== undefined) && error('Already registered. A config file already exists');
 
   // Register User
   const user = await Prompt.user('Register new user');
+  nconf.set('env', user.env);
+  nconf.save();
+
+  const {token, mintknight} = connect(nconf);
   const config = await mintknight.registerUser(user.email, user.password);
+  (config === false) && error('Error while registering the user');
   (config.status === 'failed') && error(config.error);
 
   // Register company.
+  warning(`\nCompany and Project`);
   const name = await Prompt.text('Name of the Company');
   result = await mintknight.setCompany(name);
   config.companyId = result._id;
-  await saveConf(nconf, config);
+  await saveUser(nconf, config);
 
   // Add project.
   const project = await Prompt.project()
@@ -155,7 +173,8 @@ const register = async (nconf) => {
 const logout = async (nconf) => {
   const {token, mintknight} = connect(nconf);
   (token === false) && error('Not logged in');
-  nconf.set('user:token', false);
+  const env = nconf.get('env');
+  nconf.set(`${env}:token`, false);
   nconf.save();
   log('Logout succesful');
 }
@@ -166,14 +185,18 @@ const logout = async (nconf) => {
  * @param {string} nconf
  */
 const info = (nconf) => {
-  const user = nconf.get('user');
+  const env = nconf.get('env');
+  const user = nconf.get(env);
   detail('userId', user.userId);
-  const project = nconf.get(`${user.projectId}`);
+  const project = nconf.get(`${env}:${user.projectId}`);
   project.projectId = user.projectId;
   detail('project', project.name, project.network);
-  const wallet = nconf.get(`${user.walletId}`);
-  wallet.walletId = user.walletId;
-  (wallet) && detail('wallet', wallet.name);
+  let wallet = {}
+  if (user.walletId) {
+    wallet = nconf.get(`${user.walletId}`);
+    wallet.walletId = user.walletId;
+    detail('wallet', wallet.name);
+  }
   return {user, project, wallet};
 }
 
@@ -188,6 +211,7 @@ const newProject = async (nconf) => {
   // Add project.
   const project = await Prompt.project()
   let result = await mintknight.addProject(project.name, project.network);
+  (result === false) && error('Error while adding a Project');
   project.projectId = result._id;
 
   // Get Token.
@@ -202,24 +226,26 @@ const newProject = async (nconf) => {
  * @param {string} nconf
  */
 const selProject = async (nconf) => {
-	const projects = nconf.get('user:projects');
+  const env = nconf.get('env');
+	const projects = nconf.get(`${env}:projects`);
 	if (projects.length < 2) {
 	  warning('Only one project available. Already selected');
 	} else {
 	  const choices = [];
-      for (let i = 0;i < projects.length; i++) {
-		const project = nconf.get(projects[i]);
-		const choice = {
-		  title: project.name,
-		  description: `${project.name} (${project.network})`,
-		  value: projects[i]
-		}
-		choices.push(choice);
+    log(projects);
+    for (let i = 0;i < projects.length; i++) {
+      const project = nconf.get(`${env}:${projects[i]}`);
+		  const choice = {
+		    title: project.name,
+        description: `${project.name} (${project.network})`,
+        value: projects[i]
+		  }
+  	 choices.push(choice);
 	  }
-	  const projectId = await Select.project(choices);
-      nconf.set('user:projectId', projectId);
-      nconf.save();
-      log('Project changed');
+  	const projectId = await Select.project(choices);
+    nconf.set(`${env}:projectId`, projectId);
+    nconf.save();
+    log(`Project changed to ${projectId}`);
 	}
 }
 
@@ -309,5 +335,5 @@ const newImage = async (nconf, img = false) => {
   const result = await service.addImage(img, `${name}${ext}`);
 }
 
-module.exports = { login, register, logout, info, newProject, selProject, newWallet, selWallet, newImage, newContract };
+module.exports = { login, register, logout, info, newProject, selProject, newWallet, selWallet, newImage, newContract, toggleDebug};
 

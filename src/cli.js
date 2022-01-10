@@ -5,7 +5,7 @@ const nconf = require('nconf');
 const { log, title, error, warning, proceed } = require('./term');
 const { greet, init, saveUser, addProject } = require('./utils');
 const { login, register, logout, info } = require('./actions');
-const { newProject, selProject, newWallet, selWallet, newImage, getImages, newContract } = require('./actions');
+const { newProject, selProject, newWallet, selWallet, newImage, getImages, newContract, toggleDebug } = require('./actions');
 const HOMEMK = (process.env.HOME || process.env.USERPROFILE) + '/.mintknight';
 
 const add = async (nconf) => {
@@ -23,9 +23,8 @@ const add = async (nconf) => {
 	  error('Invalid element to add (project/image/contract/drop/nft)');
     break;
   }
-
 }
-
+       
 const main = async () => {
   const action = process.argv[2] || false;
   let config = await init(action);
@@ -36,13 +35,13 @@ const main = async () => {
     case 'add': add(nconf); break;
     case 'project': selProject(nconf); break;
     case 'wallet': selWallet(nconf); break;
+    case 'debug': toggleDebug(nconf); break;
     default: info(nconf); break;
   }
   return;
 
 
   const user = config.get('user');
-  console.log(config.get('user'));
   if (!user.email) {
     warning('\nThis is the first time using mintknight');
     log('The first time you need to create an account and save your information');

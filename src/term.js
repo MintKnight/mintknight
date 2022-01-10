@@ -104,6 +104,16 @@ class Prompt {
     warning(`\n${label}`);
     const questions = [
     {
+      type: 'select',
+      name: 'env',
+      message: 'Choose an environment',
+      choices: [
+        { title: 'local', description: 'Local - devel environment', value: 'local' },
+        { title: 'sandbox', description: 'Sandbox - test features', value: 'sandbox' },
+        { title: 'production', description: 'Production ', value: 'production' },
+      ]
+    },
+    {
       type: 'text',
       name: 'email',
       message: `What's your email?`,
@@ -114,7 +124,7 @@ class Prompt {
       message: 'Your password'
     }];
     const answers = await prompt(questions, {onCancel:cleanup, onSubmit:cleanup});
-    if (answers.email === undefined || answers.password === undefined) process.exit();
+    if (answers.email === undefined || answers.password === undefined || answers.env === undefined) process.exit();
     return answers;
   }
 
@@ -134,8 +144,6 @@ class Prompt {
         { title: 'localhost', description: 'Ganache local network', value: 'localhost' },
         { title: 'mumbai', description: 'Polygon testnet', value: 'mumbai' },
         { title: 'polygon', description: 'Polygon mainnet', value: 'polygon' },
- //     { title: 'rinkeby', description: 'Ethereum testnet', value: 'rinkeby' },
- //     { title: 'mainnet', description: 'Ethereum mainnet', value: 'mainnet' },
       ]
     }];
     const answers = await prompt(questions, {onCancel:cleanup, onSubmit:cleanup});

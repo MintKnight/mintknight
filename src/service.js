@@ -33,7 +33,6 @@ class MintKnight extends MintKnightBase {
       this.mkLog('waiting for Task to end...');
       for (let i = 0; i < times; i += 1) {
         const result = await this.apiCall('GET', `tasks/${taskId}`, {}, 'tokenAuth');
-		console.log(result);
         if (result.state === 'writing' || result.state === 'queued') {
           await new Promise((r) => setTimeout(r, 5000));
 		} else {

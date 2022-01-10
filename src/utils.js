@@ -13,12 +13,11 @@ const HOMEMK = (process.env.HOME || process.env.USERPROFILE) + '/.mintknight';
 const init = (action) => {
   var pjson = require('../package.json');
   title('MintKnight client v'+pjson.version);
-  nconf.env();
-  nconf.file( path.resolve( HOMEMK, `config.${nconf.get('ENV')}.json` ));
-  const token = nconf.get('user:token') || false;
-  if ((token === false) && !['login', 'register'].includes(action)) {
-    error('No user detected');
-    log('First you need to login (mk login) or Register (mk register)\n');
+  nconf.file( path.resolve( HOMEMK, `config.json` ));
+  const env = nconf.get('env') || false;
+  if (env === false && action != 'register') {
+    log('First you need to Register a new user : mk register\n');
+    error('No configuration detected');
   }
   return nconf;
 }
