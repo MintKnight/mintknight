@@ -13,15 +13,6 @@ class MintKnight extends MintKnightBase {
   }
 
    /*
-   * Add a wallet
-   *
-   * @param {string} userRef UserRef
-   */
-  addWallet(userRef) {
-    return this.apiCall('POST', 'wallets', { userRef }, 'tokenAuth');
-  }
-
-   /*
    * Wait for a Task to end.
    *
    * @param {string} taskId task ID
@@ -169,6 +160,16 @@ class MintKnight extends MintKnightBase {
   getNFT(contractId) {
     return this.apiCall('GET', `nfts/${contractId}`, {}, 'tokenAuth');
   }
+
+  /*
+   * Add a wallet
+   *
+   * @param {string} userRef UserRef
+   */
+  addWallet(userRef) {
+    return this.apiCall('POST', 'wallets', { userRef }, 'tokenAuth');
+  }
+
 
   /*
    * Get a wallet

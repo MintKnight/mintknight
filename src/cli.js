@@ -29,6 +29,7 @@ const main = async () => {
   const action = process.argv[2] || false;
   let config = await init(action);
   switch (action) {
+    case 'help': help(nconf); break;
     case 'register': register(nconf); break;
     case 'login': login(nconf); break;
     case 'logout': logout(nconf); break;

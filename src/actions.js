@@ -46,7 +46,7 @@ const connect = (nconf) => {
   const projectId = nconf.get(`${env}:projectId`);
   const mintknight = new MintKnightWeb(urlWeb, props);
   if (projectId) {
-    props.apiKey = nconf.get(`${projectId}:token`);
+    props.apiKey = nconf.get(`${env}:${projectId}:token`);
     service = new MintKnight(urlService, props);
   }
   return {token, mintknight, service};
@@ -103,13 +103,15 @@ const addProject = async (nconf, project) => {
  * @param {object} project
  */
 const addWallet = async (nconf, wallet) => {
-  const wallets = nconf.get('user:wallets') || [];
+  const env = nconf.get('env');
+  const projectId = nconf.get(`${env}:projectId`);
+  const wallets = nconf.get(`${env}:${projectId}:wallets`) || [];
   wallets.push(wallet.walletId);
-  nconf.set('user:wallets', wallets);
-  nconf.set(`${wallet.walletId}:name`, wallet.name);
-  nconf.set(`${wallet.walletId}:skey`, wallet.skey);
-  nconf.set(`${wallet.walletId}:address`, wallet.address);
-  nconf.set('user:walletId', wallet.walletId);
+  nconf.set(`${env}:${projectId}:wallets`, wallets);
+  nconf.set(`${env}:${projectId}:${wallet.walletId}:name`, wallet.name);
+  nconf.set(`${env}:${projectId}:${wallet.walletId}:skey`, wallet.skey);
+  nconf.set(`${env}:${projectId}:${wallet.walletId}:address`, wallet.address);
+  nconf.set(`${env}:${projectId}:walletId`, wallet.walletId);
   nconf.save();
 }
 
@@ -188,13 +190,14 @@ const info = (nconf) => {
   const env = nconf.get('env');
   const user = nconf.get(env);
   detail('userId', user.userId);
-  const project = nconf.get(`${env}:${user.projectId}`);
+  // const project = nconf.get(`${env}:${user.projectId}`);
+  const project = user[user.projectId];
   project.projectId = user.projectId;
   detail('project', project.name, project.network);
   let wallet = {}
-  if (user.walletId) {
-    wallet = nconf.get(`${user.walletId}`);
-    wallet.walletId = user.walletId;
+  if (project.walletId) {
+    wallet = nconf.get(`${env}:${project.projectId}:${project.walletId}`);
+    wallet.walletId = project.walletId;
     detail('wallet', wallet.name);
   }
   return {user, project, wallet};
@@ -227,26 +230,26 @@ const newProject = async (nconf) => {
  */
 const selProject = async (nconf) => {
   const env = nconf.get('env');
-	const projects = nconf.get(`${env}:projects`);
-	if (projects.length < 2) {
-	  warning('Only one project available. Already selected');
-	} else {
-	  const choices = [];
+  const projects = nconf.get(`${env}:projects`);
+  if (projects.length < 2) {
+    warning('Only one project available. Already selected');
+  } else {
+    const choices = [];
     log(projects);
     for (let i = 0;i < projects.length; i++) {
       const project = nconf.get(`${env}:${projects[i]}`);
-		  const choice = {
-		    title: project.name,
+      const choice = {
+        title: project.name,
         description: `${project.name} (${project.network})`,
         value: projects[i]
-		  }
-  	 choices.push(choice);
-	  }
+      }
+  	  choices.push(choice);
+    }
   	const projectId = await Select.project(choices);
     nconf.set(`${env}:projectId`, projectId);
     nconf.save();
     log(`Project changed to ${projectId}`);
-	}
+  }
 }
 
 /**
@@ -255,25 +258,27 @@ const selProject = async (nconf) => {
  * @param {string} nconf
  */
 const selWallet = async (nconf) => {
-	const wallets = nconf.get('user:wallets');
-	if (wallets.length < 2) {
-	  warning('Only one wallet available. Already selected');
-	} else {
-	  const choices = [];
-      for (let i = 0;i < wallets.length; i++) {
-		const wallet = nconf.get(wallets[i]);
-		const choice = {
-		  title: wallet.name,
-		  description: `${wallet.name} (${wallet.address})`,
-		  value: wallets[i]
-		}
-		choices.push(choice);
-	  }
-	  const walletId = await Select.wallet(choices);
-      nconf.set('user:walletId', walletId);
-      nconf.save();
-      log('Wallet changed');
-	}
+  const env = nconf.get('env');
+  const projectId = nconf.get(`${env}:projectId`);
+  const wallets = nconf.get(`${env}:${projectId}:wallets`);
+  if (wallets.length < 2) {
+    warning('Only one wallet available. Already selected');
+  } else {
+    const choices = [];
+    for (let i = 0;i < wallets.length; i++) {
+      const wallet = nconf.get(`${env}:${projectId}:${wallets[i]}`);
+      const choice = {
+        title: wallet.name,
+        description: `${wallet.name} (${wallet.address})`,
+        value: wallets[i] 
+      }
+	  choices.push(choice);
+    }
+    const walletId = await Select.wallet(choices);
+    nconf.set(`${env}:${projectId}:walletId`, walletId);
+    nconf.save();
+    log('Wallet changed');
+  }
 }
 
 /**
@@ -282,17 +287,20 @@ const selWallet = async (nconf) => {
  * @param {string} nconf
  */
 const newWallet = async (nconf) => {
-  const {token, mintknight, service} = connect(nconf);
+  const { token, mintknight, service } = connect(nconf);
+  const { user, project } = info(nconf);
 
-  const {user, project} = info(nconf);
   // Add wallet.
   const wallet = await Prompt.wallet(project.name)
   let task = await service.addWallet(wallet.ref);
+  console.log(task);
   const taskId = task.taskId;
   wallet.walletId = task.wallet._id;
   wallet.skey = task.skey1;
   task = await service.waitTask(task.taskId);
+  console.log(task);
   wallet.address = task.addressTo;
+	console.log(project);
   await addWallet(nconf, wallet);
 }
 
