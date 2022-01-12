@@ -24,7 +24,7 @@ class MintKnight extends MintKnightBase {
       this.mkLog('waiting for Task to end...');
       for (let i = 0; i < times; i += 1) {
         const result = await this.apiCall('GET', `tasks/${taskId}`, {}, 'tokenAuth');
-        if (result.state === 'writing' || result.state === 'queued') {
+        if (result.state === 'running' || result.state === 'queued') {
           await new Promise((r) => setTimeout(r, 5000));
 		} else {
           this.mkLog('Task ended');
@@ -199,7 +199,7 @@ class MintKnight extends MintKnightBase {
    *
    * @param {string} file File name with path
    */
-  addImage(imageFile, imageName) {
+  addMedia(imageFile, imageName) {
     return new Promise((resolve) => {
       const form = new FormData();
       const image = fs.readFileSync(imageFile);
@@ -212,6 +212,14 @@ class MintKnight extends MintKnightBase {
       .catch((e) => log(chalk.red('Error'), e.message));
     });
   }
+
+  /*
+   * Get Media list
+   */
+  getMedia() {
+    return this.apiCall('GET', 'media', {}, 'tokenAuth');
+  }
+
 }
 
 module.exports = MintKnight

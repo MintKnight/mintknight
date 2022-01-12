@@ -61,6 +61,20 @@ class Select {
     return answers.wallet;
   }
 
+  static async contract(choices) {
+    warning('\nSelect Contract');
+    const questions = [
+    {
+      type: 'select',
+      name: 'contract',
+      message: 'Choose a Contract',
+      choices
+    }];
+    const answers = await prompt(questions, {onCancel:cleanup, onSubmit:cleanup});
+    if (answers.contract === undefined) process.exit();
+    return answers.contract;
+  }
+
 }
 
 class Prompt {
@@ -100,9 +114,9 @@ class Prompt {
     return answers.secret;
   }
 
-  static async user (label) {
+  static async env (label) {
     warning(`\n${label}`);
-    const questions = [
+	const questions = [
     {
       type: 'select',
       name: 'env',
@@ -112,7 +126,15 @@ class Prompt {
         { title: 'sandbox', description: 'Sandbox - test features', value: 'sandbox' },
         { title: 'production', description: 'Production ', value: 'production' },
       ]
-    },
+    }];
+    const answers = await prompt(questions, {onCancel:cleanup, onSubmit:cleanup});
+    if (answers.env === undefined) process.exit();
+    return answers.env;
+  }
+
+  static async user (label) {
+    warning(`\n${label}`);
+    const questions = [
     {
       type: 'text',
       name: 'email',
@@ -124,11 +146,11 @@ class Prompt {
       message: 'Your password'
     }];
     const answers = await prompt(questions, {onCancel:cleanup, onSubmit:cleanup});
-    if (answers.email === undefined || answers.password === undefined || answers.env === undefined) process.exit();
+    if (answers.email === undefined || answers.password === undefined ) process.exit();
     return answers;
   }
 
-  static async project () {
+  static async project (env) {
     warning('\nProject information');
     const questions = [
     {
@@ -141,11 +163,14 @@ class Prompt {
       name: 'network',
       message: 'Choose a network',
       choices: [
-        { title: 'localhost', description: 'Ganache local network', value: 'localhost' },
         { title: 'mumbai', description: 'Polygon testnet', value: 'mumbai' },
         { title: 'polygon', description: 'Polygon mainnet', value: 'polygon' },
       ]
     }];
+	if (env === 'local') {
+      questions[1].choices.push({title: 'localhost', description: 'Ganache local network', value: 'localhost' });
+	}
+	  
     const answers = await prompt(questions, {onCancel:cleanup, onSubmit:cleanup});
     if (answers.name=== undefined || answers.network=== undefined) process.exit();
     return answers;

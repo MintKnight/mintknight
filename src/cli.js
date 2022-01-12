@@ -1,57 +1,58 @@
 #!/usr/bin/env node
-const fs = require('fs')
-const path = require('path')
 const nconf = require('nconf');
-const { log, title, error, warning, proceed } = require('./term');
-const { greet, init, saveUser, addProject } = require('./utils');
-const { login, register, logout, info } = require('./actions');
-const { newProject, selProject, newWallet, selWallet, newImage, getImages, newContract, toggleDebug } = require('./actions');
-const HOMEMK = (process.env.HOME || process.env.USERPROFILE) + '/.mintknight';
+const { error } = require('./term');
+const { init } = require('./utils');
+const { Actions } = require('./actions');
 
 const add = async (nconf) => {
   const element = process.argv[3];
   switch (element) {
-    case 'project': newProject(nconf); break;
-    case 'wallet': newWallet(nconf); break;
-    case 'image':
-      const img = process.argv[4] || false;
-      newImage(nconf, img); break;
-    case 'contract': newContract(nconf); break;
-    case 'drop': addDrop(nconf); break;
-    case 'nft': addNft(nconf); break;
+    case 'project': Actions.newProject(nconf); break;
+    case 'wallet': Actions.newWallet(nconf); break;
+    case 'contract': Actions.newContract(nconf); break;
+    case 'media': Actions.newMedia(nconf, process.argv[4] || false); break;
 	default:
-	  error('Invalid element to add (project/image/contract/drop/nft)');
+	  error('Invalid element to add (project/wallet/contract/media)');
     break;
   }
 }
-       
+
+const select = async (nconf) => {
+  const element = process.argv[3];
+  switch (element) {
+    case 'project': Actions.selProject(nconf); break;
+    case 'wallet': Actions.selWallet(nconf); break;
+    case 'contract': Actions.selContract(nconf); break;
+	default:
+	  error('Invalid element to select (wallet/project/contract)');
+    break;
+  }
+}
+
+const list = async (nconf) => {
+  const element = process.argv[3];
+  switch (element) {
+    case 'media': Actions.listMedia(nconf); break;
+	default:
+	  error('Invalid element to list (media)');
+    break;
+  }
+}
+     
 const main = async () => {
   const action = process.argv[2] || false;
-  let config = await init(action);
+  init(action);
   switch (action) {
-    case 'help': help(nconf); break;
-    case 'register': register(nconf); break;
-    case 'login': login(nconf); break;
-    case 'logout': logout(nconf); break;
+    case 'help': Actions.help(); break;
+    case 'setup': Actions.setup(nconf); break;
+    case 'debug': Actions.toggleDebug(nconf); break;
+    case 'register': Actions.register(nconf); break;
     case 'add': add(nconf); break;
-    case 'project': selProject(nconf); break;
-    case 'wallet': selWallet(nconf); break;
-    case 'debug': toggleDebug(nconf); break;
-    default: info(nconf); break;
+    case 'select': select(nconf); break;
+    case 'list': list(nconf); break;
+    default: Actions.info(nconf); break;
   }
   return;
-
-
-  const user = config.get('user');
-  if (!user.email) {
-    warning('\nThis is the first time using mintknight');
-    log('The first time you need to create an account and save your information');
-    // Save user to conf.
-    await saveUser(await promptUser());
-    await addProject(await promptProject());
-    config = await init();
-  }
-  console.log(config.get('user:email'));
 }
 
 main();
