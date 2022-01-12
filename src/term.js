@@ -224,6 +224,77 @@ class Prompt {
     return answers;
   }
 
+  static async attribute() {
+    warning('\nAdd Attribute');
+    let questions = [{
+      type: 'select',
+      name: 'attributeType',
+      message: 'Add a new Attribute',
+      choices: [
+        { title: 'no attributes', description: 'No more attributes (end)', value: 'no' },
+        { title: 'text', description: 'Attribute is a Text', value: 'text' },
+        { title: 'number', description: 'Attribute is a Number', value: 'number' },
+        { title: 'boost_percentage', description: 'Attribute is a %', value: 'boost_percentage' },
+        { title: 'boost_number', description: 'Attribute is a Number (limits)', value: 'boost_number' },
+        { title: 'date', description: 'Attribute is a Date', value: 'date' },
+      ]
+    }];
+    let answers = await prompt(questions, {onCancel:cleanup, onSubmit:cleanup});
+    (answers.attributeType === undefined) && process.exit();
+	if (answers.attributeType === 'no') return false;
+	const attribute = {};
+	if (answers.attributeType !== 'text') attribute.display_type = answers.attributeType;
+	questions = [
+    {
+      type: 'text',
+      name: 'trait_type',
+      message: 'Trait Type (description)',
+	},
+    {
+      type: 'text',
+      name: 'value',
+      message: 'Trait Value',
+    }];
+    answers = await prompt(questions, {onCancel:cleanup, onSubmit:cleanup});
+    (answers.trait_type === undefined || answers.value === undefined) && process.exit();
+	attribute.trait_type = answers.trait_type;
+	attribute.value = answers.value;
+
+	return attribute;
+  }
+
+  static async nft() {
+    warning('\nNFT metadata');
+    const questions = [
+    {
+      type: 'text',
+      name: 'media',
+      message: `Media Id (mk list media)`,
+	},
+    {
+      type: 'text',
+      name: 'name',
+      message: `Name`,
+    },
+	{
+      type: 'text',
+      name: 'description',
+      message: `Description`,
+    }];
+    const answers = await prompt(questions, {onCancel:cleanup, onSubmit:cleanup});
+    (answers.name === undefined || answers.description === undefined) && process.exit();
+	answers.attributes = [];
+	let attribute = true;
+	while (attribute !== false) {
+	  attribute = await Prompt.attribute();
+      (attribute !== false) && answers.attributes.push(attribute);
+	}
+	console.log(answers);
+    return answers;
+  }
+
+
+
 }
 
 module.exports = {log, title, error, warning, detail, Prompt, Select}

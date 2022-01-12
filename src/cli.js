@@ -50,7 +50,11 @@ const main = async () => {
     case 'add': add(nconf); break;
     case 'select': select(nconf); break;
     case 'list': list(nconf); break;
-    default: Actions.info(nconf); break;
+    case 'mint': Actions.mint(nconf); break;
+    default:
+      Actions.info(nconf);
+	  (action !== false) && error('Invalid action');
+      break;
   }
   return;
 }

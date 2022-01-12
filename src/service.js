@@ -114,6 +114,7 @@ class MintKnight extends MintKnightBase {
    * @param {object} metadata NFT minted.
    */
   mintNFT(contractId, walletId, skey, to, metadata) {
+	console.log(contractId, walletId, skey, to, metadata);
     return this.apiCall('POST', 'nfts', {contractId, walletId, skey, to, metadata}, 'tokenAuth');
   }
 

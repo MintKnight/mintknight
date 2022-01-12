@@ -132,8 +132,10 @@ const checkOwner = (env, nconf) => {
   const contractId = nconf.get(`${env}:${projectId}:contractId`);
   const contract = nconf.get(`${env}:${projectId}:${contractId}`);
   if (contract && wallet.address !== contract.owner) {
-     warning('\nCurrent wallet is not the owner of the selected contract');
+    warning('\nCurrent wallet is not the owner of the selected contract');
+    return false;
   }
+  return true;
 }
 
 class Actions {
@@ -154,7 +156,8 @@ class Actions {
 	detail('mk select wallet', 'Select Active wallet');
 	title('\nContracts');
 	detail('mk add contract', 'Adds a new contract');
-	detail('mk select wallet', 'Select Active contract');
+	detail('mk select contract', 'Select Active contract');
+	detail('mk mint', 'Mint to the selected Contract')
 	title('\nMedia');
 	detail('mk add media <file>', 'Adds a new image to the media Library');
 	detail('mk list media', 'List media for that contract');
@@ -411,6 +414,54 @@ class Actions {
 		title(`\n${media[i]._id}`);
 		detail(media[i].name, media[i].url);
 	}
+  }
+
+  /**
+   * Mint a new NFT/Token
+   */
+  static async mint(nconf) {
+    const env = nconf.get('env');
+    (checkOwner(env, nconf) === false) && error('Invalid Wallet');
+    // Get metadata
+    const nft = await Prompt.nft();
+
+    // Get destination.
+    const projectId = nconf.get(`${env}:projectId`);
+    const wallets = nconf.get(`${env}:${projectId}:wallets`);
+    const choices = [];
+    for (let i = 0;i < wallets.length; i++) {
+      const wallet = nconf.get(`${env}:${projectId}:${wallets[i]}`);
+      const choice = {
+        title: wallet.name,
+        description: `${wallet.name} (${wallet.address})`,
+        value: wallets[i] 
+      }
+      choices.push(choice);
+	}
+	choices.push({
+      title: 'WalletId',
+      description: 'A Mintknight Wallet',
+      value: 'walletId', 
+	})
+	choices.push({
+      title: 'Address',
+      description: 'Network public address',
+      value: 'address',
+	})
+    let walletId = await Select.wallet(choices);
+	if (walletId === 'walletId') {
+	  walletId = await Prompt.text('WalletId');
+	} else if (walletId === 'address') {
+	  walletId = await Prompt.text('Address');
+	}
+    const { service } = connect(nconf);
+    const contractId = nconf.get(`${env}:${projectId}:contractId`);
+    const minterId = nconf.get(`${env}:${projectId}:walletId`);
+    const minter = nconf.get(`${env}:${projectId}:${minterId}`);
+	let task = await service.mintNFT(contractId, minterId, minter.skey, walletId, nft );
+	  console.log(task);
+    task = await service.waitTask(task.taskId);
+    log('NFT Minted');
   }
 }
 
