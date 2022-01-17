@@ -121,6 +121,7 @@ const addContract = async (nconf, contract, wallet) => {
   nconf.set(`${env}:${projectId}:contracts`, contracts);
   nconf.set(`${env}:${projectId}:${contract.contractId}:name`, contract.name);
   nconf.set(`${env}:${projectId}:${contract.contractId}:owner`, wallet.address);
+  nconf.set(`${env}:${projectId}:${contract.contractId}:type`, contract.contractType);
   nconf.set(`${env}:${projectId}:contractId`, contract.contractId);
   nconf.save();
 }

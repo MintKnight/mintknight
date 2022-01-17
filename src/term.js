@@ -213,9 +213,8 @@ class Prompt {
       message: 'Choose a contract Type',
       choices: [
         { title: 'erc20', description: 'Fungible Token (ERC20)', value: 1 },
-        { title: 'erc721', description: 'Non Fungible Token (ERC721)', value: 2 },
-        { title: 'voucher - whitelist', description: 'Voucher - Whitelist', value: 3 },
-        { title: 'voucher - code', description: 'Voucher - Codes', value: 4 },
+        { title: 'erc721 Mutable URI', description: 'Non Fungible Token (ERC721), URI points to MintKnight', value: 2 },
+        { title: 'erc721 Inmutable URI', description: 'Non Fungible Token (ERC721), URI points to Arweave', value: 3 },
       ]
     }];
     const answers = await prompt(questions, {onCancel:cleanup, onSubmit:cleanup});
