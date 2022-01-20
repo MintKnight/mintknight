@@ -35,48 +35,6 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
-   * Upload One Image to Arweave.
-   *
-   * @param {string} file File name with path
-   */
-  uploadImage(imageFile) {
-    return new Promise((resolve) => {
-      const form = new FormData();
-      const image = fs.readFileSync(imageFile);
-      form.append('nftImage', image, 'image.png');
-      const config = { headers: { ...form.getHeaders(), Authorization: `Bearer ${this.apiKey}` } };
-      axios.post(`${this.api}nfts/upload`, form, config)
-      .then((res) => {
-        log(res.data);
-        resolve(res.data);
-      })
-      .catch((e) => log(chalk.red('Error'), e.message));
-    });
-  }
-
-  /*
-   * Upload ONE NFT.
-   *
-   * @param {string} file File name with path
-   */
-  uploadNFT(contractId, name, description, attributes, imageFile) {
-    return new Promise((resolve) => {
-      const form = new FormData();
-      const image = fs.readFileSync(imageFile);
-      form.append('nftImage', image, 'image.png');
-      form.append('body', { contractId, name, description, attributes });
-      const config = { headers: { ...form.getHeaders(), Authorization: `Bearer ${this.apiKey}` } };
-      console.log(`${this.api}nfts/upload`);
-      axios.post(`${this.api}nfts/upload`, form, config)
-      .then((res) => {
-        log(res.data);
-        resolve(res.data);
-      })
-      .catch((e) => log(chalk.red('Error'), e.message));
-    });
-  }
-
-  /*
    * Add a ERC20 Contract
    *
    * @param {string} projectId ProjectId
@@ -114,9 +72,19 @@ class MintKnight extends MintKnightBase {
    * @param {object} metadata NFT minted.
    */
   mintNFT(contractId, walletId, skey, to, metadata) {
-	console.log(contractId, walletId, skey, to, metadata);
     return this.apiCall('POST', 'nfts', {contractId, walletId, skey, to, metadata}, 'tokenAuth');
   }
+
+  /*
+   * Update an NFT
+   *
+   * @param {string} contractId Contract ID
+   * @param {string} tokenId Token ID
+   * @param {object} metadata NFT minted.
+   */
+  updateNFT(contractId, tokenId, metadata) {
+    return this.apiCall('PUT', `nfts/${contractId}/${tokenId}`, {metadata}, 'tokenAuth');
+ }
 
   /*
    * Transfer a token
@@ -154,15 +122,6 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
-   * Get a token
-   *
-   * @param {string} contractId contract ID
-   */
-  getNFT(contractId) {
-    return this.apiCall('GET', `nfts/${contractId}`, {}, 'tokenAuth');
-  }
-
-  /*
    * Add a wallet
    *
    * @param {string} userRef UserRef
@@ -170,7 +129,6 @@ class MintKnight extends MintKnightBase {
   addWallet(userRef) {
     return this.apiCall('POST', 'wallets', { userRef }, 'tokenAuth');
   }
-
 
   /*
    * Get a wallet
@@ -220,6 +178,21 @@ class MintKnight extends MintKnightBase {
   getMedia() {
     return this.apiCall('GET', 'media', {}, 'tokenAuth');
   }
+
+  /*
+   * Get NFT list
+   */
+  getNfts(contractId) {
+    return this.apiCall('GET', `nfts/${contractId}`, {}, 'tokenAuth');
+  }
+
+  /*
+   * Get NFT metadata
+   */
+  getNft(contractId, tokenId) {
+    return this.apiCall('GET', `nfts/${contractId}/${tokenId}`, {}, 'tokenAuth');
+  }
+
 
 }
 

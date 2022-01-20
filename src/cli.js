@@ -33,12 +33,34 @@ const list = async (nconf) => {
   const element = process.argv[3];
   switch (element) {
     case 'media': Actions.listMedia(nconf); break;
+    case 'nft': Actions.listNft(nconf); break;
 	default:
-	  error('Invalid element to list (media)');
+	  error('Invalid element to list (media, nft)');
     break;
   }
 }
-     
+
+const info = async (nconf) => {
+  const element = process.argv[3];
+  switch (element) {
+    case 'nft': Actions.infoNft(nconf); break;
+    case 'wallet': Actions.infoWallet(nconf); break;
+	default:
+	  error('Invalid element to get info (nft, wallet)');
+    break;
+  }
+}
+
+const update = async (nconf) => {
+  const element = process.argv[3];
+  switch (element) {
+    case 'nft': Actions.updateNft(nconf); break;
+	default:
+	  error('Invalid element to update (nft)');
+    break;
+  }
+}
+    
 const main = async () => {
   const action = process.argv[2] || false;
   init(action);
@@ -50,6 +72,8 @@ const main = async () => {
     case 'add': add(nconf); break;
     case 'select': select(nconf); break;
     case 'list': list(nconf); break;
+    case 'info': info(nconf); break;
+    case 'update': update(nconf); break;
     case 'mint': Actions.mint(nconf); break;
     default:
       Actions.info(nconf);

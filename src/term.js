@@ -25,8 +25,8 @@ const warning = (...args) => {
 const detail = (label, value1, network = false) => {
   let color = '';
   switch (network) {
-    case 'localhost': color = '#32afff'; break;
-    case 'mumbai': color = '#34e2e2'; break;
+    // case 'localhost': color = '#32afff'; break;
+    case 'mumbai': color = '#34afff'; break;
     case 'polygon': color = '#4e9a06'; break;
   }
   log(chalk.hex('#FFA500').bold(label) + ': ' + value1 + ((network === false) ? '' : chalk.hex(color).bold(` (${network})`)));
@@ -123,7 +123,7 @@ class Prompt {
       message: 'Choose an environment',
       choices: [
         { title: 'local', description: 'Local - devel environment', value: 'local' },
-        { title: 'sandbox', description: 'Sandbox - test features', value: 'sandbox' },
+        // { title: 'sandbox', description: 'Sandbox - test features', value: 'sandbox' },
         { title: 'production', description: 'Production ', value: 'production' },
       ]
     }];
@@ -167,9 +167,9 @@ class Prompt {
         { title: 'polygon', description: 'Polygon mainnet', value: 'polygon' },
       ]
     }];
-	if (env === 'local') {
+	/*if (env === 'local') {
       questions[1].choices.push({title: 'localhost', description: 'Ganache local network', value: 'localhost' });
-	}
+	}*/
 	  
     const answers = await prompt(questions, {onCancel:cleanup, onSubmit:cleanup});
     if (answers.name=== undefined || answers.network=== undefined) process.exit();
@@ -240,15 +240,15 @@ class Prompt {
     }];
     let answers = await prompt(questions, {onCancel:cleanup, onSubmit:cleanup});
     (answers.attributeType === undefined) && process.exit();
-	if (answers.attributeType === 'no') return false;
-	const attribute = {};
-	if (answers.attributeType !== 'text') attribute.display_type = answers.attributeType;
-	questions = [
+    if (answers.attributeType === 'no') return false;
+    const attribute = {};
+  	if (answers.attributeType !== 'text') attribute.display_type = answers.attributeType;
+	  questions = [
     {
       type: 'text',
       name: 'trait_type',
       message: 'Trait Type (description)',
-	},
+  	},
     {
       type: 'text',
       name: 'value',
@@ -256,10 +256,9 @@ class Prompt {
     }];
     answers = await prompt(questions, {onCancel:cleanup, onSubmit:cleanup});
     (answers.trait_type === undefined || answers.value === undefined) && process.exit();
-	attribute.trait_type = answers.trait_type;
-	attribute.value = answers.value;
-
-	return attribute;
+	  attribute.trait_type = answers.trait_type;
+	  attribute.value = answers.value;
+    return attribute;
   }
 
   static async nft() {
@@ -269,26 +268,25 @@ class Prompt {
       type: 'text',
       name: 'media',
       message: `Media Id (mk list media)`,
-	},
+    },
     {
       type: 'text',
       name: 'name',
       message: `Name`,
     },
-	{
+	  {
       type: 'text',
       name: 'description',
       message: `Description`,
     }];
     const answers = await prompt(questions, {onCancel:cleanup, onSubmit:cleanup});
     (answers.name === undefined || answers.description === undefined) && process.exit();
-	answers.attributes = [];
-	let attribute = true;
-	while (attribute !== false) {
-	  attribute = await Prompt.attribute();
+    answers.attributes = [];
+    let attribute = true;
+    while (attribute !== false) {
+	    attribute = await Prompt.attribute();
       (attribute !== false) && answers.attributes.push(attribute);
-	}
-	console.log(answers);
+  	}
     return answers;
   }
 

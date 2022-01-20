@@ -22,7 +22,7 @@ const addConfDir = async () => {
  * @param {boolean} debug
  */
 const connect = (nconf) => {
-  let urlWeb, urlService;
+  let urlWeb, urlService, contractId = false;
   const env = nconf.get('env');
   switch (env) {
     case 'local':
@@ -47,10 +47,11 @@ const connect = (nconf) => {
   const projectId = nconf.get(`${env}:projectId`);
   const mintknight = new MintKnightWeb(urlWeb, props);
   if (projectId) {
+    contractId = nconf.get(`${env}:${projectId}:contractId`);
     props.apiKey = nconf.get(`${env}:${projectId}:token`);
-    service = new MintKnight(urlService, props);
+    service = new MintKnight(urlService, props, env, projectId, contractId);
   }
-  return {token, mintknight, service};
+  return {token, mintknight, service, env, contractId, projectId};
 }
 
 /**
@@ -158,7 +159,13 @@ class Actions {
 	title('\nContracts');
 	detail('mk add contract', 'Adds a new contract');
 	detail('mk select contract', 'Select Active contract');
+	detail('mk list nft', 'List NFTs in th Contract')
+
+	title('\nNFTs');
 	detail('mk mint', 'Mint to the selected Contract')
+	detail('mk info nft', 'Get the metadata for an NFT')
+	detail('mk update nft', 'Update the metadata for an NFT')
+
 	title('\nMedia');
 	detail('mk add media <file>', 'Adds a new image to the media Library');
 	detail('mk list media', 'List media for that contract');
@@ -411,23 +418,22 @@ class Actions {
   static async listMedia(nconf) {
     const { service } = connect(nconf);
     let media = await service.getMedia();
-	for (let i = 0; i< media.length; i ++) {
-		title(`\n${media[i]._id}`);
-		detail(media[i].name, media[i].url);
-	}
+  	for (let i = 0; i< media.length; i ++) {
+	    title(`\n${media[i]._id}`);
+      detail(media[i].name, media[i].url);
+	  }
   }
 
   /**
    * Mint a new NFT/Token
    */
   static async mint(nconf) {
-    const env = nconf.get('env');
+    const { service, env, projectId, contractId } = connect(nconf);
     (checkOwner(env, nconf) === false) && error('Invalid Wallet');
     // Get metadata
     const nft = await Prompt.nft();
 
     // Get destination.
-    const projectId = nconf.get(`${env}:projectId`);
     const wallets = nconf.get(`${env}:${projectId}:wallets`);
     const choices = [];
     for (let i = 0;i < wallets.length; i++) {
@@ -438,31 +444,67 @@ class Actions {
         value: wallets[i] 
       }
       choices.push(choice);
-	}
-	choices.push({
+    }
+  	choices.push({
       title: 'WalletId',
       description: 'A Mintknight Wallet',
       value: 'walletId', 
-	})
-	choices.push({
+	  })
+  	choices.push({
       title: 'Address',
       description: 'Network public address',
       value: 'address',
-	})
+	  })
     let walletId = await Select.wallet(choices);
-	if (walletId === 'walletId') {
-	  walletId = await Prompt.text('WalletId');
-	} else if (walletId === 'address') {
-	  walletId = await Prompt.text('Address');
-	}
-    const { service } = connect(nconf);
-    const contractId = nconf.get(`${env}:${projectId}:contractId`);
+  	if (walletId === 'walletId') {
+	    walletId = await Prompt.text('WalletId');
+  	} else if (walletId === 'address') {
+	    walletId = await Prompt.text('Address');
+  	}
     const minterId = nconf.get(`${env}:${projectId}:walletId`);
     const minter = nconf.get(`${env}:${projectId}:${minterId}`);
-	let task = await service.mintNFT(contractId, minterId, minter.skey, walletId, nft );
-	  console.log(task);
+	  let task = await service.mintNFT(contractId, minterId, minter.skey, walletId, nft );
     task = await service.waitTask(task.taskId);
     log('NFT Minted');
+  }
+
+  /**
+   * Update NFT metadata
+   */
+  static async updateNft(nconf) {
+    const { service, contractId } = connect(nconf);
+	  const tokenId = await Prompt.text('TokenId');
+    const attributes = [];
+    let attribute = true;
+    while (attribute !== false) {
+	    attribute = await Prompt.attribute();
+      (attribute !== false) && attributes.push(attribute);
+  	}
+    console.log(attributes);
+	  let task = await service.updateNFT(contractId, tokenId, attributes);
+    log('NFT Updated');
+  }
+
+  /**
+   * List NFTs.
+   */
+  static async listNft(nconf) {
+    const { service, contractId } = connect(nconf);
+    const nfts = await service.getNfts(contractId);
+  	for (let i = 0; i< nfts.length; i ++) {
+	    title(`\n${nfts[i].name}`);
+      detail('tokenId', nfts[i].tokenId);
+	  }
+  }
+
+  /**
+   * Metadata NFTs.
+   */
+  static async infoNft(nconf) {
+    const { service, contractId } = connect(nconf);
+	  const tokenId = await Prompt.text('TokenId');
+    const nft = await service.getNft(contractId, tokenId);
+    console.log(nft);
   }
 }
 
