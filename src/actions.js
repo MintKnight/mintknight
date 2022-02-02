@@ -166,6 +166,7 @@ class Actions {
 	title('\nNFTs');
 	detail('mk mint', 'Mint to the selected Contract')
 	detail('mk info nft', 'Get the metadata for an NFT')
+	detail('mk list nft', 'List all NFTs in the contract')
 	detail('mk update nft', 'Update the metadata for an NFT')
 
 	title('\nMedia');
@@ -251,7 +252,6 @@ class Actions {
     // Add project.
     const project = await Prompt.project(env)
     result = await mintknight.addProject(project.name, project.network);
-    log('SAVE', result)
     project.projectId = result._id;
 
     // Get Token.
@@ -323,11 +323,17 @@ class Actions {
     // Add wallet.
     const wallet = await Prompt.wallet(project.name)
     let task = await service.addWallet(wallet.ref, walletType);
-    wallet.walletId = task.wallet._id;
-    wallet.skey = task.skey1;
-    task = await service.waitTask(task.taskId);
-    wallet.address = task.contractAddress;
-    await addWallet(nconf, wallet);
+	if (task !== false) {
+      wallet.walletId = task.wallet._id;
+      wallet.skey = task.skey1;
+      if (task.taskId === 0) {
+        wallet.address = task.wallet.address;
+	  } else {
+        task = await service.waitTask(task.taskId);
+        wallet.address = task.contractAddress;
+      }
+      await addWallet(nconf, wallet);
+	}
   }
 
   /**
@@ -370,7 +376,8 @@ class Actions {
       contract.name,
       contract.symbol,
       contract.contractType,
-      wallet.walletId
+      wallet.walletId,
+      contract.contractId
     );
     task = await service.waitTask(task.taskId);
     contract.address = task.contractAddress;

@@ -212,12 +212,18 @@ class Prompt {
       name: 'contractType',
       message: 'Choose a contract Type',
       choices: [
-        { title: 'erc20', description: 'Fungible Token (ERC20)', value: 1 },
-        { title: 'erc721 Mutable URI', description: 'Non Fungible Token (ERC721), URI points to MintKnight', value: 2 },
-        { title: 'erc721 Inmutable URI', description: 'Non Fungible Token (ERC721), URI points to Arweave', value: 3 },
+        { title: 'erc721 Mutable URI', description: 'NFT, URI points to MintKnight', value: 51 },
+        { title: 'erc721 Inmutable URI', description: 'NFT, URI points to Arweave', value: 52 },
+        { title: 'erc721 - Buyable', description: 'NFT - Can be minted by a different contract (Buy/Auction)', value: 53 },
+        { title: 'erc20 - Mintable', description: 'Fungible Token (ERC20)', value: 10 },
+        { title: 'Buy contracts', description: 'Used to buy from another contract', value: 100 },
       ]
     }];
     const answers = await prompt(questions, {onCancel:cleanup, onSubmit:cleanup});
+    answers.contractId = false;
+    if (answers.contractType === 100) {
+	  answers.contractId = await Prompt.text('ContractId (ERC721)')
+	}
     if (answers.name === undefined || answers.symbol === undefined || answers.contractType === undefined)
 	  process.exit();
     return answers;
