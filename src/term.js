@@ -188,11 +188,11 @@ class Prompt {
         message: 'What\'s the name of the wallet?'
       }, {
         type: 'text',
-        name: 'ref',
+        name: 'refUser',
         message: 'Internal reference of the wallet'
       }]
     const answers = await prompt(questions, { onCancel: cleanup, onSubmit: cleanup })
-    if (answers.name === undefined || answers.ref === undefined) process.exit()
+    if (answers.name === undefined || answers.refUser === undefined) process.exit()
     return answers
   }
 

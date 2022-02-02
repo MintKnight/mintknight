@@ -43,7 +43,8 @@ class MintKnight extends MintKnightBase {
       contractType,
       name,
       symbol,
-      walletId,
+      minter: walletId,
+      owner: walletId,
       contractId
     }
     return this.apiCall('POST', 'contracts/', contract, 'tokenAuth')
@@ -127,8 +128,8 @@ class MintKnight extends MintKnightBase {
    * @param {string} userRef UserRef
    * @param {string} walletType Type of wallet (onchain, eoa, signer)
    */
-  addWallet (userRef, walletType) {
-    return this.apiCall('POST', 'wallets', { userRef, walletType }, 'tokenAuth')
+  addWallet (refUser, walletType) {
+    return this.apiCall('POST', 'wallets', { refUser, walletType }, 'tokenAuth')
   }
 
   /*

@@ -321,7 +321,7 @@ class Actions {
 
     // Add wallet.
     const wallet = await Prompt.wallet(project.name)
-    let task = await service.addWallet(wallet.ref, walletType)
+    let task = await service.addWallet(wallet.refUser, walletType)
     if (task !== false) {
       wallet.walletId = task.wallet._id
       wallet.skey = task.skey1
@@ -532,6 +532,14 @@ class Actions {
     const limits = await mintknight.updateLimits(projectId)
     log(limits)
     log('Limits updated')
+  }
+
+  /**
+   * Update minter/owner of a contract
+   */
+  static async updateContract (nconf) {
+    const { mintknight, contractId } = connect(nconf)
+
   }
 }
 
