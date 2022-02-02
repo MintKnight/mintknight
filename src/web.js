@@ -66,6 +66,22 @@ class MintKnightWeb extends MintKnightBase {
   }
 
   /*
+   * Get Project.
+   */
+  getProject() {
+    return this.apiCall('GET', 'projects', {}, 'userAuth');
+  }
+
+  /*
+   * Get Project.
+   *
+   * @param {string} projectId ProjectId
+   */
+  updateLimits(projectId) {
+    return this.apiCall('PUT', 'projects/limits', {projectId}, 'userAuth');
+  }
+
+  /*
    * Get an API KEY for the project.
    *
    * @param {string} projectId ProjectId

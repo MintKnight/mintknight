@@ -8,11 +8,12 @@ const add = async (nconf) => {
   const element = process.argv[3];
   switch (element) {
     case 'project': Actions.newProject(nconf); break;
-    case 'wallet': Actions.newWallet(nconf); break;
+    case 'wallet': Actions.newWallet(nconf, 'onchain'); break;
+    case 'signer': Actions.newWallet(nconf, 'signer'); break;
     case 'contract': Actions.newContract(nconf); break;
     case 'media': Actions.newMedia(nconf, process.argv[4] || false); break;
 	default:
-	  error('Invalid element to add (project/wallet/contract/media)');
+	  error('Invalid element to add (project/wallet/signer/contract/media)');
     break;
   }
 }
@@ -45,8 +46,9 @@ const info = async (nconf) => {
   switch (element) {
     case 'nft': Actions.infoNft(nconf); break;
     case 'wallet': Actions.infoWallet(nconf); break;
+    case 'project': Actions.infoProject(nconf); break;
 	default:
-	  error('Invalid element to get info (nft, wallet)');
+	  error('Invalid element to get info (project, wallet, nft)');
     break;
   }
 }
@@ -55,6 +57,7 @@ const update = async (nconf) => {
   const element = process.argv[3];
   switch (element) {
     case 'nft': Actions.updateNft(nconf); break;
+    case 'project': Actions.updateLimits(nconf); break;
 	default:
 	  error('Invalid element to update (nft)');
     break;

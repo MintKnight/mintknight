@@ -25,7 +25,7 @@ const warning = (...args) => {
 const detail = (label, value1, network = false) => {
   let color = '';
   switch (network) {
-    // case 'localhost': color = '#32afff'; break;
+    case 'localhost': color = '#32afff'; break;
     case 'mumbai': color = '#34afff'; break;
     case 'polygon': color = '#4e9a06'; break;
   }
@@ -167,9 +167,9 @@ class Prompt {
         { title: 'polygon', description: 'Polygon mainnet', value: 'polygon' },
       ]
     }];
-	/*if (env === 'local') {
+	  if (env === 'local') {
       questions[1].choices.push({title: 'localhost', description: 'Ganache local network', value: 'localhost' });
-	}*/
+	  }
 	  
     const answers = await prompt(questions, {onCancel:cleanup, onSubmit:cleanup});
     if (answers.name=== undefined || answers.network=== undefined) process.exit();

@@ -152,9 +152,11 @@ class Actions {
 	detail('mk register', 'Create a new user and Project');
 	title('\nProjects');
 	detail('mk add project', 'Adds a new project');
+	detail('mk info project', 'Queries stats for current project');
 	detail('mk select project', 'Select Active project');
 	title('\nWallets');
 	detail('mk add wallet', 'Adds a new wallet');
+	detail('mk add signer', 'Adds a new signer (wallet off-chain)');
 	detail('mk select wallet', 'Select Active wallet');
 	title('\nContracts');
 	detail('mk add contract', 'Adds a new contract');
@@ -249,6 +251,7 @@ class Actions {
     // Add project.
     const project = await Prompt.project(env)
     result = await mintknight.addProject(project.name, project.network);
+    log('SAVE', result)
     project.projectId = result._id;
 
     // Get Token.
@@ -302,15 +305,24 @@ class Actions {
   }
 
   /**
+   * Info Project.
+   */
+  static async infoProject(nconf) {
+    const { mintknight } = connect(nconf);
+    const nft = await mintknight.getProject();
+    console.log(nft);
+  }
+
+  /**
    * Add a new Wallet
    */
-  static async newWallet(nconf) {
+  static async newWallet(nconf, walletType) {
     const { service } = connect(nconf);
     const { project } = Actions.info(nconf);
 
     // Add wallet.
     const wallet = await Prompt.wallet(project.name)
-    let task = await service.addWallet(wallet.ref);
+    let task = await service.addWallet(wallet.ref, walletType);
     wallet.walletId = task.wallet._id;
     wallet.skey = task.skey1;
     task = await service.waitTask(task.taskId);
@@ -480,7 +492,6 @@ class Actions {
 	    attribute = await Prompt.attribute();
       (attribute !== false) && attributes.push(attribute);
   	}
-    console.log(attributes);
 	  let task = await service.updateNFT(contractId, tokenId, attributes);
     log('NFT Updated');
   }
@@ -505,6 +516,17 @@ class Actions {
 	  const tokenId = await Prompt.text('TokenId');
     const nft = await service.getNft(contractId, tokenId);
     console.log(nft);
+  }
+
+  /**
+   * Update Limits (only admin).
+   */
+  static async updateLimits(nconf) {
+    const { mintknight } = connect(nconf);
+    const projectId = await Prompt.text('ProjectId');
+    const limits = await mintknight.updateLimits(projectId);
+    log(limits)
+    log('Limits updated');
   }
 }
 
