@@ -1,11 +1,11 @@
 module.exports = {
   username: {
     type: 'string',
-    min: 5,
+    min: 5
   },
   country: {
-    type:'string',
-    min: 2,
+    type: 'string',
+    min: 2
   },
   network: {
     type: 'string',

@@ -58,6 +58,8 @@ const update = async (nconf) => {
   switch (element) {
     case 'nft': Actions.updateNft(nconf); break
     case 'project': Actions.updateLimits(nconf); break
+    case 'minter': Actions.updateContract(nconf, 'minter'); break
+    case 'owner': Actions.updateContract(nconf, 'owner'); break
     default:
       error('Invalid element to update (nft)')
       break
