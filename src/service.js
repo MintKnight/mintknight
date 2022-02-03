@@ -1,14 +1,14 @@
-const axios = require('axios')
-const chalk = require('chalk')
-const FormData = require('form-data')
-const fs = require('fs')
-const log = console.log
+const axios = require('axios');
+const chalk = require('chalk');
+const FormData = require('form-data');
+const fs = require('fs');
+const log = console.log;
 
-const MintKnightBase = require('./base')
+const MintKnightBase = require('./base');
 
 class MintKnight extends MintKnightBase {
-  constructor (api, props = {}) {
-    super(api, props)
+  constructor(api, props = {}) {
+    super(api, props);
   }
 
   /*
@@ -17,20 +17,25 @@ class MintKnight extends MintKnightBase {
    * @param {string} taskId task ID
    * @param {integer} times It will try every 5 seconds for n times.
    */
-  waitTask (taskId, times = 20) {
-    if (!taskId) return { addressTo: false }
+  waitTask(taskId, times = 20) {
+    if (!taskId) return { addressTo: false };
     return new Promise(async (resolve) => {
-      this.mkLog('waiting for Task to end...')
+      this.mkLog('waiting for Task to end...');
       for (let i = 0; i < times; i += 1) {
-        const result = await this.apiCall('GET', `tasks/${taskId}`, {}, 'tokenAuth')
+        const result = await this.apiCall(
+          'GET',
+          `tasks/${taskId}`,
+          {},
+          'tokenAuth'
+        );
         if (result.state === 'running' || result.state === 'queued') {
-          await new Promise((r) => setTimeout(r, 5000))
+          await new Promise((r) => setTimeout(r, 5000));
         } else {
-          this.mkLog('Task ended')
-          return resolve(result)
+          this.mkLog('Task ended');
+          return resolve(result);
         }
       }
-    })
+    });
   }
 
   /*
@@ -38,16 +43,16 @@ class MintKnight extends MintKnightBase {
    *
    * @param {string} projectId ProjectId
    */
-  addContract (name, symbol, contractType, walletId, contractId) {
+  addContract(name, symbol, contractType, walletId, contractId) {
     const contract = {
       contractType,
       name,
       symbol,
       minter: walletId,
       owner: walletId,
-      contractId
-    }
-    return this.apiCall('POST', 'contracts/', contract, 'tokenAuth')
+      contractId,
+    };
+    return this.apiCall('POST', 'contracts/', contract, 'tokenAuth');
   }
 
   /*
@@ -59,8 +64,13 @@ class MintKnight extends MintKnightBase {
    * @param {string} to Wallet ID receiving the tokens
    * @param {number} value Tokens minted.
    */
-  mintToken (contractId, walletId, skey, to, value) {
-    return this.apiCall('POST', 'tokens', { contractId, walletId, skey, to, value }, 'tokenAuth')
+  mintToken(contractId, walletId, skey, to, value) {
+    return this.apiCall(
+      'POST',
+      'tokens',
+      { contractId, walletId, skey, to, value },
+      'tokenAuth'
+    );
   }
 
   /*
@@ -72,8 +82,13 @@ class MintKnight extends MintKnightBase {
    * @param {string} to Wallet ID receiving the tokens
    * @param {object} metadata NFT minted.
    */
-  mintNFT (contractId, walletId, skey, to, metadata) {
-    return this.apiCall('POST', 'nfts', { contractId, walletId, skey, to, metadata }, 'tokenAuth')
+  mintNFT(contractId, walletId, skey, to, address, metadata) {
+    return this.apiCall(
+      'POST',
+      'nfts',
+      { contractId, walletId, skey, to, address, metadata },
+      'tokenAuth'
+    );
   }
 
   /*
@@ -83,8 +98,13 @@ class MintKnight extends MintKnightBase {
    * @param {string} tokenId Token ID
    * @param {object} metadata NFT minted.
    */
-  updateNFT (contractId, tokenId, metadata) {
-    return this.apiCall('PUT', `nfts/${contractId}/${tokenId}`, { metadata }, 'tokenAuth')
+  updateNFT(contractId, tokenId, metadata) {
+    return this.apiCall(
+      'PUT',
+      `nfts/${contractId}/${tokenId}`,
+      { metadata },
+      'tokenAuth'
+    );
   }
 
   /*
@@ -96,8 +116,13 @@ class MintKnight extends MintKnightBase {
    * @param {string} to Wallet ID receiving the tokens
    * @param {number} value Tokens minted.
    */
-  transferToken (contractId, walletId, skey, to, value) {
-    return this.apiCall('PUT', 'tokens', { contractId, walletId, skey, to, value }, 'tokenAuth')
+  transferToken(contractId, walletId, skey, to, value) {
+    return this.apiCall(
+      'PUT',
+      'tokens',
+      { contractId, walletId, skey, to, value },
+      'tokenAuth'
+    );
   }
 
   /*
@@ -109,8 +134,13 @@ class MintKnight extends MintKnightBase {
    * @param {string} to Wallet ID receiving the tokens
    * @param {number} tokenId tokenId.
    */
-  transferNFT (contractId, walletId, skey, to, tokenId) {
-    return this.apiCall('PUT', 'nfts', { contractId, walletId, skey, to, tokenId }, 'tokenAuth')
+  transferNFT(contractId, walletId, skey, to, tokenId) {
+    return this.apiCall(
+      'PUT',
+      'nfts',
+      { contractId, walletId, skey, to, tokenId },
+      'tokenAuth'
+    );
   }
 
   /*
@@ -118,8 +148,32 @@ class MintKnight extends MintKnightBase {
    *
    * @param {string} contractId contract ID
    */
-  getContract (contractId) {
-    return this.apiCall('GET', `contracts/${contractId}`, {}, 'tokenAuth')
+  getContract(contractId) {
+    return this.apiCall('GET', `contracts/${contractId}`, {}, 'tokenAuth');
+  }
+
+  /*
+   * Update owner/minter of the contract
+   * @param {string} contractId Contract ID
+   * @param {string} change Role to be updated: mintre/owner
+   * @param {string} walletId Wallet ID
+   * @param {string} address optional address if no walletId
+   */
+  updateContract(contractId, change, walletId, address, owner, skey) {
+    console.log({ contractId, change, walletId, address, owner, skey });
+    return this.apiCall(
+      'PUT',
+      `contracts/${contractId}`,
+      { change, walletId, address, owner, skey },
+      'tokenAuth'
+    );
+  }
+
+  /*
+   * Get Contract Info
+   */
+  getContract(contractId) {
+    return this.apiCall('GET', `contracts/${contractId}`, {}, 'tokenAuth');
   }
 
   /*
@@ -128,8 +182,13 @@ class MintKnight extends MintKnightBase {
    * @param {string} userRef UserRef
    * @param {string} walletType Type of wallet (onchain, eoa, signer)
    */
-  addWallet (refUser, walletType) {
-    return this.apiCall('POST', 'wallets', { refUser, walletType }, 'tokenAuth')
+  addWallet(refUser, walletType) {
+    return this.apiCall(
+      'POST',
+      'wallets',
+      { refUser, walletType },
+      'tokenAuth'
+    );
   }
 
   /*
@@ -137,22 +196,51 @@ class MintKnight extends MintKnightBase {
    *
    * @param {string} walletId wallet ID
    */
-  getWallet (walletId) {
-    return this.apiCall('GET', `wallets/${walletId}`, {}, 'tokenAuth')
+  getWallet(walletId) {
+    return this.apiCall('GET', `wallets/${walletId}`, {}, 'tokenAuth');
   }
 
   /*
    * Add a new Drop
    */
-  addDrop (name, dropType, totalNfts, maxNfts, totalYield, price, imgBefore, imgAfter, contractId, walletId, skey) {
-    return this.apiCall('POST', 'drops', { name, dropType, totalNfts, maxNfts, totalYield, price, imgBefore, imgAfter, contractId, walletId, skey }, 'tokenAuth')
+  addDrop(
+    name,
+    dropType,
+    totalNfts,
+    maxNfts,
+    totalYield,
+    price,
+    imgBefore,
+    imgAfter,
+    contractId,
+    walletId,
+    skey
+  ) {
+    return this.apiCall(
+      'POST',
+      'drops',
+      {
+        name,
+        dropType,
+        totalNfts,
+        maxNfts,
+        totalYield,
+        price,
+        imgBefore,
+        imgAfter,
+        contractId,
+        walletId,
+        skey,
+      },
+      'tokenAuth'
+    );
   }
 
   /*
    * Get a Code
    */
-  getCode (dropHash) {
-    return this.apiCall('POST', 'drops/code', { dropHash }, 'tokenAuth')
+  getCode(dropHash) {
+    return this.apiCall('POST', 'drops/code', { dropHash }, 'tokenAuth');
   }
 
   /*
@@ -160,40 +248,51 @@ class MintKnight extends MintKnightBase {
    *
    * @param {string} file File name with path
    */
-  addMedia (imageFile, imageName) {
+  addMedia(imageFile, imageName) {
     return new Promise((resolve) => {
-      const form = new FormData()
-      const image = fs.readFileSync(imageFile)
-      form.append('nftImage', image, imageName)
-      const config = { headers: { ...form.getHeaders(), Authorization: `Bearer ${this.apiKey}` } }
-      axios.post(`${this.api}media`, form, config)
+      const form = new FormData();
+      const image = fs.readFileSync(imageFile);
+      form.append('nftImage', image, imageName);
+      const config = {
+        headers: {
+          ...form.getHeaders(),
+          Authorization: `Bearer ${this.apiKey}`,
+        },
+      };
+      axios
+        .post(`${this.api}media`, form, config)
         .then((res) => {
-          resolve(res.data)
+          resolve(res.data);
         })
-        .catch((e) => log(chalk.red('Error'), e.message))
-    })
+        .catch((e) => log(chalk.red('Error'), e.message));
+    });
   }
 
   /*
    * Get Media list
    */
-  getMedia () {
-    return this.apiCall('GET', 'media', {}, 'tokenAuth')
+  getMedia() {
+    return this.apiCall('GET', 'media', {}, 'tokenAuth');
   }
 
   /*
    * Get NFT list
    */
-  getNfts (contractId) {
-    return this.apiCall('GET', `nfts/${contractId}`, {}, 'tokenAuth')
+  getNfts(contractId) {
+    return this.apiCall('GET', `nfts/${contractId}`, {}, 'tokenAuth');
   }
 
   /*
    * Get NFT metadata
    */
-  getNft (contractId, tokenId) {
-    return this.apiCall('GET', `nfts/${contractId}/${tokenId}`, {}, 'tokenAuth')
+  getNft(contractId, tokenId) {
+    return this.apiCall(
+      'GET',
+      `nfts/${contractId}/${tokenId}`,
+      {},
+      'tokenAuth'
+    );
   }
 }
 
-module.exports = MintKnight
+module.exports = MintKnight;
