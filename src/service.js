@@ -160,7 +160,6 @@ class MintKnight extends MintKnightBase {
    * @param {string} address optional address if no walletId
    */
   updateContract(contractId, change, walletId, address, owner, skey) {
-    console.log({ contractId, change, walletId, address, owner, skey });
     return this.apiCall(
       'PUT',
       `contracts/${contractId}`,
