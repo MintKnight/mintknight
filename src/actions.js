@@ -386,9 +386,11 @@ class Actions {
       contract.contractId
     );
     task = await service.waitTask(task.taskId);
-    contract.address = task.contractAddress;
-    contract.contractId = task.contractId;
-    await addContract(nconf, contract, wallet);
+    if (task !== false) {
+      contract.address = task.contractAddress;
+      contract.contractId = task.contractId;
+      await addContract(nconf, contract, wallet);
+    }
   }
 
   /**
@@ -558,6 +560,25 @@ class Actions {
       owner.skey
     );
     log(result);
+  }
+
+  /**
+   * Sign to buy a tokenId.
+   */
+  static async sign(nconf) {
+    const { env, service, projectId, contractId } = connect(nconf);
+    const signerId = nconf.get(`${env}:${projectId}:walletId`);
+    const signer = nconf.get(`${env}:${projectId}:${signerId}`);
+    const tokenId = await Prompt.text('TokenId');
+    const buyer = await Prompt.text('Buyer address');
+    const signature = await service.getSignature(
+      contractId,
+      tokenId,
+      buyer,
+      signerId,
+      signer.skey
+    );
+    log('Signature', signature);
   }
 }
 

@@ -137,6 +137,9 @@ const main = async () => {
     case 'mint':
       Actions.mint(nconf);
       break;
+    case 'sign':
+      Actions.sign(nconf);
+      break;
     default:
       Actions.info(nconf);
       action !== false && error('Invalid action');
