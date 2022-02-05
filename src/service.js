@@ -134,11 +134,12 @@ class MintKnight extends MintKnightBase {
    * @param {string} to Wallet ID receiving the tokens
    * @param {number} tokenId tokenId.
    */
-  transferNFT(contractId, walletId, skey, to, tokenId) {
+  transferNFT(nftId, walletId, skey, to, address) {
+    console.log(nftId, walletId, skey, to, address);
     return this.apiCall(
       'PUT',
-      'nfts',
-      { contractId, walletId, skey, to, tokenId },
+      `nfts/${nftId}`,
+      { nftId, walletId, skey, to, address },
       'tokenAuth'
     );
   }

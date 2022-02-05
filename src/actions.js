@@ -168,9 +168,9 @@ class Actions {
     detail('mk add contract', 'Adds a new contract');
     detail('mk select contract', 'Select Active contract');
     detail('mk list nft', 'List NFTs in th Contract');
-
     title('\nNFTs');
     detail('mk mint', 'Mint to the selected Contract');
+    detail('mk transfer', 'Transfer an NFT owned bu the current Wallet');
     detail('mk info nft', 'Get the metadata for an NFT');
     detail('mk list nft', 'List all NFTs in the contract');
     detail('mk update nft', 'Update the metadata for an NFT');
@@ -338,7 +338,8 @@ class Actions {
         task = await service.waitTask(task.taskId);
         wallet.address = task.contractAddress;
       }
-      await addWallet(nconf, wallet);
+      if (task.state === 'failed') error('Media upload failed');
+      else await addWallet(nconf, wallet);
     }
   }
 
@@ -368,6 +369,15 @@ class Actions {
       checkOwner(env, nconf);
       log('Wallet changed');
     }
+  }
+
+  /**
+   * Info Wallet.
+   */
+  static async infoWallet(nconf) {
+    const { service, walletId } = connect(nconf);
+    const wallet = await service.getWallet(walletId);
+    console.log(wallet);
   }
 
   /**
@@ -448,9 +458,10 @@ class Actions {
 
     // Connect
     const { service } = connect(nconf);
-    const task = await service.addMedia(img, `${name}${ext}`);
-    await service.waitTask(task.taskId);
-    log('Media added');
+    let task = await service.addMedia(img, `${name}${ext}`);
+    task = await service.waitTask(task.taskId);
+    if (task.state === 'failed') error('Media upload failed');
+    else log('Media added');
   }
 
   /**
@@ -473,7 +484,11 @@ class Actions {
     if (checkOwner(env, nconf) === false) error('Invalid Wallet');
     // Get metadata
     const nft = await Prompt.nft();
-    const { walletId, address } = Prompt.walletId(nconf, env, projectId);
+    const { walletId, address } = await Prompt.getWalletId(
+      nconf,
+      env,
+      projectId
+    );
 
     const minterId = nconf.get(`${env}:${projectId}:walletId`);
     const minter = nconf.get(`${env}:${projectId}:${minterId}`);
@@ -487,6 +502,36 @@ class Actions {
     );
     await service.waitTask(task.taskId);
     log('NFT Minted');
+  }
+
+  /**
+   * Transfer a NFT
+   */
+  static async transfer(nconf) {
+    const { service, env, projectId, contractId } = connect(nconf);
+    if (checkOwner(env, nconf) === false) error('Invalid Wallet');
+    // Get metadata
+    const nftId = await Prompt.text('NftId');
+    log('Send the NFT To');
+    const { walletId, address } = await Prompt.getWalletId(
+      nconf,
+      env,
+      projectId
+    );
+
+    const ownerId = nconf.get(`${env}:${projectId}:walletId`);
+    const owner = nconf.get(`${env}:${projectId}:${ownerId}`);
+    let task = await service.transferNFT(
+      nftId,
+      ownerId,
+      owner.skey,
+      walletId,
+      address
+    );
+    if (task == false) error('Transfer Failed');
+    task = await service.waitTask(task.taskId);
+    if (task.state === 'failed') error('Transfer failed');
+    log('NFT Transferred');
   }
 
   /**
@@ -514,6 +559,9 @@ class Actions {
     for (let i = 0; i < nfts.length; i += 1) {
       title(`\n${nfts[i].name}`);
       detail('tokenId', nfts[i].tokenId);
+      detail('nftId', nfts[i]._id);
+      detail('mediaId', nfts[i].mediaId);
+      detail('owner', nfts[i].walletId);
     }
   }
 
@@ -524,7 +572,10 @@ class Actions {
     const { service, contractId } = connect(nconf);
     const tokenId = await Prompt.text('TokenId');
     const nft = await service.getNft(contractId, tokenId);
-    console.log(nft);
+    title(`\n${nft.name}`);
+    log(nft.description);
+    log(nft.image);
+    log(nft.attributes);
   }
 
   /**

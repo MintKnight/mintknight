@@ -76,8 +76,11 @@ const info = async (nconf) => {
     case 'contract':
       Actions.infoContract(nconf);
       break;
+    case 'wallet':
+      Actions.infoWallet(nconf);
+      break;
     default:
-      error('Invalid element to get info (project, wallet, nft)');
+      error('Invalid element to get info (project, wallet, nft, wallet)');
       break;
   }
 };
@@ -136,6 +139,9 @@ const main = async () => {
       break;
     case 'mint':
       Actions.mint(nconf);
+      break;
+    case 'transfer':
+      Actions.transfer(nconf);
       break;
     case 'sign':
       Actions.sign(nconf);
