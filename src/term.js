@@ -22,6 +22,10 @@ const warning = (...args) => {
   log(chalk.hex('#FFA500').bold(args));
 };
 
+const check = (args) => {
+  log(args, chalk.hex('#00FF00').bold('OK'));
+};
+
 const detail = (label, value1, network = false) => {
   let color = '';
   switch (network) {
@@ -459,4 +463,4 @@ class Prompt {
   }
 }
 
-module.exports = { log, title, error, warning, detail, Prompt, Select };
+module.exports = { log, title, error, warning, detail, check, Prompt, Select };

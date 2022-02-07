@@ -135,7 +135,6 @@ class MintKnight extends MintKnightBase {
    * @param {number} tokenId tokenId.
    */
   transferNFT(nftId, walletId, skey, to, address) {
-    console.log(nftId, walletId, skey, to, address);
     return this.apiCall(
       'PUT',
       `nfts/${nftId}`,
@@ -241,6 +240,10 @@ class MintKnight extends MintKnightBase {
    */
   getCode(dropHash) {
     return this.apiCall('POST', 'drops/code', { dropHash }, 'tokenAuth');
+  }
+
+  addTestMedia() {
+    return this.apiCall('POST', 'media/test', {}, 'tokenAuth');
   }
 
   /*

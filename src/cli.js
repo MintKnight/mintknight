@@ -3,6 +3,7 @@ const nconf = require('nconf');
 const { error } = require('./term');
 const { init } = require('./utils');
 const { Actions } = require('./actions');
+const { Test } = require('./test');
 
 const add = async (nconf) => {
   const element = process.argv[3];
@@ -113,6 +114,9 @@ const main = async () => {
     case 'help':
       Actions.help();
       break;
+    case 'test':
+      Test.go(nconf);
+      break;
     case 'setup':
       Actions.setup(nconf);
       break;
@@ -145,6 +149,8 @@ const main = async () => {
       break;
     case 'sign':
       Actions.sign(nconf);
+      break;
+    case 'test':
       break;
     default:
       Actions.info(nconf);

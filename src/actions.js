@@ -56,81 +56,6 @@ const connect = (nconf) => {
   }
   return { token, mintknight, service, env, contractId, projectId, walletId };
 };
-
-/**
- * Saves a user to the config
- *
- * @param {object} nconf
- * @param {object}user
- */
-const saveUser = async (nconf, user) => {
-  user.status === 'failed' && error(user.error);
-  await addConfDir();
-  const env = nconf.get('env');
-  nconf.set('debug', false);
-  nconf.set(`${env}:userId`, user._id);
-  nconf.set(`${env}:token`, user.token);
-  nconf.set(`${env}:companyId`, user.companyId);
-  nconf.save();
-};
-
-/**
- * Add a project to the config
- *
- * @param {object} nconf
- * @param {object} project
- */
-const addProject = async (nconf, project) => {
-  const env = nconf.get('env');
-  const projects = nconf.get(`${env}:projects`) || [];
-  projects.push(project.projectId);
-  nconf.set(`${env}:projects`, projects);
-  nconf.set(`${env}:projectId`, project.projectId);
-  nconf.set(`${env}:${project.projectId}:token`, project.token);
-  nconf.set(`${env}:${project.projectId}:name`, project.name);
-  nconf.set(`${env}:${project.projectId}:network`, project.network);
-  nconf.save();
-};
-
-/**
- * Add a wallet to the config
- *
- * @param {object} nconf
- * @param {object} project
- */
-const addWallet = async (nconf, wallet) => {
-  const env = nconf.get('env');
-  const projectId = nconf.get(`${env}:projectId`);
-  const wallets = nconf.get(`${env}:${projectId}:wallets`) || [];
-  wallets.push(wallet.walletId);
-  nconf.set(`${env}:${projectId}:wallets`, wallets);
-  nconf.set(`${env}:${projectId}:${wallet.walletId}:name`, wallet.name);
-  nconf.set(`${env}:${projectId}:${wallet.walletId}:skey`, wallet.skey);
-  nconf.set(`${env}:${projectId}:${wallet.walletId}:address`, wallet.address);
-  nconf.set(`${env}:${projectId}:walletId`, wallet.walletId);
-  nconf.save();
-};
-
-/**
- * Add a contract to the config
- *
- * @param {object} nconf
- * @param {object} contract
- */
-const addContract = async (nconf, contract, wallet) => {
-  const env = nconf.get('env');
-  const projectId = nconf.get(`${env}:projectId`);
-  const contracts = nconf.get(`${env}:${projectId}:contracts`) || [];
-  const contractId = `${env}:${projectId}:${contract.contractId}`;
-  contracts.push(contract.contractId);
-  nconf.set(`${env}:${projectId}:contracts`, contracts);
-  nconf.set(`${contractId}:name`, contract.name);
-  nconf.set(`${contractId}:owner`, wallet.address);
-  nconf.set(`${contractId}:type`, contract.contractType);
-  nconf.set(`${env}:${projectId}:contractId`, contract.contractId);
-  nconf.save();
-};
-
 const checkOwner = (env, nconf) => {
   const projectId = nconf.get(`${env}:projectId`);
   const walletId = nconf.get(`${env}:${projectId}:walletId`);
@@ -145,6 +70,80 @@ const checkOwner = (env, nconf) => {
 };
 
 class Actions {
+  /**
+   * Saves a user to the config
+   *
+   * @param {object} nconf
+   * @param {object}user
+   */
+  static async saveUser(nconf, user) {
+    user.status === 'failed' && error(user.error);
+    await addConfDir();
+    const env = nconf.get('env');
+    nconf.set('debug', false);
+    nconf.set(`${env}:userId`, user._id);
+    nconf.set(`${env}:token`, user.token);
+    nconf.set(`${env}:companyId`, user.companyId);
+    nconf.save();
+  }
+
+  /**
+   * Add a project to the config
+   *
+   * @param {object} nconf
+   * @param {object} project
+   */
+  static async addProject(nconf, project) {
+    const env = nconf.get('env');
+    const projects = nconf.get(`${env}:projects`) || [];
+    projects.push(project.projectId);
+    nconf.set(`${env}:projects`, projects);
+    nconf.set(`${env}:projectId`, project.projectId);
+    nconf.set(`${env}:${project.projectId}:token`, project.token);
+    nconf.set(`${env}:${project.projectId}:name`, project.name);
+    nconf.set(`${env}:${project.projectId}:network`, project.network);
+    nconf.save();
+  }
+
+  /**
+   * Add a wallet to the config
+   *
+   * @param {object} nconf
+   * @param {object} project
+   */
+  static async addWallet(nconf, wallet) {
+    const env = nconf.get('env');
+    const projectId = nconf.get(`${env}:projectId`);
+    const wallets = nconf.get(`${env}:${projectId}:wallets`) || [];
+    wallets.push(wallet.walletId);
+    nconf.set(`${env}:${projectId}:wallets`, wallets);
+    nconf.set(`${env}:${projectId}:${wallet.walletId}:name`, wallet.name);
+    nconf.set(`${env}:${projectId}:${wallet.walletId}:skey`, wallet.skey);
+    nconf.set(`${env}:${projectId}:${wallet.walletId}:address`, wallet.address);
+    nconf.set(`${env}:${projectId}:walletId`, wallet.walletId);
+    nconf.save();
+  }
+
+  /**
+   * Add a contract to the config
+   *
+   * @param {object} nconf
+   * @param {object} contract
+   */
+  static async addContract(nconf, contract, wallet) {
+    const env = nconf.get('env');
+    const projectId = nconf.get(`${env}:projectId`);
+    const contracts = nconf.get(`${env}:${projectId}:contracts`) || [];
+    const contractId = `${env}:${projectId}:${contract.contractId}`;
+    contracts.push(contract.contractId);
+    nconf.set(`${env}:${projectId}:contracts`, contracts);
+    nconf.set(`${contractId}:name`, contract.name);
+    nconf.set(`${contractId}:owner`, wallet.address);
+    nconf.set(`${contractId}:type`, contract.contractType);
+    nconf.set(`${env}:${projectId}:contractId`, contract.contractId);
+    nconf.save();
+  }
+
   /**
    * Help Action.
    */
@@ -253,7 +252,7 @@ class Actions {
     const name = await Prompt.text('Name of the Company');
     let result = await mintknight.setCompany(name);
     config.companyId = result._id;
-    await saveUser(nconf, config);
+    await Actions.saveUser(nconf, config);
 
     // Add project.
     const project = await Prompt.project(env);
@@ -263,7 +262,7 @@ class Actions {
     // Get Token.
     result = await mintknight.getApiKey(project.projectId);
     project.token = result.token;
-    await addProject(nconf, project);
+    await Actions.addProject(nconf, project);
   }
 
   /**
@@ -281,7 +280,7 @@ class Actions {
     // Get Token.
     result = await mintknight.getApiKey(project.projectId);
     project.token = result.token;
-    await addProject(nconf, project);
+    await Actions.addProject(nconf, project);
   }
 
   /**
@@ -338,8 +337,8 @@ class Actions {
         task = await service.waitTask(task.taskId);
         wallet.address = task.contractAddress;
       }
-      if (task.state === 'failed') error('Media upload failed');
-      else await addWallet(nconf, wallet);
+      if (task.state === 'failed') error('Wallet creation failed');
+      else await Actions.addWallet(nconf, wallet);
     }
   }
 
@@ -399,7 +398,7 @@ class Actions {
     if (task !== false) {
       contract.address = task.contractAddress;
       contract.contractId = task.contractId;
-      await addContract(nconf, contract, wallet);
+      await Actions.addContract(nconf, contract, wallet);
     }
   }
 
@@ -450,18 +449,25 @@ class Actions {
    * Add a newImage to media Lib.
    */
   static async newMedia(nconf, img = false) {
+    const { service } = connect(nconf);
     // Check
     if (img === false) error('Image needed. mk add media ./assets/nft.png');
-    if (!fs.existsSync(img)) error(`File ${img} does not exist`);
-    const { name, ext } = path.parse(img);
-    if (!['.png'].includes(ext)) error('Invalid extension. Only png is valid');
 
-    // Connect
-    const { service } = connect(nconf);
-    let task = await service.addMedia(img, `${name}${ext}`);
-    task = await service.waitTask(task.taskId);
-    if (task.state === 'failed') error('Media upload failed');
-    else log('Media added');
+    if (img === 'test') {
+      let task = await service.addTestMedia();
+      log('Test Media added');
+    } else {
+      if (!fs.existsSync(img)) error(`File ${img} does not exist`);
+      const { name, ext } = path.parse(img);
+      if (!['.png'].includes(ext))
+        error('Invalid extension. Only png is valid');
+
+      // Connect
+      let task = await service.addMedia(img, `${name}${ext}`);
+      task = await service.waitTask(task.taskId);
+      if (task.state === 'failed') error('Media upload failed');
+      else log('Media added');
+    }
   }
 
   /**
@@ -492,7 +498,7 @@ class Actions {
 
     const minterId = nconf.get(`${env}:${projectId}:walletId`);
     const minter = nconf.get(`${env}:${projectId}:${minterId}`);
-    const task = await service.mintNFT(
+    let task = await service.mintNFT(
       contractId,
       minterId,
       minter.skey,
@@ -500,8 +506,10 @@ class Actions {
       address,
       nft
     );
-    await service.waitTask(task.taskId);
+    task = await service.waitTask(task.taskId);
+    if (task.state === 'failed') error('Mint failed');
     log('NFT Minted');
+    console.log(nft);
   }
 
   /**
