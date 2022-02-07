@@ -74,19 +74,35 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
-   * Mint an NFT
+   * Save NFT
    *
-   * @param {string} contractId Contract ID
-   * @param {string} walletId Minter Wallet ID
-   * @param {string} skey MInter Wallet SKEY
-   * @param {string} to Wallet ID receiving the tokens
+   * @param {string} contractId Contract Id
    * @param {object} metadata NFT minted.
    */
-  mintNFT(contractId, walletId, skey, to, address, metadata) {
+  saveNFT(contractId, metadata) {
     return this.apiCall(
       'POST',
-      'nfts',
-      { contractId, walletId, skey, to, address, metadata },
+      'nfts/save',
+      { contractId, metadata },
+      'tokenAuth'
+    );
+  }
+
+ 
+  /*
+   * Mint an NFT
+   *
+   * @param {string} nftId NFT ID
+   * @param {string} walletId Minter Wallet ID 
+   * @param {string} skey Minter Wallet SKEY
+   * @param {string} to Wallet ID receiving the tokens
+   * @param {string} address Alternative address
+   */
+  mintNFT(nftId, walletId, skey, to, address ) {
+    return this.apiCall(
+      'POST',
+      'nfts/mint',
+      { nftId, walletId, skey, to, address },
       'tokenAuth'
     );
   }

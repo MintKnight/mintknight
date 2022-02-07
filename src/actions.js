@@ -496,15 +496,21 @@ class Actions {
       projectId
     );
 
+    let task = await service.saveNFT( contractId, nft);
+    const nftId = task.nft._id;
+    console.log(task);
+    if (task.state === 'failed') error('Failed to upload NFT');
+    if (task.taskId !== 0) {
+      task = await service.waitTask(task.taskId);
+    }
     const minterId = nconf.get(`${env}:${projectId}:walletId`);
     const minter = nconf.get(`${env}:${projectId}:${minterId}`);
-    let task = await service.mintNFT(
-      contractId,
+    task = await service.mintNFT(
+      nftId,
       minterId,
       minter.skey,
       walletId,
-      address,
-      nft
+      address
     );
     task = await service.waitTask(task.taskId);
     if (task.state === 'failed') error('Mint failed');
