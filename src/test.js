@@ -67,7 +67,7 @@ class Test {
     await Actions.addProject(nconf, project);
     check('Got API KEY');
 
-    warning('\nTest - Deploy NFT Contract\n');
+    warning('\nTest - Deploy NFT Contract : ERC721 Mutable\n');
     const urlService = 'http://localhost:5001/';
     props.apiKey = project.token;
     let service = new MintKnight(
@@ -138,9 +138,8 @@ class Test {
     contract.address = task.contractAddress;
     contract.contractId = task.contractId;
     await Actions.addContract(nconf, contract, minter);
-    check('NFT Contract deployed');
+    check('NFT Contract ERC721 Immutable deployed');
 
-    warning('\nTest - Mint and Transfer\n');
     await service.addTestMedia();
     const media = await service.getMedia();
     if (media[0].name !== 'dragon.png') error('Media not set');
@@ -156,19 +155,19 @@ class Test {
         { display_type: 'number', trait_type: 'Years', value: '888' },
       ],
     };
+
+    task = await service.saveNFT(contract.contractId, nft);
+    const nftId = task.nft._id;
+    if (task.state === 'failed') error('Failed to upload NFT');
     task = await service.mintNFT(
-      contract.contractId,
+      nftId,
       minter.walletId,
       minter.skey,
-      minter.walletId,
-      0,
-      nft
+      minter.walletId
     );
-    if (task === false) error('Failed to mint ');
-    await service.waitTask(task.taskId);
-    if (task.state === 'failed') error('Minting failed');
-    const nftId = task.nft._id;
-    check('NFT minted');
+    task = await service.waitTask(task.taskId);
+    if (task.state === 'failed') error('Mint failed');
+    check('NFT Minted');
 
     task = await service.transferNFT(
       nftId,
@@ -185,6 +184,69 @@ class Test {
     // error('Get metadata');
     // error('Update metadata');
     // error('Get updated metadata');
+
+    warning('\nTest - Deploy NFT Contract : ERC721 Imnmutable\n');
+    log('TODO');
+
+    warning('\nTest - Deploy NFT Contract : ERC721 Buyable\n');
+
+    // Deploy Smart Contract - ERC721MinterPauserBuyable.
+    const contractERC721Buyable = {
+      name: 'Buyable NFT',
+      symbol: 'R1',
+      contractType: 53,
+      walletId: minter.walletId,
+      contractId: 0,
+    };
+    task = await service.addContract(
+      contractERC721Buyable.name,
+      contractERC721Buyable.symbol,
+      contractERC721Buyable.contractType,
+      contractERC721Buyable.walletId,
+      contractERC721Buyable.contractId
+    );
+    if (task === false) error('Failed to deploy a Contract - ERC721Buyable');
+    task = await service.waitTask(task.taskId);
+    if (task.state === 'failed') error('Contract creation failed');
+    contractERC721Buyable.address = task.contractAddress;
+    contractERC721Buyable.contractId = task.contractId;
+    await Actions.addContract(nconf, contractERC721Buyable, minter);
+    check('NFT Contract ERC 721 Buyable deployed');
+
+    // Deploy Smart COntract - BUYERC721
+    const contractBUYERC721 = {
+      name: 'Buyer NFT',
+      symbol: 'RB1',
+      contractType: 100,
+      walletId: minter.walletId,
+      contractId: contractERC721Buyable.contractId,
+    };
+    task = await service.addContract(
+      contractBUYERC721.name,
+      contractBUYERC721.symbol,
+      contractBUYERC721.contractType,
+      contractBUYERC721.walletId,
+      contractBUYERC721.contractId
+    );
+    if (task === false) error('Failed to deploy a Contract - BUYERC721');
+    task = await service.waitTask(task.taskId);
+    if (task.state === 'failed') error('Contract creation failed');
+    contractBUYERC721.address = task.contractAddress;
+    contractBUYERC721.contractId = task.contractId;
+    await Actions.addContract(nconf, contractBUYERC721, minter);
+    check('NFT Contract ERC BUY721 deployed');
+
+    // Update the minter of contractERC721Buyable to address of contractBUYERC721
+    task = await service.updateContract(
+      contract.contractId,
+      minter,
+      0,
+      contractBUYERC721.address,
+      minter.walletId,
+      minter.skey
+    );
+    if (task === false) error('Failed to set new Minter');
+    if (task.state === 'failed') error('setMinter failed');
     log('\nTest finished\n');
   }
 }

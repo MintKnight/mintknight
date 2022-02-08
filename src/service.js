@@ -29,7 +29,7 @@ class MintKnight extends MintKnightBase {
           'tokenAuth'
         );
         if (result.state === 'running' || result.state === 'queued') {
-          await new Promise((r) => setTimeout(r, 5000));
+          await new Promise((r) => setTimeout(r, 1000));
         } else {
           this.mkLog('Task ended');
           return resolve(result);
@@ -88,17 +88,16 @@ class MintKnight extends MintKnightBase {
     );
   }
 
- 
   /*
    * Mint an NFT
    *
    * @param {string} nftId NFT ID
-   * @param {string} walletId Minter Wallet ID 
+   * @param {string} walletId Minter Wallet ID
    * @param {string} skey Minter Wallet SKEY
    * @param {string} to Wallet ID receiving the tokens
    * @param {string} address Alternative address
    */
-  mintNFT(nftId, walletId, skey, to, address ) {
+  mintNFT(nftId, walletId, skey, to, address) {
     return this.apiCall(
       'POST',
       'nfts/mint',
