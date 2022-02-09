@@ -321,28 +321,28 @@ class Prompt {
         message: 'Choose a contract Type',
         choices: [
           {
-            title: 'erc721 Mutable URI',
+            title: 'ERC721 - Mutable URI',
             description: 'NFT, URI points to MintKnight',
             value: 51,
           },
           {
-            title: 'erc721 Inmutable URI',
+            title: 'ERC721 - Inmutable URI',
             description: 'NFT, URI points to Arweave',
             value: 52,
           },
           {
-            title: 'erc721 - Buyable',
+            title: 'ERC721 - Buyable',
             description:
               'NFT - Can be minted by a different contract (Buy/Auction)',
             value: 53,
           },
           {
-            title: 'erc20 - Mintable',
+            title: 'ERC20 - Mintable',
             description: 'Fungible Token (ERC20)',
             value: 10,
           },
           {
-            title: 'Buy contracts',
+            title: 'BUY - Buy contracts',
             description: 'Used to buy from another contract',
             value: 100,
           },

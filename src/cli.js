@@ -101,8 +101,14 @@ const update = async (nconf) => {
     case 'owner':
       Actions.updateContract(nconf, 'owner');
       break;
+    case 'prices':
+      Actions.updatePrices(nconf);
+      break;
+    case 'verifier':
+      Actions.updateVerifier(nconf);
+      break;
     default:
-      error('Invalid element to update (nft)');
+      error('Invalid element to update (nft, minter, owner, verifier, prices)');
       break;
   }
 };
@@ -115,7 +121,11 @@ const main = async () => {
       Actions.help();
       break;
     case 'test':
-      Test.go(nconf);
+      if (process.argv[3] && process.argv[3] === 'buy') {
+        Test.buy(nconf);
+      } else {
+        Test.go(nconf);
+      }
       break;
     case 'setup':
       Actions.setup(nconf);

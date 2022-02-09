@@ -140,6 +140,7 @@ class Actions {
     nconf.set(`${contractId}:name`, contract.name);
     nconf.set(`${contractId}:owner`, wallet.address);
     nconf.set(`${contractId}:type`, contract.contractType);
+    nconf.set(`${contractId}:address`, contract.address);
     nconf.set(`${env}:${projectId}:contractId`, contract.contractId);
     nconf.save();
   }
@@ -496,7 +497,7 @@ class Actions {
       projectId
     );
 
-    let task = await service.saveNFT( contractId, nft);
+    let task = await service.saveNFT(contractId, nft);
     const nftId = task.nft._id;
     console.log(task);
     if (task.state === 'failed') error('Failed to upload NFT');
@@ -628,6 +629,43 @@ class Actions {
   }
 
   /**
+   * Update verifier
+   */
+  static async updateVerifier(nconf) {
+    const { env, service, projectId, contractId } = connect(nconf);
+    if (!contractId) error('A contract must be selected');
+    const verifier = await Prompt.text('Verifier (wallet Id of a Signer)');
+    const ownerId = nconf.get(`${env}:${projectId}:walletId`);
+    const owner = nconf.get(`${env}:${projectId}:${ownerId}`);
+    const result = await service.updateVerifier(
+      contractId,
+      verifier,
+      ownerId,
+      owner.skey
+    );
+    log(result);
+  }
+
+  /**
+   * Update minter/owner of a contract
+   */
+  static async updatePrices(nconf) {
+    const { env, service, projectId, contractId } = connect(nconf);
+    if (!contractId) error('A contract must be selected');
+    let prices = await Prompt.text('Prices (separated by coma)');
+    prices = prices.replace(/\s+/g, '');
+    const ownerId = nconf.get(`${env}:${projectId}:walletId`);
+    const owner = nconf.get(`${env}:${projectId}:${ownerId}`);
+    const result = await service.updatePrices(
+      contractId,
+      prices,
+      ownerId,
+      owner.skey
+    );
+    log(result);
+  }
+
+  /**
    * Sign to buy a tokenId.
    */
   static async sign(nconf) {
@@ -636,12 +674,14 @@ class Actions {
     const signer = nconf.get(`${env}:${projectId}:${signerId}`);
     const tokenId = await Prompt.text('TokenId');
     const buyer = await Prompt.text('Buyer address');
+    const price = await Prompt.text('Price of the NFT');
     const signature = await service.getSignature(
       contractId,
       tokenId,
       buyer,
       signerId,
-      signer.skey
+      signer.skey,
+      price
     );
     log('Signature', signature);
   }

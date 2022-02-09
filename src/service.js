@@ -79,11 +79,11 @@ class MintKnight extends MintKnightBase {
    * @param {string} contractId Contract Id
    * @param {object} metadata NFT minted.
    */
-  saveNFT(contractId, metadata) {
+  saveNFT(contractId, metadata, tokenId = 0) {
     return this.apiCall(
       'POST',
       'nfts/save',
-      { contractId, metadata },
+      { contractId, metadata, tokenId },
       'tokenAuth'
     );
   }
@@ -97,7 +97,7 @@ class MintKnight extends MintKnightBase {
    * @param {string} to Wallet ID receiving the tokens
    * @param {string} address Alternative address
    */
-  mintNFT(nftId, walletId, skey, to, address) {
+  mintNFT(nftId, walletId, skey, to = false, address = false) {
     return this.apiCall(
       'POST',
       'nfts/mint',
@@ -179,6 +179,38 @@ class MintKnight extends MintKnightBase {
       'PUT',
       `contracts/${contractId}`,
       { change, walletId, address, owner, skey },
+      'tokenAuth'
+    );
+  }
+
+  /*
+   * Update prices the BUY contract
+   * @param {string} contractId Contract ID
+   * @param {string} prices comma separated list of prices
+   * @param {string} walletId Wallet ID
+   * @param {string} address optional address if no walletId
+   */
+  updatePrices(contractId, prices, owner, skey) {
+    return this.apiCall(
+      'PUT',
+      `contracts/${contractId}/prices`,
+      { prices, owner, skey },
+      'tokenAuth'
+    );
+  }
+
+  /*
+   * Update Verifier of the BUY Contract.
+   * @param {string} contractId Contract ID
+   * @param {string} verifier Address of the verifier.
+   * @param {string} walletId Wallet ID
+   * @param {string} address optional address if no walletId
+   */
+  updateVerifier(contractId, walletId, owner, skey) {
+    return this.apiCall(
+      'PUT',
+      `contracts/${contractId}/verifier`,
+      { walletId, walletId, owner, skey },
       'tokenAuth'
     );
   }
@@ -315,11 +347,11 @@ class MintKnight extends MintKnightBase {
   /*
    * Get NFT metadata
    */
-  getSignature(contractId, tokenId, buyer, walletId, skey) {
+  getSignature(contractId, tokens, buyer, walletId, skey) {
     return this.apiCall(
       'POST',
       'wallets/sign',
-      { contractId, tokenId, buyer, walletId, skey },
+      { contractId, tokens, buyer, walletId, skey },
       'tokenAuth'
     );
   }
