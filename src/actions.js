@@ -37,7 +37,7 @@ const connect = (nconf) => {
       break;
     case 'production':
       urlWeb = 'https://webapi.mintknight.com/';
-      urlService = 'https://webapi.mintknight.com/';
+      urlService = 'https://api.mintknight.com/';
       break;
   }
   let service = false;
