@@ -43,7 +43,7 @@ class MintKnight extends MintKnightBase {
    *
    * @param {string} projectId ProjectId
    */
-  addContract(name, symbol, contractType, walletId, contractId) {
+  addContract(name, symbol, contractType, walletId, contractId, mediaId) {
     const contract = {
       contractType,
       name,
@@ -51,6 +51,7 @@ class MintKnight extends MintKnightBase {
       minter: walletId,
       owner: walletId,
       contractId,
+      mediaId,
     };
     return this.apiCall('POST', 'contracts/', contract, 'tokenAuth');
   }

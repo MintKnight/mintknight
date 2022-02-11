@@ -307,7 +307,8 @@ class Test {
       contractERC721Buyable.symbol,
       contractERC721Buyable.contractType,
       contractERC721Buyable.walletId,
-      contractERC721Buyable.contractId
+      contractERC721Buyable.contractId,
+      media[0]._id
     );
     taskResult = await checkTask(
       task,
@@ -424,8 +425,11 @@ class Test {
     result = await nft721.balanceOf(wallet.address);
     check(`${result.toNumber()} NFTs bought`);
 
+    console.log(contractERC721Buyable);
+    const nft1 = await service.getNft(contractERC721Buyable.contractId, 0);
+    console.log(nft1);
+
     // 8 - Saves the NFTs as draft (using previous mediaId).
-    // Upload Media
     // 9 - Mints the NFTs (writes to the Blockchain -> setURI).
 
     log('\nTest finished\n');

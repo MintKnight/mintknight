@@ -356,6 +356,7 @@ class Prompt {
     answers.contractId = false;
     if (answers.contractType === 100) {
       answers.contractId = await Prompt.text('ContractId (ERC721)');
+      answers.mediaId = await Prompt.text('mediaId (default img)');
     }
     if (
       answers.name === undefined ||

@@ -14,6 +14,14 @@ const addConfDir = async () => {
   }
 };
 
+const waitTask = async (task, service, msgOk, msgKo) => {
+  if (task == false) error(msgKo);
+  const result = await service.waitTask(task.taskId);
+  if (result.state === 'failed') error(msgKo);
+  log(msgOk);
+  return result;
+};
+
 /**
  * Connect to API - MintKnight
  *
@@ -56,6 +64,7 @@ const connect = (nconf) => {
   }
   return { token, mintknight, service, env, contractId, projectId, walletId };
 };
+
 const checkOwner = (env, nconf) => {
   const projectId = nconf.get(`${env}:projectId`);
   const walletId = nconf.get(`${env}:${projectId}:walletId`);
@@ -393,7 +402,8 @@ class Actions {
       contract.symbol,
       contract.contractType,
       wallet.walletId,
-      contract.contractId
+      contract.contractId,
+      contract.mediaId
     );
     task = await service.waitTask(task.taskId);
     if (task !== false) {
@@ -439,9 +449,32 @@ class Actions {
     const contract = await service.getContract(contractId);
     if (contract) {
       warning(`\n${contract.name} (${contract.symbol})`);
+      switch (contract.contractType) {
+        case 0:
+          detail('type', 'ERC20');
+          break;
+        case 51:
+          detail('type', 'ERC721 Mutable');
+          break;
+        case 52:
+          detail('type', 'ERC721 Immutable');
+          break;
+        case 53:
+          detail('type', 'ERC721 Immutable');
+          break;
+        case 100:
+          detail('type', 'BUY Contract');
+          break;
+        default:
+          detail('type', 'unknown');
+          break;
+      }
       detail('network', contract.network);
       detail('owner', contract.owner);
       detail('minter', contract.minter);
+      if (contract.mediaId) {
+        detail('mediaId', contract.mediaId);
+      }
       log('\n');
     } else error('Contract not found');
   }
@@ -585,8 +618,8 @@ class Actions {
     const tokenId = await Prompt.text('TokenId');
     const nft = await service.getNft(contractId, tokenId);
     title(`\n${nft.name}`);
-    log(nft.description);
-    log(nft.image);
+    detail('Description, ', nft.description);
+    detail('Image', nft.image);
     log(nft.attributes);
   }
 
@@ -622,7 +655,7 @@ class Actions {
       ownerId,
       owner.skey
     );
-    log(result);
+    await waitTask(task, service, 'Failed to update owner', 'Owner updated');
   }
 
   /**
@@ -640,7 +673,6 @@ class Actions {
       ownerId,
       owner.skey
     );
-    log(result);
   }
 
   /**
