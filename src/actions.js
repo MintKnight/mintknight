@@ -496,7 +496,6 @@ class Actions {
       env,
       projectId
     );
-
     let task = await service.saveNFT(contractId, nft);
     const nftId = task.nft._id;
     if (task.state === 'failed') error('Failed to upload NFT');

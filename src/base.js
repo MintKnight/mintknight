@@ -113,7 +113,6 @@ class MintKnightBase {
           resolve(res.data);
         })
         .catch((e) => {
-          console.log(`${this.api}${call}`)
           this.mkError(`${method} ${call} => ${e.message}`);
           resolve(false);
         });

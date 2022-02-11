@@ -10,7 +10,7 @@
   },
   "name": "mintknight",
   "description": "Scripts to interact with the Mintknight API",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
