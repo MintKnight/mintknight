@@ -499,7 +499,6 @@ class Actions {
 
     let task = await service.saveNFT(contractId, nft);
     const nftId = task.nft._id;
-    console.log(task);
     if (task.state === 'failed') error('Failed to upload NFT');
     if (task.taskId !== 0) {
       task = await service.waitTask(task.taskId);
@@ -516,7 +515,6 @@ class Actions {
     task = await service.waitTask(task.taskId);
     if (task.state === 'failed') error('Mint failed');
     log('NFT Minted');
-    console.log(nft);
   }
 
   /**
@@ -674,14 +672,12 @@ class Actions {
     const signer = nconf.get(`${env}:${projectId}:${signerId}`);
     const tokenId = await Prompt.text('TokenId');
     const buyer = await Prompt.text('Buyer address');
-    const price = await Prompt.text('Price of the NFT');
     const signature = await service.getSignature(
       contractId,
       tokenId,
       buyer,
       signerId,
       signer.skey,
-      price
     );
     log('Signature', signature);
   }

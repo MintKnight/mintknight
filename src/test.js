@@ -284,12 +284,13 @@ class Test {
      *
      * 1 - Deploy ERC721MinterPauserBuyable Contract. (type 53)
      * 2 - Deploy BUYERC721 Contract. (type 100)
-     * 3 - Set BUYERC721 as the minter for ERC721MinterPauserBuyable
-     * 4 - Set Prices for BUYERC721.
-     * 5 - Create the Signature for an array of tokenIds.
-     * 6 - The user (wallet) Buys and Mints the NFTs. It gets a basic URI.
-     * 7 - Saves the NFTs as draft (using previous mediaId).
-     * 8 - Mints the NFTs (writes to the Blockchain -> setURI).
+     * 3 - Set signer as the verifier for BUYERC721
+     * 4 - Set BUYERC721 as the minter for ERC721MinterPauserBuyable
+     * 5 - Set Prices for BUYERC721.
+     * 6 - Create the Signature for an array of tokenIds.
+     * 7 - The user (wallet) Buys and Mints the NFTs. It gets a basic URI.
+     * 8 - Saves the NFTs as draft (using previous mediaId).
+     * 9 - Mints the NFTs (writes to the Blockchain -> setURI).
      */
     warning('\nTest - Deploy NFT Contract : ERC721MinterPauserBuyable\n');
 
@@ -379,7 +380,7 @@ class Test {
     );
 
     // 5 - Set Prices for BUYERC721.
-    const prices = '5,4,3,2,1,0';
+    const prices = '0.009,0.008,0.007,0.006,0';
     task = await service.updatePrices(
       contractBUYERC721.contractId,
       prices,
@@ -393,9 +394,9 @@ class Test {
       'Failed to update prices for ERC721MinterPauserBuyable'
     );
 
-    // 5 - Create the Signature for an array of tokenIds.
+    // 6 - Create the Signature for an array of tokenIds.
     const tokens = [100, 101, 102];
-    const signatures = await service.getSignature(
+    const { signatures } = await service.getSignature(
       contractBUYERC721.contractId,
       tokens,
       wallet.address,
@@ -403,15 +404,16 @@ class Test {
       signer.skey
     );
 
-    const basePrice = ethers.utils.parseEther('12');
+    // 7 - The user (wallet) Buys and Mints the NFTs. It gets a basic URI.
+    const basePrice = ethers.utils.parseUnits('0.024');
     const buyNFT = new ethers.Contract(
       contractBUYERC721.address,
       BuyContract.abi,
       wallet
     );
+
     const tx = await buyNFT.mintNft(tokens, signatures, { value: basePrice });
     await tx.wait();
-    check('NFTs bought');
 
     const nft721 = new ethers.Contract(
       contractERC721Buyable.address,
@@ -420,11 +422,11 @@ class Test {
     );
 
     result = await nft721.balanceOf(wallet.address);
-    console.log(result);
+    check(`${result.toNumber()} NFTs bought`);
 
+    // 8 - Saves the NFTs as draft (using previous mediaId).
     // Upload Media
-    // Save NFT
-    // Mint NFT (setURI)
+    // 9 - Mints the NFTs (writes to the Blockchain -> setURI).
 
     log('\nTest finished\n');
   }
@@ -483,7 +485,6 @@ class Test {
       'http://localhost:8545'
     );
     const balance = await provider.getBalance(wallet.address);
-    console.log(ethers.utils.formatEther(balance));
     wallet = wallet.connect(provider);
 
     // Buy NFTs
