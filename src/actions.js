@@ -15,7 +15,7 @@ const addConfDir = async () => {
 };
 
 const waitTask = async (task, service, msgOk, msgKo) => {
-  if (task == false) error(msgKo);
+  if (task === false) error(msgKo);
   const result = await service.waitTask(task.taskId);
   if (result.state === 'failed') error(msgKo);
   log(msgOk);
@@ -284,7 +284,7 @@ class Actions {
     // Add project.
     const project = await Prompt.project(nconf.get('env'));
     let result = await mintknight.addProject(project.name, project.network);
-    if (result === false) error('Error while adding a Project');
+    if (result.status === 'failed') error(result.error);
     project.projectId = result._id;
 
     // Get Token.
@@ -647,7 +647,7 @@ class Actions {
     );
     const ownerId = nconf.get(`${env}:${projectId}:walletId`);
     const owner = nconf.get(`${env}:${projectId}:${ownerId}`);
-    const result = await service.updateContract(
+    const task = await service.updateContract(
       contractId,
       change,
       walletId,
@@ -667,12 +667,13 @@ class Actions {
     const verifier = await Prompt.text('Verifier (wallet Id of a Signer)');
     const ownerId = nconf.get(`${env}:${projectId}:walletId`);
     const owner = nconf.get(`${env}:${projectId}:${ownerId}`);
-    const result = await service.updateVerifier(
+    const task = await service.updateVerifier(
       contractId,
       verifier,
       ownerId,
       owner.skey
     );
+    await waitTask(task, service, 'Verifier updated', 'Failed to update verifier');
   }
 
   /**
@@ -685,13 +686,13 @@ class Actions {
     prices = prices.replace(/\s+/g, '');
     const ownerId = nconf.get(`${env}:${projectId}:walletId`);
     const owner = nconf.get(`${env}:${projectId}:${ownerId}`);
-    const result = await service.updatePrices(
+    const task = await service.updatePrices(
       contractId,
       prices,
       ownerId,
       owner.skey
     );
-    log(result);
+    await waitTask(task, service, 'Prices updated', 'Failed to update prices');
   }
 
   /**
