@@ -36,8 +36,8 @@ const connect = (nconf) => {
   const env = nconf.get('env');
   switch (env) {
     case 'local':
-      urlWeb = 'http://localhost:5000/';
-      urlService = 'http://localhost:5001/';
+      urlWeb = 'http://localhost:3000/';
+      urlService = 'http://localhost:3001/';
       break;
     case 'sandbox':
       urlWeb = 'https://webapi.sandbox.mintknight.com/';
