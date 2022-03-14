@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const parser = require('csv-parser');
 const { Prompt, Select } = require('./term');
 const { log, title, error, warning, detail } = require('./term');
 const { MintKnight, MintKnightWeb } = require('../src/index');
@@ -601,7 +602,49 @@ class Actions {
    */
   static async uploadBulkNft(nconf) {
     const { service, contractId } = connect(nconf);
-    const tokenId = await Prompt.text('TokenId');
+    var csvFilename = await Prompt.text('Csv file');
+    csvFilename = './assets/nft-bulkdata2.csv';
+
+    if (!csvFilename) error('Csv file needed. e.g: ./assets/nft-bulkdata1.csv');
+    if (!fs.existsSync(csvFilename))
+      error(`File ${csvFilename} does not exist`);
+    const { name, ext } = path.parse(csvFilename);
+    if (!['.csv'].includes(ext)) error('Invalid extension. Only csv is valid');
+
+    var normalizedCsvFilename = path.normalize(csvFilename);
+
+    var getCsvData = () => {
+      return new Promise((resolve) => {
+        var _csvData = [];
+        fs.createReadStream(normalizedCsvFilename)
+          .pipe(parser({ delimiter: ';' }))
+          .on('data', function (csvrow) {
+            _csvData.push(csvrow);
+          })
+          .on('end', async function () {
+            var result = [];
+            for (var i = 0; i < _csvData.length; i++) {
+              var csvRow = _csvData[i];
+              var line = Object.values(csvRow);
+              var linePieces = line[0].split(';');
+              result.push(linePieces);
+              // linePieces.forEach((item) => {
+              //   result.push(item.trim());
+              // });
+            }
+            resolve(result);
+          });
+      });
+    };
+
+    var csvData = await getCsvData();
+    console.log('csvData', csvData);
+    if (csvData.length === 0) error(`File ${csvFilename} is empty`);
+
+
+    // Connect
+    //let task = await service.addMedia(img, `${name}${ext}`);
+
     // const attributes = [];
     // let attribute = true;
     // while (attribute !== false) {
