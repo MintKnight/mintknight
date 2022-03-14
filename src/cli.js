@@ -117,7 +117,7 @@ const uploadBulk = async (nconf) => {
   const element = process.argv[3];
   switch (element) {
     case 'nft':
-      Actions.uploadBulkNft(nconf);
+      Actions.uploadBulkNFTs(nconf);
       break;
     default:
       error('Invalid element to upload bulk (nft)');

@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const parser = require('csv-parser');
 const { Prompt, Select } = require('./term');
 const { log, title, error, warning, detail } = require('./term');
 const { MintKnight, MintKnightWeb } = require('../src/index');
@@ -598,60 +597,37 @@ class Actions {
   }
 
   /**
-   * Upload bulk NFT
+   * Upload bulk NFTs
    */
-  static async uploadBulkNft(nconf) {
+  static async uploadBulkNFTs(nconf) {
     const { service, contractId } = connect(nconf);
+
+    /*
+     * Ask CSV file
+     */
     var csvFilename = await Prompt.text('Csv file');
     csvFilename = './assets/nft-bulkdata2.csv';
-
     if (!csvFilename) error('Csv file needed. e.g: ./assets/nft-bulkdata1.csv');
     if (!fs.existsSync(csvFilename))
       error(`File ${csvFilename} does not exist`);
-    const { name, ext } = path.parse(csvFilename);
+    var { name, ext } = path.parse(csvFilename);
     if (!['.csv'].includes(ext)) error('Invalid extension. Only csv is valid');
+    csvFilename = path.normalize(csvFilename);
 
-    var normalizedCsvFilename = path.normalize(csvFilename);
+    /*
+     * Ask Zip file
+     */
+    var zipFilename = await Prompt.text('Zip file');
+    zipFilename = './assets/animals.zip';
+    if (!zipFilename) error('Csv file needed. e.g: ./assets/animals.zip');
+    if (!fs.existsSync(zipFilename))
+      error(`File ${zipFilename} does not exist`);
+    var { name, ext } = path.parse(zipFilename);
+    if (!['.zip'].includes(ext)) error('Invalid extension. Only zip is valid');
+    zipFilename = path.normalize(zipFilename);
 
-    var getCsvData = () => {
-      return new Promise((resolve) => {
-        var _csvData = [];
-        fs.createReadStream(normalizedCsvFilename)
-          .pipe(parser({ delimiter: ';' }))
-          .on('data', function (csvrow) {
-            _csvData.push(csvrow);
-          })
-          .on('end', async function () {
-            var result = [];
-            for (var i = 0; i < _csvData.length; i++) {
-              var csvRow = _csvData[i];
-              var line = Object.values(csvRow);
-              var linePieces = line[0].split(';');
-              result.push(linePieces);
-              // linePieces.forEach((item) => {
-              //   result.push(item.trim());
-              // });
-            }
-            resolve(result);
-          });
-      });
-    };
-
-    var csvData = await getCsvData();
-    console.log('csvData', csvData);
-    if (csvData.length === 0) error(`File ${csvFilename} is empty`);
-
-
-    // Connect
-    //let task = await service.addMedia(img, `${name}${ext}`);
-
-    // const attributes = [];
-    // let attribute = true;
-    // while (attribute !== false) {
-    //   attribute = await Prompt.attribute();
-    //   if (attribute !== false) attributes.push(attribute);
-    // }
-    // await service.updateNFT(contractId, tokenId, attributes);
+    //await service.uploadBulkNFTs(contractId, csvFilename, zipFilename);
+    await service.uploadBulkNFTs(99999, csvFilename, zipFilename);
     log('NFTs Uploaded');
   }
 

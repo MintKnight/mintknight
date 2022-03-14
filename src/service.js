@@ -124,6 +124,36 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
+   * Upload bulk NFTs
+   *
+   * @param {string} contractId Contract ID
+   * @param {string} zipFilename File name with path
+   */
+  uploadBulkNFTs(contractId, csvFilename, zipFilename) {
+    //addMedia(imageFile, imageName) {
+    return new Promise((resolve) => {
+      const form = new FormData();
+      const csvFile = fs.readFileSync(csvFilename);
+      const zipFile = fs.readFileSync(zipFilename);
+      form.append('files', csvFile, csvFilename);
+      form.append('files', zipFile, zipFilename);
+      const config = {
+        headers: {
+          ...form.getHeaders(),
+          Authorization: `Bearer ${this.apiKey}`,
+        },
+      };
+      console.log(`${this.api}nfts/upload/${contractId}`, form, config);
+      axios
+        .post(`${this.api}nfts/upload/${contractId}`, form, config)
+        .then((res) => {
+          resolve(res.data);
+        })
+        .catch((e) => log(chalk.red('Error'), e.message));
+    });
+  }
+
+  /*
    * Transfer a token
    *
    * @param {string} contractId Contract ID
