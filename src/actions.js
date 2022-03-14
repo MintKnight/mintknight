@@ -183,6 +183,7 @@ class Actions {
     detail('mk info nft', 'Get the metadata for an NFT');
     detail('mk list nft', 'List all NFTs in the contract');
     detail('mk update nft', 'Update the metadata for an NFT');
+    detail('mk upload-bulk nft', 'Upload bulk NFTs');
 
     title('\nMedia');
     detail('mk add media <file>', 'Adds a new image to the media Library');
@@ -593,6 +594,22 @@ class Actions {
     }
     await service.updateNFT(contractId, tokenId, attributes);
     log('NFT Updated');
+  }
+
+  /**
+   * Upload bulk NFT
+   */
+  static async uploadBulkNft(nconf) {
+    const { service, contractId } = connect(nconf);
+    const tokenId = await Prompt.text('TokenId');
+    // const attributes = [];
+    // let attribute = true;
+    // while (attribute !== false) {
+    //   attribute = await Prompt.attribute();
+    //   if (attribute !== false) attributes.push(attribute);
+    // }
+    // await service.updateNFT(contractId, tokenId, attributes);
+    log('NFTs Uploaded');
   }
 
   /**

@@ -113,6 +113,18 @@ const update = async (nconf) => {
   }
 };
 
+const uploadBulk = async (nconf) => {
+  const element = process.argv[3];
+  switch (element) {
+    case 'nft':
+      Actions.uploadBulkNft(nconf);
+      break;
+    default:
+      error('Invalid element to upload bulk (nft)');
+      break;
+  }
+};
+
 const main = async () => {
   const action = process.argv[2] || false;
   init(action);
@@ -160,7 +172,13 @@ const main = async () => {
     case 'sign':
       Actions.sign(nconf);
       break;
+    case 'upload-bulk':
+      uploadBulk(nconf);
+      break;
     case 'test':
+      break;
+    case 'update':
+      update(nconf);
       break;
     default:
       Actions.info(nconf);
