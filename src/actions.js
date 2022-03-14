@@ -626,8 +626,10 @@ class Actions {
     if (!['.zip'].includes(ext)) error('Invalid extension. Only zip is valid');
     zipFilename = path.normalize(zipFilename);
 
-    //await service.uploadBulkNFTs(contractId, csvFilename, zipFilename);
-    await service.uploadBulkNFTs(99999, csvFilename, zipFilename);
+    // const ret = await service.uploadBulkNFTs(contractId, csvFilename, zipFilename);
+    const ret = await service.uploadBulkNFTs(99999, csvFilename, zipFilename);
+    if (ret.status && ret.status.toLowerCase() === 'failed')
+      error('Error uploading NFTs: ' + ret.error);
     log('NFTs Uploaded');
   }
 

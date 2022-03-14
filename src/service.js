@@ -143,7 +143,7 @@ class MintKnight extends MintKnightBase {
           Authorization: `Bearer ${this.apiKey}`,
         },
       };
-      axios
+      return axios
         .post(`${this.api}nfts/upload/${contractId}`, form, config)
         .then((res) => {
           resolve(res.data);
