@@ -639,8 +639,31 @@ class Actions {
    * List NFTs.
    */
   static async listNft(nconf) {
-    const { service, contractId } = connect(nconf);
-    const nfts = await service.getNfts(contractId);
+    const { service, contractId, walletId } = connect(nconf);
+
+    const choices = [
+      {
+        title: 'Contract',
+        description: 'List NFTs by the selected contract',
+        value: 'contract',
+      },
+      {
+        title: 'Wallet',
+        description: 'List NFTs by the selected wallet',
+        value: 'wallet',
+      },
+    ];
+    const option = await Select.option(choices);
+
+    var nfts;
+    if (option === 'contract') {
+      if (!contractId) error('A contract must be selected');
+      nfts = await service.getNfts(contractId);
+    } else {
+      if (!walletId) error('A wallet must be selected');
+      nfts = await service.getNftsByWallet(walletId);
+    }
+
     for (let i = 0; i < nfts.length; i += 1) {
       const nft = nfts[i];
       //console.log('nft', nft);
@@ -674,7 +697,7 @@ class Actions {
     title(`\n${nft.name}`);
     detail('Description, ', nft.description);
     detail('Image', nft.image);
-    log(nft.attributes);
+    if (nft.attributes) log(nft.attributes);
   }
 
   /**

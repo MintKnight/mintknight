@@ -363,6 +363,13 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
+   * Get NFT list by wallet
+   */
+  getNftsByWallet(walletId) {
+    return this.apiCall('GET', `nfts/all/wallet/${walletId}`, {}, 'tokenAuth');
+  }
+
+  /*
    * Get NFT metadata
    */
   getNft(contractId, tokenId) {

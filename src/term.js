@@ -101,6 +101,24 @@ class Select {
     if (answers.contract === undefined) process.exit();
     return answers.contract;
   }
+
+  static async option(choices) {
+    warning('\nSelect and option');
+    const questions = [
+      {
+        type: 'select',
+        name: 'option',
+        message: 'Choose an option',
+        choices,
+      },
+    ];
+    const answers = await prompt(questions, {
+      onCancel: cleanup,
+      onSubmit: cleanup,
+    });
+    if (answers.option === undefined) process.exit();
+    return answers.option;
+  }
 }
 
 class Prompt {
