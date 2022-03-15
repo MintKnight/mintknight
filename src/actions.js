@@ -642,11 +642,25 @@ class Actions {
     const { service, contractId } = connect(nconf);
     const nfts = await service.getNfts(contractId);
     for (let i = 0; i < nfts.length; i += 1) {
-      title(`\n${nfts[i].name}`);
-      detail('tokenId', nfts[i].tokenId);
-      detail('nftId', nfts[i]._id);
-      detail('mediaId', nfts[i].mediaId);
-      detail('owner', nfts[i].walletId);
+      const nft = nfts[i];
+      //console.log('nft', nft);
+      title(`\n${nft.name}`);
+      detail('tokenId', nft.tokenId);
+      detail('nftId', nft._id);
+      detail('state', nft.state);
+      detail('uploaded', nft.uploaded);
+      if (nft.uploaded) {
+        if (nft.state == 'draft') {
+          const metadata = JSON.parse(nft.metadata);
+          detail('image', metadata.image);
+        } else {
+          detail('mediaId', nft.mediaId);
+          detail('owner', nft.walletId);
+        }
+      } else {
+        detail('mediaId', nft.mediaId);
+        detail('owner', nft.walletId);
+      }
     }
   }
 
