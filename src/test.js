@@ -4,8 +4,8 @@ const { log, title, error, warning, detail, check } = require('./term');
 const { MintKnight, MintKnightWeb } = require('../src/index');
 const { Actions } = require('./actions');
 const ethers = require('ethers');
-// const BuyContract = require('../../evm-contracts/artifacts/contracts/polygon/BUYNFT/ERC721BuyRandom.sol/ERC721BuyRandom.json');
-// const ERC721Contract = require('../../evm-contracts/artifacts/contracts/polygon/ERC721/ERC721MinterPauserBuyable.sol/ERC721MinterPauserBuyable.json');
+const BuyContract = require('../../evm-contracts/artifacts/contracts/polygon/BUYNFT/ERC721BuyRandom.sol/ERC721BuyRandom.json');
+const ERC721Contract = require('../../evm-contracts/artifacts/contracts/polygon/ERC721/ERC721MinterPauserBuyable.sol/ERC721MinterPauserBuyable.json');
 
 function makeid(length) {
   let result = '';
@@ -37,7 +37,8 @@ class Test {
       debug: false,
       token: false,
     };
-    const urlWeb = 'http://localhost:5000/';
+    //const urlWeb = 'http://localhost:5000/';
+    const urlWeb = process.env.MINTKNIGHT_API_WEB;
     let mintknight = new MintKnightWeb(urlWeb, props);
 
     // Prepare local env.
@@ -80,7 +81,8 @@ class Test {
     // 4 - Add first project.
     const project = {
       name: 'NFT Project',
-      network: 'localhost',
+      //network: 'localhost',
+      network: process.env.MINTKNIGHT_NETWORK,
     };
     result = await mintknight.addProject(project.name, project.network);
     project.projectId = result._id;
@@ -104,7 +106,8 @@ class Test {
      */
 
     // 1 - Connect to MintKnight Web with the project Token.
-    const urlService = 'http://localhost:5001/';
+    //const urlService = 'http://localhost:5001/';
+    const urlService = process.env.MINTKNIGHT_API_SERVICE;
     props.apiKey = project.token;
     let service = new MintKnight(
       urlService,
@@ -467,7 +470,8 @@ class Test {
     detail('Contract', contract.name);
 
     // Connect to Service.
-    const urlService = 'http://localhost:5001/';
+    //const urlService = 'http://localhost:5001/';
+    const urlService = process.env.MINTKNIGHT_API_SERVICE;
     const props = {
       debug: false,
       token: false,
