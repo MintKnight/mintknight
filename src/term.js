@@ -337,6 +337,12 @@ class Prompt {
             value: 53,
           },
           {
+            title: 'ERC721 - HiddenURI',
+            description:
+              'NFT - Initially URI is hidden and it will be revealed as a secret',
+            value: 54,
+          },
+          {
             title: 'ERC20 - Mintable',
             description: 'Fungible Token (ERC20)',
             value: 10,

@@ -407,7 +407,9 @@ class Actions {
       contract.mediaId
     );
     task = await service.waitTask(task.taskId);
-    if (task !== false) {
+    if (task == false || task.state == 'failed') {
+      error(`Error creating contract`);
+    } else {
       contract.address = task.contractAddress;
       contract.contractId = task.contractId;
       await Actions.addContract(nconf, contract, wallet);
