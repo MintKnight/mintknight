@@ -279,37 +279,8 @@ class MintKnight extends MintKnightBase {
   /*
    * Add a new Drop
    */
-  addDrop(
-    name,
-    dropType,
-    totalNfts,
-    maxNfts,
-    totalYield,
-    price,
-    imgBefore,
-    imgAfter,
-    contractId,
-    walletId,
-    skey
-  ) {
-    return this.apiCall(
-      'POST',
-      'drops',
-      {
-        name,
-        dropType,
-        totalNfts,
-        maxNfts,
-        totalYield,
-        price,
-        imgBefore,
-        imgAfter,
-        contractId,
-        walletId,
-        skey,
-      },
-      'tokenAuth'
-    );
+  addDrop(contractId, data) {
+    return this.apiCall('POST', `drops/${contractId}`, data, 'tokenAuth');
   }
 
   /*

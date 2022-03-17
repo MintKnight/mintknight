@@ -6,7 +6,7 @@ const { MintKnight, MintKnightWeb } = require('../src/index');
 const HOMEMK = (process.env.HOME || process.env.USERPROFILE) + '/.mintknight';
 
 /**
- * Adds the conf dir if it does not exists
+ * Add the conf dir if it does not exists
  */
 const addConfDir = async () => {
   if (!fs.existsSync(HOMEMK)) {
@@ -165,18 +165,22 @@ class Actions {
     );
     detail('mk help', 'Basic help');
     detail('mk register', 'Create a new user and Project');
+
     title('\nProjects');
-    detail('mk add project', 'Adds a new project');
+    detail('mk add project', 'Add a new project');
     detail('mk info project', 'Queries stats for current project');
     detail('mk select project', 'Select Active project');
+
     title('\nWallets');
-    detail('mk add wallet', 'Adds a new wallet');
-    detail('mk add signer', 'Adds a new signer (wallet off-chain)');
+    detail('mk add wallet', 'Add a new wallet');
+    detail('mk add signer', 'Add a new signer (wallet off-chain)');
     detail('mk select wallet', 'Select Active wallet');
+
     title('\nContracts');
-    detail('mk add contract', 'Adds a new contract');
+    detail('mk add contract', 'Add a new contract');
     detail('mk select contract', 'Select Active contract');
     detail('mk list nft', 'List NFTs in th Contract');
+
     title('\nNFTs');
     detail('mk mint', 'Mint to the selected Contract');
     detail('mk transfer', 'Transfer an NFT owned bu the current Wallet');
@@ -186,8 +190,12 @@ class Actions {
     detail('mk upload-bulk nft', 'Upload bulk NFTs');
 
     title('\nMedia');
-    detail('mk add media <file>', 'Adds a new image to the media Library');
+    detail('mk add media <file>', 'Add a new image to the media Library');
     detail('mk list media', 'List media for that contract');
+
+    title('\nDrops');
+    detail('mk add drop', 'Add a new drop');
+
     log('\n');
   }
 
@@ -483,6 +491,76 @@ class Actions {
   }
 
   /**
+   * Add a new Drop
+   */
+  static async newDrop(nconf) {
+    const { service, contractId } = connect(nconf);
+    if (!contractId) error('A contract must be selected');
+    // Name
+    //const name = await Prompt.text('Name');
+    const name = 'Drop 1';
+    if (!name) error(`Name is required`);
+    var choices;
+    // dropType
+    choices = [
+      {
+        title: 'First come first Served',
+        description: 'First come first Served',
+        value: 'fifo',
+      },
+      { title: 'Raffle', description: 'Raffle', value: 'raffle' },
+    ];
+    const dropType = await Select.option(choices, 'Choose drop type');
+    // useCodes
+    choices = [
+      { title: 'Yes', description: 'Drop uses codes', value: 1 },
+      { title: 'No', description: 'Drop doesn´t uses codes', value: 0 },
+    ];
+    const useCodes = await Select.option(choices, 'Uses codes?');
+    // isDirectMinting
+    choices = [
+      { title: 'Yes', description: 'Direct minting (Free)', value: 1 },
+      { title: 'No', description: 'Not direct minting', value: 0 },
+    ];
+    const isDirectMinting = await Select.option(choices, 'Direct minting?');
+    // Price
+    //const price = await Prompt.text('Price');
+    const price = '12.5';
+    if (!price) error(`Price is required`);
+    // coin
+    choices = [
+      { title: 'USDC', description: 'USDC', value: 'usdc' },
+      { title: 'MATIC', description: 'MATIC', value: 'matic' },
+      { title: 'WETH', description: 'WETH', value: 'weth' },
+      { title: 'EUR', description: 'EUR (€)', value: 'eur' },
+    ];
+    const coin = await Select.option(choices, 'Choose the coin');
+    // Start date
+    const startDate = '2022-03-17';
+    // const startDate = await Prompt.text('Start date (YYYY-MM-DD)');
+    if (!startDate) error(`Start date is required`);
+    // End date
+    const endDate = '2022-03-31';
+    // const endDate = await Prompt.text('End date (YYYY-MM-DD)');
+    if (!endDate) error(`End date is required`);
+
+    const ret = await service.addDrop(contractId, {
+      name,
+      dropType,
+      useCodes,
+      isDirectMinting,
+      price,
+      coin,
+      startDate,
+      endDate,
+    });
+    if (ret === false) error('Error creating Drop');
+    if (ret.status && ret.status.toLowerCase() === 'failed')
+      error('Error creating Drop: ' + ret.error);
+    log('Drop created');
+  }
+
+  /**
    * Add a newImage to media Lib.
    */
   static async newMedia(nconf, img = false) {
@@ -609,7 +687,7 @@ class Actions {
      * Ask CSV file
      */
     var csvFilename = await Prompt.text('Csv file');
-    csvFilename = './assets/nft-bulkdata2.csv';
+    //csvFilename = './assets/nft-bulkdata2.csv';
     if (!csvFilename) error('Csv file needed. e.g: ./assets/nft-bulkdata1.csv');
     if (!fs.existsSync(csvFilename))
       error(`File ${csvFilename} does not exist`);
@@ -621,7 +699,7 @@ class Actions {
      * Ask Zip file
      */
     var zipFilename = await Prompt.text('Zip file');
-    zipFilename = './assets/animals.zip';
+    //zipFilename = './assets/animals.zip';
     if (!zipFilename) error('Csv file needed. e.g: ./assets/animals.zip');
     if (!fs.existsSync(zipFilename))
       error(`File ${zipFilename} does not exist`);
@@ -629,7 +707,12 @@ class Actions {
     if (!['.zip'].includes(ext)) error('Invalid extension. Only zip is valid');
     zipFilename = path.normalize(zipFilename);
 
-    const ret = await service.uploadBulkNFTs(contractId, csvFilename, zipFilename);
+    const ret = await service.uploadBulkNFTs(
+      contractId,
+      csvFilename,
+      zipFilename
+    );
+    if (ret === false) error('Error uploading NFTs');
     if (ret.status && ret.status.toLowerCase() === 'failed')
       error('Error uploading NFTs: ' + ret.error);
     log('NFTs Uploaded');

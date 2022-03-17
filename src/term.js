@@ -102,13 +102,13 @@ class Select {
     return answers.contract;
   }
 
-  static async option(choices) {
+  static async option(choices, askTitle = 'Choose an option') {
     warning('\nSelect and option');
     const questions = [
       {
         type: 'select',
         name: 'option',
-        message: 'Choose an option',
+        message: askTitle,
         choices,
       },
     ];

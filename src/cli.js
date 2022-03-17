@@ -20,6 +20,9 @@ const add = async (nconf) => {
     case 'contract':
       Actions.newContract(nconf);
       break;
+    case 'drop':
+      Actions.newDrop(nconf);
+      break;
     case 'media':
       Actions.newMedia(nconf, process.argv[4] || false);
       break;
