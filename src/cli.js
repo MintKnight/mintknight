@@ -23,6 +23,12 @@ const add = async (nconf) => {
     case 'drop':
       Actions.newDrop(nconf);
       break;
+    case 'dropstrategy':
+      Actions.newDropStrategy(nconf);
+      break;
+    case 'dropcode':
+      Actions.newDropCode(nconf);
+      break;
     case 'media':
       Actions.newMedia(nconf, process.argv[4] || false);
       break;

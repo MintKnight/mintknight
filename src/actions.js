@@ -179,7 +179,15 @@ class Actions {
     title('\nContracts');
     detail('mk add contract', 'Add a new contract');
     detail('mk select contract', 'Select Active contract');
-    detail('mk list nft', 'List NFTs in th Contract');
+
+    title('\nDrops');
+    detail('mk add drop', 'Add a new drop');
+
+    title('\nDrop strategies');
+    detail('mk add dropstrategy', 'Add a new drop strategy');
+
+    title('\nDrop codes');
+    detail('mk add dropcode', 'Add a new drop code');
 
     title('\nNFTs');
     detail('mk mint', 'Mint to the selected Contract');
@@ -192,9 +200,6 @@ class Actions {
     title('\nMedia');
     detail('mk add media <file>', 'Add a new image to the media Library');
     detail('mk list media', 'List media for that contract');
-
-    title('\nDrops');
-    detail('mk add drop', 'Add a new drop');
 
     log('\n');
   }
@@ -497,8 +502,7 @@ class Actions {
     const { service, contractId } = connect(nconf);
     if (!contractId) error('A contract must be selected');
     // Name
-    //const name = await Prompt.text('Name');
-    const name = 'Drop 1';
+    const name = await Prompt.text('Name');
     if (!name) error(`Name is required`);
     var choices;
     // dropType
@@ -524,8 +528,7 @@ class Actions {
     ];
     const isDirectMinting = await Select.option(choices, 'Direct minting?');
     // Price
-    //const price = await Prompt.text('Price');
-    const price = '12.5';
+    const price = await Prompt.text('Price');
     if (!price) error(`Price is required`);
     // coin
     choices = [
@@ -536,12 +539,10 @@ class Actions {
     ];
     const coin = await Select.option(choices, 'Choose the coin');
     // Start date
-    const startDate = '2022-03-17';
-    // const startDate = await Prompt.text('Start date (YYYY-MM-DD)');
+    const startDate = await Prompt.text('Start date (YYYY-MM-DD)');
     if (!startDate) error(`Start date is required`);
     // End date
-    const endDate = '2022-03-31';
-    // const endDate = await Prompt.text('End date (YYYY-MM-DD)');
+    const endDate = await Prompt.text('End date (YYYY-MM-DD)');
     if (!endDate) error(`End date is required`);
 
     const ret = await service.addDrop(contractId, {
@@ -557,7 +558,68 @@ class Actions {
     if (ret === false) error('Error creating Drop');
     if (ret.status && ret.status.toLowerCase() === 'failed')
       error('Error creating Drop: ' + ret.error);
-    log('Drop created');
+    log('Drop created with id: ' + ret.drop._id);
+  }
+
+  /**
+   * Add a new Drop strategy
+   */
+  static async newDropStrategy(nconf) {
+    const { service, contractId } = connect(nconf);
+    if (!contractId) error('A contract must be selected');
+    // DropId
+    const dropId = await Prompt.text('Drop Id (mk list drop)');
+    if (!dropId) error(`Drop Id is required`);
+    var choices;
+    // channel
+    choices = [
+      { title: 'Twitter', description: 'Twitter', value: 'twitter' },
+      { title: 'Telegram', description: 'Telegram', value: 'telegram' },
+      { title: 'Discord', description: 'Discord', value: 'discord' },
+    ];
+    const channel = await Select.option(choices, 'Choose channel');
+    // Actions
+    const actions = await Prompt.text(
+      'Actions (delimited by coma). e.g: follow,rt,like,join'
+    );
+    if (!actions) error(`Actions are required`);
+    const reference = await Prompt.text('Reference');
+
+    const ret = await service.addDropStrategy(dropId, {
+      channel,
+      actions,
+      reference,
+    });
+    if (ret === false) error('Error creating Drop strategy');
+    if (ret.status && ret.status.toLowerCase() === 'failed')
+      error('Error creating Drop strategy: ' + ret.error);
+    log('Drop strategy created with id: ' + ret.dropStrategy._id);
+  }
+
+  /**
+   * Add a new Drop code
+   */
+  static async newDropCode(nconf) {
+    const { service, contractId } = connect(nconf);
+    if (!contractId) error('A contract must be selected');
+    // DropId
+    const dropId = await Prompt.text('Drop Id (mk list drop)');
+    if (!dropId) error(`Drop Id is required`);
+    // code
+    const code = await Prompt.text('Drop code');
+    if (!code) error(`Drop code is required`);
+    // maxUsage
+    const maxUsage = await Prompt.text('Max usage');
+    if (!maxUsage || maxUsage < 1) error(`Max usage must be greater than 0`);
+
+    const ret = await service.addDropCode(dropId, {
+      code,
+      maxUsage,
+    });
+    if (ret === false) error('Error creating Drop code');
+    if (ret.status && ret.status.toLowerCase() === 'failed')
+      error('Error creating Drop code: ' + ret.error);
+    log('Drop code created with id: ' + ret.dropCode._id);
   }
 
   /**
