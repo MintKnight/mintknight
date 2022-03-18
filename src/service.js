@@ -312,6 +312,18 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
+   * Update Drop strategy
+   */
+  updateDropStrategy(dropStrategyId, data) {
+    return this.apiCall(
+      'PUT',
+      `drop_strategies/${dropStrategyId}`,
+      data,
+      'tokenAuth'
+    );
+  }
+
+  /*
    * Add a new Drop code
    */
   addDropCode(dropId, data) {

@@ -188,6 +188,7 @@ class Actions {
     title('\nDrop strategies');
     detail('mk add dropstrategy', 'Add a new Drop strategy');
     detail('mk list dropstrategy', 'List all Drop strategies in a drop');
+    detail('mk update dropstrategy', 'Update a drop strategy');
 
     title('\nDrop codes');
     detail('mk add dropcode', 'Add a new Drop code');
@@ -657,6 +658,23 @@ class Actions {
     // DropId
     const dropId = await Prompt.text('Drop Id (mk list drop)');
     if (!dropId) error(`Drop Id is required`);
+    const { channel, actions, reference } = await this.askDropStrategyParams();
+
+    const ret = await service.addDropStrategy(dropId, {
+      channel,
+      actions,
+      reference,
+    });
+    if (ret === false) error('Error creating Drop strategy');
+    if (ret.status && ret.status.toLowerCase() === 'failed')
+      error('Error creating Drop strategy: ' + ret.error);
+    log('Drop strategy created with id: ' + ret.dropStrategy._id);
+  }
+
+  /**
+   * Ask for drop params
+   */
+  static async askDropStrategyParams(operation = 'add') {
     var choices;
     // channel
     choices = [
@@ -672,15 +690,11 @@ class Actions {
     if (!actions) error(`Actions are required`);
     const reference = await Prompt.text('Reference');
 
-    const ret = await service.addDropStrategy(dropId, {
+    return {
       channel,
       actions,
       reference,
-    });
-    if (ret === false) error('Error creating Drop strategy');
-    if (ret.status && ret.status.toLowerCase() === 'failed')
-      error('Error creating Drop strategy: ' + ret.error);
-    log('Drop strategy created with id: ' + ret.dropStrategy._id);
+    };
   }
 
   /**
@@ -701,6 +715,32 @@ class Actions {
       detail('reference', obj.reference);
       detail('dropId', obj.dropId);
     }
+  }
+
+  /**
+   * Update Drop strategy
+   */
+  static async updateDropStrategy(nconf) {
+    const { service } = connect(nconf);
+    // dropStrategyId
+    const dropStrategyId = await Prompt.text(
+      'Drop strategy Id (mk list dropstrategy)'
+    );
+    if (!dropStrategyId) error(`Drop strategy Id is required`);
+    const { channel, actions, reference } = await this.askDropStrategyParams(
+      'update'
+    );
+
+    const ret = await service.updateDropStrategy(dropStrategyId, {
+      channel,
+      actions,
+      reference,
+    });
+
+    if (ret === false) error('Error updating Drop strategy');
+    if (ret.status && ret.status.toLowerCase() === 'failed')
+      error('Error updating Drop strategy: ' + ret.error);
+    log('Drop strategy updated');
   }
 
   /**
