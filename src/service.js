@@ -284,6 +284,13 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
+   * Get Drop list
+   */
+  getDrops(contractId) {
+    return this.apiCall('GET', `drops/${contractId}`, {}, 'tokenAuth');
+  }
+
+  /*
    * Add a new Drop strategy
    */
   addDropStrategy(dropId, data) {
@@ -291,10 +298,24 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
+   * Get Drop strategies list
+   */
+  getDropStrategies(dropId) {
+    return this.apiCall('GET', `drop_strategies/${dropId}`, {}, 'tokenAuth');
+  }
+
+  /*
    * Add a new Drop code
    */
   addDropCode(dropId, data) {
     return this.apiCall('POST', `drop_codes/${dropId}`, data, 'tokenAuth');
+  }
+
+  /*
+   * Get Drop codes list
+   */
+  getDropCodes(dropId) {
+    return this.apiCall('GET', `drop_codes/${dropId}`, {}, 'tokenAuth');
   }
 
   /*

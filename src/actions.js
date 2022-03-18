@@ -182,12 +182,15 @@ class Actions {
 
     title('\nDrops');
     detail('mk add drop', 'Add a new drop');
+    detail('mk list drop', 'List all Drops in the contract');
 
     title('\nDrop strategies');
-    detail('mk add dropstrategy', 'Add a new drop strategy');
+    detail('mk add dropstrategy', 'Add a new Drop strategy');
+    detail('mk list dropstrategy', 'List all Drop strategies in a drop');
 
     title('\nDrop codes');
-    detail('mk add dropcode', 'Add a new drop code');
+    detail('mk add dropcode', 'Add a new Drop code');
+    detail('mk list dropcode', 'List all Drop codes in a drop');
 
     title('\nNFTs');
     detail('mk mint', 'Mint to the selected Contract');
@@ -562,11 +565,32 @@ class Actions {
   }
 
   /**
+   * List Drops
+   */
+  static async listDrop(nconf) {
+    const { service, contractId, walletId } = connect(nconf);
+    if (!contractId) error('A contract must be selected');
+    const data = await service.getDrops(contractId);
+    for (let i = 0; i < data.length; i += 1) {
+      const obj = data[i];
+      // console.log('obj', obj);
+      title(`\nname: ${obj.name}`);
+      detail('dropType', obj.dropType);
+      detail('useCodes', obj.useCodes);
+      detail('isDirectMinting', obj.isDirectMinting);
+      detail('price', obj.price);
+      detail('coin', obj.coin);
+      detail('startDate', obj.startDate);
+      detail('endDate', obj.endDate);
+      detail('id', obj._id);
+    }
+  }
+
+  /**
    * Add a new Drop strategy
    */
   static async newDropStrategy(nconf) {
-    const { service, contractId } = connect(nconf);
-    if (!contractId) error('A contract must be selected');
+    const { service } = connect(nconf);
     // DropId
     const dropId = await Prompt.text('Drop Id (mk list drop)');
     if (!dropId) error(`Drop Id is required`);
@@ -597,11 +621,30 @@ class Actions {
   }
 
   /**
+   * List Drop stragegies
+   */
+  static async listDropStrategy(nconf) {
+    const { service } = connect(nconf);
+    // DropId
+    const dropId = await Prompt.text('Drop Id (mk list drop)');
+    if (!dropId) error(`Drop Id is required`);
+    const data = await service.getDropStrategies(dropId);
+    for (let i = 0; i < data.length; i += 1) {
+      const obj = data[i];
+      // console.log('obj', obj);
+      title(`\nid: ${obj._id}`);
+      detail('channel', obj.channel);
+      detail('actions', obj.actions);
+      detail('reference', obj.reference);
+      detail('dropId', obj.dropId);
+    }
+  }
+
+  /**
    * Add a new Drop code
    */
   static async newDropCode(nconf) {
-    const { service, contractId } = connect(nconf);
-    if (!contractId) error('A contract must be selected');
+    const { service } = connect(nconf);
     // DropId
     const dropId = await Prompt.text('Drop Id (mk list drop)');
     if (!dropId) error(`Drop Id is required`);
@@ -620,6 +663,26 @@ class Actions {
     if (ret.status && ret.status.toLowerCase() === 'failed')
       error('Error creating Drop code: ' + ret.error);
     log('Drop code created with id: ' + ret.dropCode._id);
+  }
+
+  /**
+   * List Drop codes
+   */
+  static async listDropCode(nconf) {
+    const { service } = connect(nconf);
+    // DropId
+    const dropId = await Prompt.text('Drop Id (mk list drop)');
+    if (!dropId) error(`Drop Id is required`);
+    const data = await service.getDropCodes(dropId);
+    for (let i = 0; i < data.length; i += 1) {
+      const obj = data[i];
+      // console.log('obj', obj);
+      title(`\ncode: ${obj.code}`);
+      detail('maxUsage', obj.maxUsage);
+      detail('actualUsage', obj.actualUsage);
+      detail('dropId', obj.dropId);
+      detail('id', obj._id);
+    }
   }
 
   /**

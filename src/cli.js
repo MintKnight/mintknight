@@ -65,6 +65,15 @@ const list = async (nconf) => {
     case 'nft':
       Actions.listNft(nconf);
       break;
+    case 'drop':
+      Actions.listDrop(nconf);
+      break;
+    case 'dropstrategy':
+      Actions.listDropStrategy(nconf);
+      break;
+    case 'dropcode':
+      Actions.listDropCode(nconf);
+      break;
     default:
       error('Invalid element to list (media, nft)');
       break;
