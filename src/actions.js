@@ -183,6 +183,7 @@ class Actions {
     title('\nDrops');
     detail('mk add drop', 'Add a new drop');
     detail('mk list drop', 'List all Drops in the contract');
+    detail('mk update drop', 'Update a drop in the contract');
 
     title('\nDrop strategies');
     detail('mk add dropstrategy', 'Add a new Drop strategy');
@@ -194,7 +195,7 @@ class Actions {
 
     title('\nNFTs');
     detail('mk mint', 'Mint to the selected Contract');
-    detail('mk transfer', 'Transfer an NFT owned bu the current Wallet');
+    detail('mk transfer', 'Transfer an NFT owned by the current Wallet');
     detail('mk info nft', 'Get the metadata for an NFT');
     detail('mk list nft', 'List all NFTs in the contract');
     detail('mk update nft', 'Update the metadata for an NFT');
@@ -504,6 +505,37 @@ class Actions {
   static async newDrop(nconf) {
     const { service, contractId } = connect(nconf);
     if (!contractId) error('A contract must be selected');
+    const {
+      name,
+      dropType,
+      useCodes,
+      isDirectMinting,
+      price,
+      coin,
+      startDate,
+      endDate,
+    } = await this.askDropParams();
+
+    const ret = await service.addDrop(contractId, {
+      name,
+      dropType,
+      useCodes,
+      isDirectMinting,
+      price,
+      coin,
+      startDate,
+      endDate,
+    });
+    if (ret === false) error('Error creating Drop');
+    if (ret.status && ret.status.toLowerCase() === 'failed')
+      error('Error creating Drop: ' + ret.error);
+    log('Drop created with id: ' + ret.drop._id);
+  }
+
+  /**
+   * Ask for drop params
+   */
+  static async askDropParams(operation = 'add') {
     // Name
     const name = await Prompt.text('Name');
     if (!name) error(`Name is required`);
@@ -548,7 +580,7 @@ class Actions {
     const endDate = await Prompt.text('End date (YYYY-MM-DD)');
     if (!endDate) error(`End date is required`);
 
-    const ret = await service.addDrop(contractId, {
+    return {
       name,
       dropType,
       useCodes,
@@ -557,11 +589,7 @@ class Actions {
       coin,
       startDate,
       endDate,
-    });
-    if (ret === false) error('Error creating Drop');
-    if (ret.status && ret.status.toLowerCase() === 'failed')
-      error('Error creating Drop: ' + ret.error);
-    log('Drop created with id: ' + ret.drop._id);
+    };
   }
 
   /**
@@ -584,6 +612,41 @@ class Actions {
       detail('endDate', obj.endDate);
       detail('id', obj._id);
     }
+  }
+
+  /**
+   * Update Drop
+   */
+  static async updateDrop(nconf) {
+    const { service } = connect(nconf);
+    // DropId
+    const dropId = await Prompt.text('Drop Id (mk list drop)');
+    if (!dropId) error(`Drop Id is required`);
+    const {
+      name,
+      dropType,
+      useCodes,
+      isDirectMinting,
+      price,
+      coin,
+      startDate,
+      endDate,
+    } = await this.askDropParams('update');
+
+    const ret = await service.updateDrop(dropId, {
+      name,
+      dropType,
+      useCodes,
+      isDirectMinting,
+      price,
+      coin,
+      startDate,
+      endDate,
+    });
+    if (ret === false) error('Error updating Drop');
+    if (ret.status && ret.status.toLowerCase() === 'failed')
+      error('Error updating Drop: ' + ret.error);
+    log('Drop updated');
   }
 
   /**
