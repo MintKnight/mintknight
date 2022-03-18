@@ -193,6 +193,7 @@ class Actions {
     title('\nDrop codes');
     detail('mk add dropcode', 'Add a new Drop code');
     detail('mk list dropcode', 'List all Drop codes in a drop');
+    detail('mk update dropcode', 'Update a drop code');
 
     title('\nNFTs');
     detail('mk mint', 'Mint to the selected Contract');
@@ -672,7 +673,7 @@ class Actions {
   }
 
   /**
-   * Ask for drop params
+   * Ask for drop strategy params
    */
   static async askDropStrategyParams(operation = 'add') {
     var choices;
@@ -698,7 +699,7 @@ class Actions {
   }
 
   /**
-   * List Drop stragegies
+   * List Drop strategies
    */
   static async listDropStrategy(nconf) {
     const { service } = connect(nconf);
@@ -751,12 +752,8 @@ class Actions {
     // DropId
     const dropId = await Prompt.text('Drop Id (mk list drop)');
     if (!dropId) error(`Drop Id is required`);
-    // code
-    const code = await Prompt.text('Drop code');
-    if (!code) error(`Drop code is required`);
-    // maxUsage
-    const maxUsage = await Prompt.text('Max usage');
-    if (!maxUsage || maxUsage < 1) error(`Max usage must be greater than 0`);
+
+    const { code, maxUsage } = await this.askDropCodeParams();
 
     const ret = await service.addDropCode(dropId, {
       code,
@@ -766,6 +763,23 @@ class Actions {
     if (ret.status && ret.status.toLowerCase() === 'failed')
       error('Error creating Drop code: ' + ret.error);
     log('Drop code created with id: ' + ret.dropCode._id);
+  }
+
+  /**
+   * Ask for drop code params
+   */
+  static async askDropCodeParams(operation = 'add') {
+    // code
+    const code = await Prompt.text('Drop code');
+    if (!code) error(`Drop code is required`);
+    // maxUsage
+    const maxUsage = await Prompt.text('Max usage');
+    if (!maxUsage || maxUsage < 1) error(`Max usage must be greater than 0`);
+
+    return {
+      code,
+      maxUsage,
+    };
   }
 
   /**
@@ -786,6 +800,27 @@ class Actions {
       detail('dropId', obj.dropId);
       detail('id', obj._id);
     }
+  }
+
+  /**
+   * Update Drop code
+   */
+  static async updateDropCode(nconf) {
+    const { service } = connect(nconf);
+    // dropCodeId
+    const dropCodeId = await Prompt.text('Drop code Id (mk list dropcode)');
+    if (!dropCodeId) error(`Drop code Id is required`);
+    const { code, maxUsage } = await this.askDropCodeParams('update');
+
+    const ret = await service.updateDropCode(dropCodeId, {
+      code,
+      maxUsage,
+    });
+
+    if (ret === false) error('Error updating Drop code');
+    if (ret.status && ret.status.toLowerCase() === 'failed')
+      error('Error updating Drop code: ' + ret.error);
+    log('Drop code updated');
   }
 
   /**

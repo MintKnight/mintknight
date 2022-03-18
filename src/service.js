@@ -338,10 +338,10 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
-   * Get a Code
+   * Update Drop code
    */
-  getCode(dropHash) {
-    return this.apiCall('POST', 'drops/code', { dropHash }, 'tokenAuth');
+  updateDropCode(dropCodeId, data) {
+    return this.apiCall('PUT', `drop_codes/${dropCodeId}`, data, 'tokenAuth');
   }
 
   addTestMedia() {
