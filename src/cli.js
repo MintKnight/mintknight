@@ -29,12 +29,15 @@ const add = async (nconf) => {
     case 'dropcode':
       Actions.newDropCode(nconf);
       break;
+    case 'dropuser':
+      Actions.newDropUser(nconf);
+      break;
     case 'media':
       Actions.newMedia(nconf, process.argv[4] || false);
       break;
     default:
       error(
-        'Invalid element to add (project, wallet, signer, contract, drop, dropstrategy, dropcode, media)'
+        'Invalid element to add (project, wallet, signer, contract, drop, dropstrategy, dropcode, dropuser, media)'
       );
       break;
   }
@@ -75,6 +78,9 @@ const list = async (nconf) => {
       break;
     case 'dropcode':
       Actions.listDropCode(nconf);
+      break;
+    case 'dropuser':
+      Actions.listDropUser(nconf);
       break;
     default:
       error(

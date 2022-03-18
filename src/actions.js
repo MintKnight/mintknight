@@ -196,6 +196,10 @@ class Actions {
     detail('mk update dropcode', 'Update a drop code');
     detail('mk upload-bulk dropcode', 'Upload bulk drop codes');
 
+    title('\nDrop users');
+    detail('mk add dropuser', 'Add a new user');
+    detail('mk list dropuser', 'List all Drop users in the contract');
+
     title('\nNFTs');
     detail('mk mint', 'Mint to the selected Contract');
     detail('mk transfer', 'Transfer an NFT owned by the current Wallet');
@@ -837,7 +841,7 @@ class Actions {
      * Ask CSV file
      */
     var csvFilename = await Prompt.text('Csv file');
-    csvFilename = './assets/dropcodes-bulkdata1.csv';
+    // csvFilename = './assets/dropcodes-bulkdata1.csv';
     if (!csvFilename)
       error('Csv file needed. e.g: ./assets/dropcodes-bulkdata1.csv');
     if (!fs.existsSync(csvFilename))
@@ -851,6 +855,71 @@ class Actions {
     if (ret.status && ret.status.toLowerCase() === 'failed')
       error('Error uploading Drop codes: ' + ret.error);
     log('Drop codes Uploaded');
+  }
+
+  /**
+   * Add a new Drop user
+   */
+  static async newDropUser(nconf) {
+    const { service, contractId } = connect(nconf);
+    if (!contractId) error('A contract must be selected');
+    const { name, email, twitter, telegram, discord, address } =
+      await this.askDropUserParams();
+
+    const ret = await service.addDropUser(contractId, {
+      name,
+      email,
+      twitter,
+      telegram,
+      discord,
+      address,
+    });
+    if (ret === false) error('Error creating Drop user');
+    if (ret.status && ret.status.toLowerCase() === 'failed')
+      error('Error creating Drop user: ' + ret.error);
+    log('Drop user created with id: ' + ret.dropUser._id);
+  }
+
+  /**
+   * Ask for drop user params
+   */
+  static async askDropUserParams(operation = 'add') {
+    const name = await Prompt.text('Name');
+    if (!name) error(`Name is required`);
+    const email = await Prompt.text('Email');
+    const twitter = await Prompt.text('Twitter');
+    const telegram = await Prompt.text('Telegram');
+    const discord = await Prompt.text('Discord');
+    const address = await Prompt.text('Address');
+
+    return {
+      name,
+      email,
+      twitter,
+      telegram,
+      discord,
+      address,
+    };
+  }
+
+  /**
+   * List Drop users
+   */
+  static async listDropUser(nconf) {
+    const { service, contractId } = connect(nconf);
+    if (!contractId) error('A contract must be selected');
+    const data = await service.getDropUsers(contractId);
+    for (let i = 0; i < data.length; i += 1) {
+      const obj = data[i];
+      // console.log('obj', obj);
+      title(`\nname: ${obj.name}`);
+      detail('email', obj.email);
+      detail('twitter', obj.twitter);
+      detail('telegram', obj.telegram);
+      detail('discord', obj.discord);
+      detail('address', obj.address);
+      detail('id', obj._id);
+    }
   }
 
   /**
