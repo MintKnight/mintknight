@@ -194,6 +194,7 @@ class Actions {
     detail('mk add dropcode', 'Add a new Drop code');
     detail('mk list dropcode', 'List all Drop codes in a drop');
     detail('mk update dropcode', 'Update a drop code');
+    detail('mk upload-bulk dropcode', 'Upload bulk drop codes');
 
     title('\nNFTs');
     detail('mk mint', 'Mint to the selected Contract');
@@ -821,6 +822,35 @@ class Actions {
     if (ret.status && ret.status.toLowerCase() === 'failed')
       error('Error updating Drop code: ' + ret.error);
     log('Drop code updated');
+  }
+
+  /**
+   * Upload bulk Drop codes
+   */
+  static async uploadBulkDropCodes(nconf) {
+    const { service } = connect(nconf);
+    // DropId
+    const dropId = await Prompt.text('Drop Id (mk list drop)');
+    if (!dropId) error(`Drop Id is required`);
+
+    /*
+     * Ask CSV file
+     */
+    var csvFilename = await Prompt.text('Csv file');
+    csvFilename = './assets/dropcodes-bulkdata1.csv';
+    if (!csvFilename)
+      error('Csv file needed. e.g: ./assets/dropcodes-bulkdata1.csv');
+    if (!fs.existsSync(csvFilename))
+      error(`File ${csvFilename} does not exist`);
+    var { name, ext } = path.parse(csvFilename);
+    if (!['.csv'].includes(ext)) error('Invalid extension. Only csv is valid');
+    csvFilename = path.normalize(csvFilename);
+
+    const ret = await service.uploadBulkDropCodes(dropId, csvFilename);
+    if (ret === false) error('Error uploading Drop codes');
+    if (ret.status && ret.status.toLowerCase() === 'failed')
+      error('Error uploading Drop codes: ' + ret.error);
+    log('Drop codes Uploaded');
   }
 
   /**

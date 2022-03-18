@@ -344,6 +344,32 @@ class MintKnight extends MintKnightBase {
     return this.apiCall('PUT', `drop_codes/${dropCodeId}`, data, 'tokenAuth');
   }
 
+  /*
+   * Upload bulk NFTs
+   *
+   * @param {string} dropId Drop ID
+   * @param {string} csvFilename CSV File name with path
+   */
+  uploadBulkDropCodes(dropId, csvFilename) {
+    return new Promise((resolve) => {
+      const form = new FormData();
+      const csvFile = fs.readFileSync(csvFilename);
+      form.append('file', csvFile, csvFilename);
+      const config = {
+        headers: {
+          ...form.getHeaders(),
+          Authorization: `Bearer ${this.apiKey}`,
+        },
+      };
+      return axios
+        .post(`${this.api}drop_codes/upload/${dropId}`, form, config)
+        .then((res) => {
+          resolve(res.data);
+        })
+        .catch((e) => log(chalk.red('Error'), e.message));
+    });
+  }
+
   addTestMedia() {
     return this.apiCall('POST', 'media/test', {}, 'tokenAuth');
   }

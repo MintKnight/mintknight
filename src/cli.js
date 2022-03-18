@@ -33,7 +33,9 @@ const add = async (nconf) => {
       Actions.newMedia(nconf, process.argv[4] || false);
       break;
     default:
-      error('Invalid element to add (project/wallet/signer/contract/media)');
+      error(
+        'Invalid element to add (project, wallet, signer, contract, drop, dropstrategy, dropcode, media)'
+      );
       break;
   }
 };
@@ -75,7 +77,9 @@ const list = async (nconf) => {
       Actions.listDropCode(nconf);
       break;
     default:
-      error('Invalid element to list (media, nft)');
+      error(
+        'Invalid element to list (media, nft, drop, dropstrategy, dropcode)'
+      );
       break;
   }
 };
@@ -135,7 +139,9 @@ const update = async (nconf) => {
       Actions.updateDropCode(nconf);
       break;
     default:
-      error('Invalid element to update (nft, minter, owner, verifier, prices)');
+      error(
+        'Invalid element to update (nft, minter, owner, verifier, prices, drop, dropstrategy, dropcode)'
+      );
       break;
   }
 };
@@ -146,8 +152,11 @@ const uploadBulk = async (nconf) => {
     case 'nft':
       Actions.uploadBulkNFTs(nconf);
       break;
+    case 'dropcode':
+      Actions.uploadBulkDropCodes(nconf);
+      break;
     default:
-      error('Invalid element to upload bulk (nft)');
+      error('Invalid element to upload bulk (nft, dropcode)');
       break;
   }
 };
