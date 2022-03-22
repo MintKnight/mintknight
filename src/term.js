@@ -348,6 +348,7 @@ class Prompt {
             description: 'NFT, URI points to Arweave',
             value: 52,
           },
+          /*v
           {
             title: 'ERC721 - Buyable',
             description:
@@ -369,7 +370,7 @@ class Prompt {
             title: 'BUY - Buy contracts',
             description: 'Used to buy from another contract',
             value: 100,
-          },
+          },*/
         ],
       },
     ];
