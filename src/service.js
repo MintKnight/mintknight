@@ -129,14 +129,16 @@ class MintKnight extends MintKnightBase {
    * @param {string} contractId Contract ID
    * @param {string} csvFilename CSV File name with path
    * @param {string} zipFilename ZIP File name with path
+   * @param {string} dropId Drop ID (optional)
    */
-  uploadBulkNFTs(contractId, csvFilename, zipFilename) {
+  uploadBulkNFTs(contractId, csvFilename, zipFilename, dropId) {
     return new Promise((resolve) => {
       const form = new FormData();
       const csvFile = fs.readFileSync(csvFilename);
       const zipFile = fs.readFileSync(zipFilename);
       form.append('files', csvFile, csvFilename);
       form.append('files', zipFile, zipFilename);
+      if (!!dropId) form.append('dropId', dropId);
       const config = {
         headers: {
           ...form.getHeaders(),
@@ -284,10 +286,10 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
-   * Get Drop list
+   * Get Drop list by contract
    */
   getDrops(contractId) {
-    return this.apiCall('GET', `drops/${contractId}`, {}, 'tokenAuth');
+    return this.apiCall('GET', `drops/contract/${contractId}`, {}, 'tokenAuth');
   }
 
   /*
@@ -305,10 +307,15 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
-   * Get Drop strategies list
+   * Get Drop strategies list by drop
    */
   getDropStrategies(dropId) {
-    return this.apiCall('GET', `drop_strategies/${dropId}`, {}, 'tokenAuth');
+    return this.apiCall(
+      'GET',
+      `drop_strategies/drop/${dropId}`,
+      {},
+      'tokenAuth'
+    );
   }
 
   /*
@@ -324,7 +331,7 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
-   * Add a new Drop code
+   * Add a new Drop code by drop
    */
   addDropCode(dropId, data) {
     return this.apiCall('POST', `drop_codes/${dropId}`, data, 'tokenAuth');
@@ -334,7 +341,7 @@ class MintKnight extends MintKnightBase {
    * Get Drop codes list
    */
   getDropCodes(dropId) {
-    return this.apiCall('GET', `drop_codes/${dropId}`, {}, 'tokenAuth');
+    return this.apiCall('GET', `drop_codes/drop/${dropId}`, {}, 'tokenAuth');
   }
 
   /*
@@ -378,10 +385,15 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
-   * Get Drop user list
+   * Get Drop user list by contract
    */
   getDropUsers(contractId) {
-    return this.apiCall('GET', `drop_users/${contractId}`, {}, 'tokenAuth');
+    return this.apiCall(
+      'GET',
+      `drop_users/contract/${contractId}`,
+      {},
+      'tokenAuth'
+    );
   }
 
   addTestMedia() {

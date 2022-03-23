@@ -617,6 +617,7 @@ class Actions {
       detail('coin', obj.coin);
       detail('startDate', obj.startDate);
       detail('endDate', obj.endDate);
+      detail('contractId', obj.contractId);
       detail('id', obj._id);
     }
   }
@@ -1069,10 +1070,15 @@ class Actions {
     if (!['.zip'].includes(ext)) error('Invalid extension. Only zip is valid');
     zipFilename = path.normalize(zipFilename);
 
+    // DropId
+    const dropId = await Prompt.text('Drop Id (mk list drop)');
+    //if (!dropId) error(`Drop Id is required`);
+
     const ret = await service.uploadBulkNFTs(
       contractId,
       csvFilename,
-      zipFilename
+      zipFilename,
+      dropId
     );
     if (ret === false) error('Error uploading NFTs');
     if (ret.status && ret.status.toLowerCase() === 'failed')
