@@ -1135,6 +1135,7 @@ class Actions {
         detail('mediaId', nft.mediaId);
         detail('owner', nft.walletId);
       }
+      if (!!nft.dropId) detail('dropId', nft.dropId);
     }
   }
 
