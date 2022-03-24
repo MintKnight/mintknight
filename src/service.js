@@ -282,7 +282,12 @@ class MintKnight extends MintKnightBase {
    * Add a new Drop
    */
   addDrop(contractId, data) {
-    return this.apiCall('POST', `drops/${contractId}`, data, 'tokenAuth');
+    return this.apiCall(
+      'POST',
+      `drops/contract/${contractId}`,
+      data,
+      'tokenAuth'
+    );
   }
 
   /*
