@@ -385,20 +385,15 @@ class MintKnight extends MintKnightBase {
   /*
    * Add a new Drop user
    */
-  addDropUser(contractId, data) {
-    return this.apiCall('POST', `drop_users/${contractId}`, data, 'tokenAuth');
+  addDropUser(dropId, data) {
+    return this.apiCall('POST', `drop_users/drop/${dropId}`, data, 'tokenAuth');
   }
 
   /*
    * Get Drop user list by contract
    */
-  getDropUsers(contractId) {
-    return this.apiCall(
-      'GET',
-      `drop_users/contract/${contractId}`,
-      {},
-      'tokenAuth'
-    );
+  getDropUsers(dropId) {
+    return this.apiCall('GET', `drop_users/drop/${dropId}`, {}, 'tokenAuth');
   }
 
   addTestMedia() {

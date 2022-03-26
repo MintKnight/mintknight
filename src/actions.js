@@ -862,12 +862,14 @@ class Actions {
    * Add a new Drop user
    */
   static async newDropUser(nconf) {
-    const { service, contractId } = connect(nconf);
-    if (!contractId) error('A contract must be selected');
+    const { service } = connect(nconf);
+    // DropId
+    const dropId = await Prompt.text('Drop Id (mk list drop)');
+    if (!dropId) error(`Drop Id is required`);
     const { name, email, twitter, telegram, discord, address } =
       await this.askDropUserParams();
 
-    const ret = await service.addDropUser(contractId, {
+    const ret = await service.addDropUser(dropId, {
       name,
       email,
       twitter,
@@ -907,9 +909,11 @@ class Actions {
    * List Drop users
    */
   static async listDropUser(nconf) {
-    const { service, contractId } = connect(nconf);
-    if (!contractId) error('A contract must be selected');
-    const data = await service.getDropUsers(contractId);
+    const { service } = connect(nconf);
+    // DropId
+    const dropId = await Prompt.text('Drop Id (mk list drop)');
+    if (!dropId) error(`Drop Id is required`);
+    const data = await service.getDropUsers(dropId);
     for (let i = 0; i < data.length; i += 1) {
       const obj = data[i];
       // console.log('obj', obj);
