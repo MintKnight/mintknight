@@ -276,12 +276,33 @@ class Prompt {
         name: 'refUser',
         message: 'Internal reference of the wallet',
       },
+      {
+        type: 'select',
+        name: 'usage',
+        message: 'Choose a usage',
+        choices: [
+          {
+            title: 'Collection',
+            description: 'Collection (3 shares)',
+            value: 'collection',
+          },
+          {
+            title: 'Drop',
+            description: 'Drop (2 shares)',
+            value: 'drop',
+          },
+        ],
+      },
     ];
     const answers = await prompt(questions, {
       onCancel: cleanup,
       onSubmit: cleanup,
     });
-    if (answers.name === undefined || answers.refUser === undefined)
+    if (
+      answers.name === undefined ||
+      answers.refUser === undefined ||
+      answers.usage === undefined
+    )
       process.exit();
     return answers;
   }

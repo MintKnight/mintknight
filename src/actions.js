@@ -129,6 +129,7 @@ class Actions {
     nconf.set(`${env}:${projectId}:${wallet.walletId}:name`, wallet.name);
     nconf.set(`${env}:${projectId}:${wallet.walletId}:skey`, wallet.skey);
     nconf.set(`${env}:${projectId}:${wallet.walletId}:address`, wallet.address);
+    nconf.set(`${env}:${projectId}:${wallet.usage}:usage`, wallet.usage);
     nconf.set(`${env}:${projectId}:walletId`, wallet.walletId);
     nconf.save();
   }
@@ -362,7 +363,11 @@ class Actions {
 
     // Add wallet.
     const wallet = await Prompt.wallet(project.name);
-    let task = await service.addWallet(wallet.refUser, walletType);
+    let task = await service.addWallet(
+      wallet.refUser,
+      walletType,
+      wallet.usage
+    );
     if (task !== false) {
       wallet.walletId = task.wallet._id;
       wallet.skey = task.skey1;
@@ -514,6 +519,7 @@ class Actions {
     if (!contractId) error('A contract must be selected');
     const {
       name,
+      description,
       dropType,
       useCodes,
       isDirectMinting,
@@ -525,6 +531,7 @@ class Actions {
 
     const ret = await service.addDrop(contractId, {
       name,
+      description,
       dropType,
       useCodes,
       isDirectMinting,
@@ -546,6 +553,9 @@ class Actions {
     // Name
     const name = await Prompt.text('Name');
     if (!name) error(`Name is required`);
+    // Description
+    const description = await Prompt.text('Description');
+    if (!description) error(`Description is required`);
     var choices;
     // dropType
     choices = [
@@ -589,6 +599,7 @@ class Actions {
 
     return {
       name,
+      description,
       dropType,
       useCodes,
       isDirectMinting,
@@ -632,6 +643,7 @@ class Actions {
     if (!dropId) error(`Drop Id is required`);
     const {
       name,
+      description,
       dropType,
       useCodes,
       isDirectMinting,
@@ -643,6 +655,7 @@ class Actions {
 
     const ret = await service.updateDrop(dropId, {
       name,
+      description,
       dropType,
       useCodes,
       isDirectMinting,

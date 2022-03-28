@@ -260,11 +260,11 @@ class MintKnight extends MintKnightBase {
    * @param {string} userRef UserRef
    * @param {string} walletType Type of wallet (onchain, eoa, signer)
    */
-  addWallet(refUser, walletType) {
+  addWallet(refUser, walletType, usage = 'collection') {
     return this.apiCall(
       'POST',
       'wallets',
-      { refUser, walletType },
+      { refUser, walletType, usage },
       'tokenAuth'
     );
   }
