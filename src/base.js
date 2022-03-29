@@ -85,6 +85,7 @@ class MintKnightBase {
    * @param {object} params Parameters to be used to call.
    */
   apiCall(method, call, params = {}, auth = 'noAuth') {
+    console.log(`${this.api}${call}`);
     return new Promise((resolve) => {
       this.validate(params, auth)
         .then((params) => {

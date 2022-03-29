@@ -184,7 +184,11 @@ class Prompt {
             description: 'Local - devel environment',
             value: 'local',
           },
-          // { title: 'sandbox', description: 'Sandbox - test features', value: 'sandbox' },
+          {
+            title: 'sandbox',
+            description: 'Sandbox - staging environment',
+            value: 'sandbox',
+          },
           {
             title: 'production',
             description: 'Production ',

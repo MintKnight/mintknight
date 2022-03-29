@@ -41,7 +41,7 @@ const connect = (nconf) => {
       break;
     case 'sandbox':
       urlWeb = 'https://webapi.sandbox.mintknight.com/';
-      urlService = 'https://webapi.sandbox.mintknight.com/';
+      urlService = 'https://api.sandbox.mintknight.com/';
       break;
     case 'production':
       urlWeb = 'https://webapi.mintknight.com/';
