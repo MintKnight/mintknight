@@ -43,7 +43,15 @@ class MintKnight extends MintKnightBase {
    *
    * @param {string} projectId ProjectId
    */
-  addContract(name, symbol, contractType, walletId, contractId, mediaId) {
+  addContract(
+    name,
+    symbol,
+    contractType,
+    walletId,
+    contractId,
+    mediaId,
+    urlCode
+  ) {
     const contract = {
       contractType,
       name,
@@ -52,6 +60,7 @@ class MintKnight extends MintKnightBase {
       owner: walletId,
       contractId,
       mediaId,
+      urlCode,
     };
     return this.apiCall('POST', 'contracts/', contract, 'tokenAuth');
   }
@@ -213,6 +222,13 @@ class MintKnight extends MintKnightBase {
       { change, walletId, address, owner, skey },
       'tokenAuth'
     );
+  }
+
+  /*
+   * Update Contract in DB
+   */
+  updateContractDB(contractId, data) {
+    return this.apiCall('PUT', `contracts/${contractId}`, data, 'tokenAuth');
   }
 
   /*

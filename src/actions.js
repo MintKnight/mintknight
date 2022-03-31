@@ -180,6 +180,7 @@ class Actions {
     title('\nContracts');
     detail('mk add contract', 'Add a new contract');
     detail('mk select contract', 'Select Active contract');
+    detail('mk update contract', 'Update the active contract');
 
     title('\nDrops');
     detail('mk add drop', 'Add a new drop');
@@ -195,7 +196,7 @@ class Actions {
     detail('mk add dropcode', 'Add a new Drop code');
     detail('mk list dropcode', 'List all Drop codes in a drop');
     detail('mk update dropcode', 'Update a drop code');
-    detail('mk upload-bulk dropcode', 'Upload bulk drop codes');
+    detail('mk upload dropcode', 'Upload bulk drop codes');
 
     title('\nDrop users');
     detail('mk add dropuser', 'Add a new user');
@@ -207,7 +208,7 @@ class Actions {
     detail('mk info nft', 'Get the metadata for an NFT');
     detail('mk list nft', 'List all NFTs in the contract');
     detail('mk update nft', 'Update the metadata for an NFT');
-    detail('mk upload-bulk nft', 'Upload bulk NFTs');
+    detail('mk upload nft', 'Upload bulk NFTs');
 
     title('\nMedia');
     detail('mk add media <file>', 'Add a new image to the media Library');
@@ -433,7 +434,8 @@ class Actions {
       contract.contractType,
       wallet.walletId,
       contract.contractId,
-      contract.mediaId
+      contract.mediaId,
+      contract.urlCode
     );
     task = await service.waitTask(task.taskId);
     if (task == false || task.state == 'failed') {
@@ -1087,9 +1089,10 @@ class Actions {
     if (!['.zip'].includes(ext)) error('Invalid extension. Only zip is valid');
     zipFilename = path.normalize(zipFilename);
 
-    // DropId
-    const dropId = await Prompt.text('Drop Id (mk list drop)');
-    //if (!dropId) error(`Drop Id is required`);
+    //// DropId
+    const dropId = null;
+    // const dropId = await Prompt.text('Drop Id (mk list drop)');
+    //// if (!dropId) error(`Drop Id is required`);
 
     const ret = await service.uploadBulkNFTs(
       contractId,
@@ -1202,6 +1205,26 @@ class Actions {
       owner.skey
     );
     await waitTask(task, service, 'Failed to update owner', 'Owner updated');
+  }
+
+  /**
+   * Update Drop strategy
+   */
+  static async updateContractDB(nconf) {
+    const { service, contractId } = connect(nconf);
+    if (!contractId) error('A contract must be selected');
+    // urlCode
+    const urlCode = await Prompt.text('Url code (landing page path)');
+    if (!urlCode) error(`Url code is required`);
+
+    const ret = await service.updateContractDB(contractId, {
+      urlCode,
+    });
+
+    if (ret === false) error('Error updating Contract');
+    if (ret.status && ret.status.toLowerCase() === 'failed')
+      error('Error updating Contract: ' + ret.error);
+    log('Contract updated');
   }
 
   /**

@@ -123,6 +123,9 @@ const update = async (nconf) => {
     case 'project':
       Actions.updateLimits(nconf);
       break;
+    case 'contract':
+      Actions.updateContractDB(nconf);
+      break;
     case 'minter':
       Actions.updateContract(nconf, 'minter');
       break;
@@ -214,7 +217,7 @@ const main = async () => {
     case 'sign':
       Actions.sign(nconf);
       break;
-    case 'upload-bulk':
+    case 'upload':
       uploadBulk(nconf);
       break;
     case 'test':

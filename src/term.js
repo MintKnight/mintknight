@@ -398,6 +398,11 @@ class Prompt {
           },*/
         ],
       },
+      {
+        type: 'text',
+        name: 'urlCode',
+        message: 'Url code (landing page path)',
+      },
     ];
     const answers = await prompt(questions, {
       onCancel: cleanup,
