@@ -460,6 +460,7 @@ class Actions {
       const choices = [];
       for (let i = 0; i < contracts.length; i += 1) {
         const contract = nconf.get(`${env}:${projectId}:${contracts[i]}`);
+        if (!contract) continue;
         const choice = {
           title: contract.name,
           description: `${contract.name}`,
@@ -1069,7 +1070,7 @@ class Actions {
      * Ask CSV file
      */
     var csvFilename = await Prompt.text('Csv file');
-    //csvFilename = './assets/nft-bulkdata2.csv';
+    // csvFilename = './assets/nft-bulkdata1.csv';
     if (!csvFilename) error('Csv file needed. e.g: ./assets/nft-bulkdata1.csv');
     if (!fs.existsSync(csvFilename))
       error(`File ${csvFilename} does not exist`);
@@ -1081,7 +1082,7 @@ class Actions {
      * Ask Zip file
      */
     var zipFilename = await Prompt.text('Zip file');
-    //zipFilename = './assets/animals.zip';
+    // zipFilename = './assets/animals.zip';
     if (!zipFilename) error('Csv file needed. e.g: ./assets/animals.zip');
     if (!fs.existsSync(zipFilename))
       error(`File ${zipFilename} does not exist`);
