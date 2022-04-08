@@ -72,13 +72,14 @@ class MintKnight extends MintKnightBase {
    * @param {string} walletId Minter Wallet ID
    * @param {string} skey MInter Wallet SKEY
    * @param {string} to Wallet ID receiving the tokens
+   * @param {string} address Alternative address
    * @param {number} value Tokens minted.
    */
-  mintToken(contractId, walletId, skey, to, value) {
+  mintToken(contractId, walletId, skey, value, to = false, address = false) {
     return this.apiCall(
       'POST',
       'tokens',
-      { contractId, walletId, skey, to, value },
+      { contractId, walletId, skey, value, to, address },
       'tokenAuth'
     );
   }

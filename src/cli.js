@@ -93,23 +93,20 @@ const list = async (nconf) => {
 const info = async (nconf) => {
   const element = process.argv[3];
   switch (element) {
-    case 'nft':
-      Actions.infoNft(nconf);
+    case 'project':
+      Actions.infoProject(nconf);
       break;
     case 'wallet':
       Actions.infoWallet(nconf);
-      break;
-    case 'project':
-      Actions.infoProject(nconf);
       break;
     case 'contract':
       Actions.infoContract(nconf);
       break;
-    case 'wallet':
-      Actions.infoWallet(nconf);
+    case 'nft':
+      Actions.infoNft(nconf);
       break;
     default:
-      error('Invalid element to get info (project, wallet, nft, wallet)');
+      error('Invalid element to get info (project, wallet, contract, nft)');
       break;
   }
 };
@@ -170,6 +167,36 @@ const uploadBulk = async (nconf) => {
   }
 };
 
+const mint = async (nconf) => {
+  const element = process.argv[3];
+  switch (element) {
+    case 'nft':
+      Actions.mintNFT(nconf);
+      break;
+    case 'token':
+      Actions.mintToken(nconf);
+      break;
+    default:
+      error('Invalid element to mint (nft, token)');
+      break;
+  }
+};
+
+const transfer = async (nconf) => {
+  const element = process.argv[3];
+  switch (element) {
+    case 'nft':
+      Actions.transferNFT(nconf);
+      break;
+    case 'token':
+      Actions.transferToken(nconf);
+      break;
+    default:
+      error('Invalid element to transfer (nft, token)');
+      break;
+  }
+};
+
 const main = async () => {
   const action = process.argv[2] || false;
   init(action);
@@ -209,10 +236,10 @@ const main = async () => {
       update(nconf);
       break;
     case 'mint':
-      Actions.mint(nconf);
+      mint(nconf);
       break;
     case 'transfer':
-      Actions.transfer(nconf);
+      transfer(nconf);
       break;
     case 'sign':
       Actions.sign(nconf);

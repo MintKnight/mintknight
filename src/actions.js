@@ -174,11 +174,13 @@ class Actions {
 
     title('\nWallets');
     detail('mk add wallet', 'Add a new wallet');
+    detail('mk info wallet', 'Queries stats for current wallet');
     detail('mk add signer', 'Add a new signer (wallet off-chain)');
     detail('mk select wallet', 'Select Active wallet');
 
     title('\nContracts');
     detail('mk add contract', 'Add a new contract');
+    detail('mk info contract', 'Queries stats for current contract');
     detail('mk select contract', 'Select Active contract');
     detail('mk update contract', 'Update the active contract');
 
@@ -203,8 +205,8 @@ class Actions {
     detail('mk list dropuser', 'List all Drop users in the contract');
 
     title('\nNFTs');
-    detail('mk mint', 'Mint to the selected Contract');
-    detail('mk transfer', 'Transfer an NFT owned by the current Wallet');
+    detail('mk mint nft', 'Mint to the selected Contract');
+    detail('mk transfer nft', 'Transfer an NFT owned by the current Wallet');
     detail('mk info nft', 'Get the metadata for an NFT');
     detail('mk list nft', 'List all NFTs in the contract');
     detail('mk update nft', 'Update the metadata for an NFT');
@@ -213,6 +215,10 @@ class Actions {
     title('\nMedia');
     detail('mk add media <file>', 'Add a new image to the media Library');
     detail('mk list media', 'List media for that contract');
+
+    title('\nTokens ERC20');
+    detail('mk mint token', 'Mint to the selected Contract');
+    detail('mk transfer token', 'Transfer an NFT owned by the current Wallet');
 
     log('\n');
   }
@@ -428,6 +434,13 @@ class Actions {
     const { project, wallet } = Actions.info(nconf);
     // Add contract.
     const contract = await Prompt.contract(project.name);
+    // urlCode
+    let urlCode = '';
+    if (contract.contractId === 51 || contract.contractId === 52) {
+      urlCode = await Prompt.text('Url code (landing page path)');
+      if (!urlCode) error(`Url code is required`);
+    }
+
     let task = await service.addContract(
       contract.name,
       contract.symbol,
@@ -435,7 +448,7 @@ class Actions {
       wallet.walletId,
       contract.contractId,
       contract.mediaId,
-      contract.urlCode
+      urlCode
     );
     task = await service.waitTask(task.taskId);
     if (task == false || task.state == 'failed') {
@@ -485,7 +498,7 @@ class Actions {
     if (contract) {
       warning(`\n${contract.name} (${contract.symbol})`);
       switch (contract.contractType) {
-        case 0:
+        case 10:
           detail('type', 'ERC20');
           break;
         case 51:
@@ -509,6 +522,11 @@ class Actions {
       detail('minter', contract.minter);
       if (contract.mediaId) {
         detail('mediaId', contract.mediaId);
+      }
+      if (!!contract.blockchain) {
+        detail('name', contract.blockchain.name);
+        detail('symbol', contract.blockchain.symbol);
+        detail('totalSupply', contract.blockchain.totalSupply);
       }
       log('\n');
     } else error('Contract not found');
@@ -981,9 +999,38 @@ class Actions {
   }
 
   /**
-   * Mint a new NFT/Token
+   * Mint a new token
    */
-  static async mint(nconf) {
+  static async mintToken(nconf) {
+    const { service, env, projectId, contractId } = connect(nconf);
+    if (checkOwner(env, nconf) === false) error('Invalid Wallet');
+    const { walletId, address } = await Prompt.getWalletId(
+      nconf,
+      env,
+      projectId
+    );
+    const amount = await Prompt.text('Number of tokens');
+    if (!amount) error(`Number of tokens is required`);
+
+    const minterId = nconf.get(`${env}:${projectId}:walletId`);
+    const minter = nconf.get(`${env}:${projectId}:${minterId}`);
+    let task = await service.mintToken(
+      contractId,
+      minterId,
+      minter.skey,
+      amount,
+      walletId,
+      address
+    );
+    task = await service.waitTask(task.taskId);
+    if (task.state === 'failed') error('Mint failed');
+    log('Tokens Minted');
+  }
+
+  /**
+   * Mint a new NFT
+   */
+  static async mintNFT(nconf) {
     const { service, env, projectId, contractId } = connect(nconf);
     if (checkOwner(env, nconf) === false) error('Invalid Wallet');
     // Get metadata
@@ -1016,7 +1063,7 @@ class Actions {
   /**
    * Transfer a NFT
    */
-  static async transfer(nconf) {
+  static async transferNFT(nconf) {
     const { service, env, projectId, contractId } = connect(nconf);
     if (checkOwner(env, nconf) === false) error('Invalid Wallet');
     // Get metadata
@@ -1209,14 +1256,18 @@ class Actions {
   }
 
   /**
-   * Update Drop strategy
+   * Update Contract DB
    */
   static async updateContractDB(nconf) {
     const { service, contractId } = connect(nconf);
     if (!contractId) error('A contract must be selected');
+    console.log('contractId', contractId);
     // urlCode
-    const urlCode = await Prompt.text('Url code (landing page path)');
-    if (!urlCode) error(`Url code is required`);
+    let urlCode = '';
+    if (contractId === 51 || contractId === 52) {
+      urlCode = await Prompt.text('Url code (landing page path)');
+      if (!urlCode) error(`Url code is required`);
+    }
 
     const ret = await service.updateContractDB(contractId, {
       urlCode,

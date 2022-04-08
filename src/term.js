@@ -373,7 +373,12 @@ class Prompt {
             description: 'NFT, URI points to Arweave',
             value: 52,
           },
-          /*v
+          {
+            title: 'ERC20 - Mintable',
+            description: 'Fungible Token (ERC20)',
+            value: 10,
+          },
+          /*
           {
             title: 'ERC721 - Buyable',
             description:
@@ -387,21 +392,11 @@ class Prompt {
             value: 54,
           },
           {
-            title: 'ERC20 - Mintable',
-            description: 'Fungible Token (ERC20)',
-            value: 10,
-          },
-          {
             title: 'BUY - Buy contracts',
             description: 'Used to buy from another contract',
             value: 100,
           },*/
         ],
-      },
-      {
-        type: 'text',
-        name: 'urlCode',
-        message: 'Url code (landing page path)',
       },
     ];
     const answers = await prompt(questions, {
