@@ -105,8 +105,13 @@ const info = async (nconf) => {
     case 'nft':
       Actions.infoNft(nconf);
       break;
+    case 'token':
+      Actions.infoToken(nconf);
+      break;
     default:
-      error('Invalid element to get info (project, wallet, contract, nft)');
+      error(
+        'Invalid element to get info (project, wallet, contract, nft, token)'
+      );
       break;
   }
 };

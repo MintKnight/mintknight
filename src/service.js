@@ -66,18 +66,56 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
-   * Mint a token
+   * Mint tokens
    *
    * @param {string} contractId Contract ID
    * @param {string} walletId Minter Wallet ID
-   * @param {string} skey MInter Wallet SKEY
+   * @param {string} skey Minter Wallet SKEY
+   * @param {number} value Tokens to mint
    * @param {string} to Wallet ID receiving the tokens
    * @param {string} address Alternative address
-   * @param {number} value Tokens minted.
    */
   mintToken(contractId, walletId, skey, value, to = false, address = false) {
     return this.apiCall(
       'POST',
+      'tokens',
+      { contractId, walletId, skey, value, to, address },
+      'tokenAuth'
+    );
+  }
+
+  /*
+   * Get token info
+   */
+  getToken(contractId, address) {
+    return this.apiCall(
+      'GET',
+      `tokens/${contractId}/${address}`,
+      {},
+      'tokenAuth'
+    );
+  }
+
+  /*
+   * Transfer tokens
+   *
+   * @param {string} contractId Contract ID
+   * @param {string} walletId Owner Wallet ID
+   * @param {string} skey Owner Wallet SKEY
+   * @param {number} value Tokens to transfer.
+   * @param {string} to Wallet ID receiving the tokens
+   * @param {string} address Alternative address
+   */
+  transferToken(
+    contractId,
+    walletId,
+    skey,
+    value,
+    to = false,
+    address = false
+  ) {
+    return this.apiCall(
+      'PUT',
       'tokens',
       { contractId, walletId, skey, value, to, address },
       'tokenAuth'
@@ -162,24 +200,6 @@ class MintKnight extends MintKnightBase {
         })
         .catch((e) => log(chalk.red('Error'), e.message));
     });
-  }
-
-  /*
-   * Transfer a token
-   *
-   * @param {string} contractId Contract ID
-   * @param {string} walletId From Wallet ID
-   * @param {string} skey From Wallet SKEY
-   * @param {string} to Wallet ID receiving the tokens
-   * @param {number} value Tokens minted.
-   */
-  transferToken(contractId, walletId, skey, to, value) {
-    return this.apiCall(
-      'PUT',
-      'tokens',
-      { contractId, walletId, skey, to, value },
-      'tokenAuth'
-    );
   }
 
   /*

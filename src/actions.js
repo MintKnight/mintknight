@@ -219,6 +219,7 @@ class Actions {
     title('\nTokens ERC20');
     detail('mk mint token', 'Mint to the selected Contract');
     detail('mk transfer token', 'Transfer an NFT owned by the current Wallet');
+    detail('mk info token', 'Get token info');
 
     log('\n');
   }
@@ -1003,6 +1004,7 @@ class Actions {
    */
   static async mintToken(nconf) {
     const { service, env, projectId, contractId } = connect(nconf);
+    if (!contractId) error('A contract must be selected');
     if (checkOwner(env, nconf) === false) error('Invalid Wallet');
     const { walletId, address } = await Prompt.getWalletId(
       nconf,
@@ -1025,6 +1027,54 @@ class Actions {
     task = await service.waitTask(task.taskId);
     if (task.state === 'failed') error('Mint failed');
     log('Tokens Minted');
+  }
+
+  /**
+   * Get info token (blance of address)
+   */
+  static async infoToken(nconf) {
+    const { service, contractId } = connect(nconf);
+    if (!contractId) error('A contract must be selected');
+    const address = await Prompt.text('Public address');
+    const token = await service.getToken(contractId, address);
+    if (token === false) return;
+    title(`\n${address}`);
+    detail('Name', token.name);
+    detail('Symbol', token.symbol);
+    detail('Total Supply', token.totalSupply);
+    detail('Balance Of address', token.balanceOf);
+  }
+
+  /**
+   * Transfer a token
+   */
+  static async transferToken(nconf) {
+    const { service, env, projectId, contractId } = connect(nconf);
+    if (!contractId) error('A contract must be selected');
+    if (checkOwner(env, nconf) === false) error('Invalid Wallet');
+    log('Send the Token To');
+    const { walletId, address } = await Prompt.getWalletId(
+      nconf,
+      env,
+      projectId
+    );
+    const amount = await Prompt.text('Number of tokens');
+    if (!amount) error(`Number of tokens is required`);
+
+    const ownerId = nconf.get(`${env}:${projectId}:walletId`);
+    const owner = nconf.get(`${env}:${projectId}:${ownerId}`);
+    let task = await service.transferToken(
+      contractId,
+      ownerId,
+      owner.skey,
+      amount,
+      walletId,
+      address
+    );
+    if (task == false) error('Transfer Failed');
+    task = await service.waitTask(task.taskId);
+    if (task.state === 'failed') error('Transfer failed');
+    log('Token Transferred');
   }
 
   /**
