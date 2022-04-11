@@ -287,12 +287,12 @@ class Prompt {
         choices: [
           {
             title: 'Collection',
-            description: 'Collection (3 shares)',
+            description: 'Collection (3 shares). ERC20 & ERC721 contracts.',
             value: 'collection',
           },
           {
-            title: 'Drop',
-            description: 'Drop (2 shares)',
+            title: 'Drops',
+            description: 'Drops (2 shares). ERC721 contracts.',
             value: 'drop',
           },
         ],
