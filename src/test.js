@@ -37,7 +37,6 @@ class Test {
       debug: false,
       token: false,
     };
-    //const urlWeb = 'http://localhost:5000/';
     const urlWeb = process.env.MINTKNIGHT_API_WEB;
     let mintknight = new MintKnightWeb(urlWeb, props);
 
@@ -106,7 +105,6 @@ class Test {
      */
 
     // 1 - Connect to MintKnight Web with the project Token.
-    //const urlService = 'http://localhost:5001/';
     const urlService = process.env.MINTKNIGHT_API_SERVICE;
     props.apiKey = project.token;
     let service = new MintKnight(
@@ -399,38 +397,38 @@ class Test {
     );
 
     // 6 - Create the Signature for an array of tokenIds.
-    const tokens = [100, 101, 102];
-    const { signatures } = await service.getSignature(
-      contractBUYERC721.contractId,
-      tokens,
-      wallet.address,
-      signer.walletId,
-      signer.skey
-    );
+    // const tokens = [100, 101, 102];
+    // const { signatures } = await service.getSignature(
+    //   contractBUYERC721.contractId,
+    //   tokens,
+    //   wallet.address,
+    //   signer.walletId,
+    //   signer.skey
+    // );
 
-    // 7 - The user (wallet) Buys and Mints the NFTs. It gets a basic URI.
-    const basePrice = ethers.utils.parseUnits('0.024');
-    const buyNFT = new ethers.Contract(
-      contractBUYERC721.address,
-      BuyContract.abi,
-      wallet
-    );
+    // // 7 - The user (wallet) Buys and Mints the NFTs. It gets a basic URI.
+    // const basePrice = ethers.utils.parseUnits('0.024');
+    // const buyNFT = new ethers.Contract(
+    //   contractBUYERC721.address,
+    //   BuyContract.abi,
+    //   wallet
+    // );
 
-    const tx = await buyNFT.mintNft(tokens, signatures, { value: basePrice });
-    await tx.wait();
+    // const tx = await buyNFT.mintNft(tokens, signatures, { value: basePrice });
+    // await tx.wait();
 
-    const nft721 = new ethers.Contract(
-      contractERC721Buyable.address,
-      ERC721Contract.abi,
-      wallet
-    );
+    // const nft721 = new ethers.Contract(
+    //   contractERC721Buyable.address,
+    //   ERC721Contract.abi,
+    //   wallet
+    // );
 
-    result = await nft721.balanceOf(wallet.address);
-    check(`${result.toNumber()} NFTs bought`);
+    // result = await nft721.balanceOf(wallet.address);
+    // check(`${result.toNumber()} NFTs bought`);
 
-    console.log(contractERC721Buyable);
-    const nft1 = await service.getNft(contractERC721Buyable.contractId, 0);
-    console.log(nft1);
+    // console.log(contractERC721Buyable);
+    // const nft1 = await service.getNft(contractERC721Buyable.contractId, 0);
+    // console.log(nft1);
 
     // 8 - Saves the NFTs as draft (using previous mediaId).
     // 9 - Mints the NFTs (writes to the Blockchain -> setURI).
@@ -470,7 +468,6 @@ class Test {
     detail('Contract', contract.name);
 
     // Connect to Service.
-    //const urlService = 'http://localhost:5001/';
     const urlService = process.env.MINTKNIGHT_API_SERVICE;
     const props = {
       debug: false,
