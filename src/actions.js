@@ -437,7 +437,7 @@ class Actions {
     const contract = await Prompt.contract(project.name);
     // urlCode
     let urlCode = '';
-    if (contract.contractId === 51 || contract.contractId === 52) {
+    if (contract.contractType === 51 || contract.contractType === 52) {
       urlCode = await Prompt.text('Url code (landing page path)');
       if (!urlCode) error(`Url code is required`);
     }
@@ -1309,20 +1309,21 @@ class Actions {
    * Update Contract DB
    */
   static async updateContractDB(nconf) {
-    const { service, contractId } = connect(nconf);
+    const { env, service, projectId, contractId } = connect(nconf);
     if (!contractId) error('A contract must be selected');
-    console.log('contractId', contractId);
+    const contract = nconf.get(`${env}:${projectId}:${contractId}`);
     // urlCode
     let urlCode = '';
-    if (contractId === 51 || contractId === 52) {
+    if (contract.type === 51 || contract.type === 52) {
       urlCode = await Prompt.text('Url code (landing page path)');
       if (!urlCode) error(`Url code is required`);
+    } else {
+      error('This type of contract cannot update');
+      return;
     }
-
     const ret = await service.updateContractDB(contractId, {
       urlCode,
     });
-
     if (ret === false) error('Error updating Contract');
     if (ret.status && ret.status.toLowerCase() === 'failed')
       error('Error updating Contract: ' + ret.error);
