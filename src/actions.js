@@ -251,6 +251,10 @@ class Actions {
   static info(nconf) {
     const env = nconf.get('env');
     const user = nconf.get(env);
+    if (!user || !user.projectId) {
+      error('User not registered. You should do: mk register');
+      return;
+    }
     const project = user[user.projectId];
     project.projectId = user.projectId;
     detail('project', project.name, project.network);
