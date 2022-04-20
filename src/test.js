@@ -436,10 +436,140 @@ class Test {
     log('\nTest finished\n');
   }
 
+  static async drops(nconf) {
+    const env = nconf.get('env');
+
+    // Project
+    const projectId = nconf.get(`${env}:projectId`);
+    const project = nconf.get(`${env}:${projectId}`);
+
+    // Connect to Service.
+    const urlService = process.env.MINTKNIGHT_API_SERVICE;
+    const props = {
+      debug: false,
+      token: false,
+      apiKey: project.token,
+    };
+    props.apiKey = project.token;
+    let service = new MintKnight(
+      urlService,
+      props,
+      'local',
+      project.projectId,
+      false
+    );
+
+    /*
+     * Add Wallet for drops
+     */
+    warning('\nWallet - Creating wallet for drops\n');
+
+    let task = await service.addWallet('wdrop2', 'onchain', 'drop');
+    let taskResult = await checkTask(
+      task,
+      service,
+      'Wallet for drops deployed',
+      'Failed to deploy wallet for drops'
+    );
+    const minter = {
+      name: 'minter',
+      walletId: task.wallet._id,
+      skey: task.skey1,
+    };
+    minter.address = taskResult.contractAddress;
+
+    // Save to local env.
+    await Actions.addWallet(nconf, minter);
+
+    /*
+     * Add Contract for drops
+     */
+    warning('\nContract - Creating contract for drops\n');
+    // ERC721MinterPauserMutable or ERC721MinterPauserInmutable
+
+    // 1 - Deploy ERC721MinterPauserMutable Contract. (type 51)
+    const urlCode = `collection-${makeid(10)}`;
+    const urlLandingPage = `http://localhost:3002/${urlCode}`;
+    const contract = {
+      name: 'MutableNFTsForDrops',
+      symbol: 'MDROPS',
+      contractType: 51,
+      walletId: minter.walletId,
+      contractId: 0,
+      mediaId: null,
+      urlCode: urlCode,
+    };
+    task = await service.addContract(
+      contract.name,
+      contract.symbol,
+      contract.contractType,
+      contract.walletId,
+      contract.contractId,
+      contract.mediaId,
+      contract.urlCode
+    );
+    taskResult = await checkTask(
+      task,
+      service,
+      'ERC721MinterPauserMutable deployed',
+      'Failed to deploy ERC721MinterPauserMutable'
+    );
+    contract.address = taskResult.contractAddress;
+    contract.contractId = taskResult.contractId;
+
+    check(`Contract address: ${contract.address}`);
+
+    // Save to local env.
+    await Actions.addContract(nconf, contract, minter);
+
+    /*
+     * Upload NFTs (Bulk mode)
+     */
+    warning('\nNFTs - Upload NFTS on Bulk mode\n');
+    const csvFilename = './assets/nft-bulkdata1.csv';
+    const zipFilename = './assets/animals.zip';
+    task = await service.uploadBulkNFTs(
+      contract.contractId,
+      csvFilename,
+      zipFilename,
+      null
+    );
+    taskResult = await checkTask(
+      task,
+      service,
+      'Uploaded NFTS in bulk mode. The state of each NFT is draft',
+      'Failed to upload NFTs'
+    );
+
+    /*
+     * Create drop
+     */
+    warning('\nDrop - Create drop\n');
+    task = await service.addDrop(contract.contractId, {
+      name: 'Name: Drop with NFTs buyables',
+      description: 'Description: Because of isDirectMinting=false',
+      dropType: 'raffle', // fifo or raffle
+      useCodes: 0, // 0 or 1
+      isDirectMinting: 0, // 0 or 1
+      price: 1,
+      coin: 'matic',
+      startDate: '2022-01-01',
+      endDate: '2025-12-31',
+    });
+    taskResult = await checkTask(
+      task,
+      service,
+      'Drop created successfully',
+      'Failed to create Drop'
+    );
+
+    check(`Landing page url: ${urlLandingPage}`);
+  }
+
   static async buy(nconf) {
     const env = nconf.get('env');
 
-    // Projecct
+    // Project
     const projectId = nconf.get(`${env}:projectId`);
     const project = nconf.get(`${env}:${projectId}`);
 
