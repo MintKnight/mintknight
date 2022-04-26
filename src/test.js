@@ -4,8 +4,8 @@ const { log, title, error, warning, detail, check } = require('./term');
 const { MintKnight, MintKnightWeb } = require('../src/index');
 const { Actions } = require('./actions');
 const ethers = require('ethers');
-const BuyContract = require('../../evm-contracts/artifacts/contracts/polygon/BUYNFT/ERC721BuyRandom.sol/ERC721BuyRandom.json');
-const ERC721Contract = require('../../evm-contracts/artifacts/contracts/polygon/ERC721/ERC721MinterPauserBuyable.sol/ERC721MinterPauserBuyable.json');
+const BuyContract = require('./contracts/ERC721BuyRandom.json');
+const ERC721Contract = require('./contracts/ERC721MinterPauserBuyable.json');
 
 function makeid(length) {
   let result = '';
