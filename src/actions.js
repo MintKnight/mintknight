@@ -1161,6 +1161,77 @@ class Actions {
   }
 
   /**
+   * Upload NFT/s
+   */
+  static async uploadNFT(nconf) {
+    const { service, contractId } = connect(nconf);
+    if (!contractId) error('A contract must be selected');
+
+    const choices = [
+      {
+        title: 'Only one',
+        description: 'Upload only one NFT',
+        value: 'one',
+      },
+      {
+        title: 'Bulk mode',
+        description: 'Upload several NFTs at the same time (csv & zip)',
+        value: 'bulk',
+      },
+    ];
+    const option = await Select.option(choices);
+
+    if (option === 'bulk') {
+      await this.uploadBulkNFTs(nconf);
+      return;
+    }
+
+    // Ask image
+    var img = await Prompt.text('Image file. e.g: ./assets/nft.png');
+    // img = './assets/nft.png';
+    if (!img) error('Image needed. e.g: ./assets/nft.png');
+    if (!fs.existsSync(img)) error(`File ${img} does not exist`);
+    // Ask tokenId
+    const tokenId = await Prompt.text('Token ID');
+    if (!tokenId) error(`Token ID is required`);
+    // Ask name
+    const name = await Prompt.text('Token Name');
+    if (!name) error(`Token Name is required`);
+    // Ask description
+    const description = await Prompt.text('Token Description');
+    if (!description) error(`Token Description is required`);
+    // Ask price
+    const price = await Prompt.text('Price');
+    // Ask coin
+    const coin = await Prompt.text('Coin');
+    // Ask attributes
+    const attributes = [];
+    let attribute = true;
+    while (attribute !== false) {
+      attribute = await Prompt.attribute();
+      if (attribute !== false) attributes.push(attribute);
+    }
+
+    const ret = await service.uploadNFT(
+      contractId,
+      {
+        tokenId,
+        name,
+        description,
+        price,
+        coin,
+        attributes,
+      },
+      img,
+      null
+    );
+    if (ret === false) error('Error uploading the NFT');
+    if (ret.status && ret.status.toLowerCase() === 'failed')
+      error('Error uploading the NFT: ' + ret.error);
+    log('NFT Uploaded');
+  }
+
+  /**
    * Upload bulk NFTs
    */
   static async uploadBulkNFTs(nconf) {
@@ -1191,16 +1262,10 @@ class Actions {
     if (!['.zip'].includes(ext)) error('Invalid extension. Only zip is valid');
     zipFilename = path.normalize(zipFilename);
 
-    //// DropId
-    const dropId = null;
-    // const dropId = await Prompt.text('Drop Id (mk list drop)');
-    //// if (!dropId) error(`Drop Id is required`);
-
     const ret = await service.uploadBulkNFTs(
       contractId,
       csvFilename,
-      zipFilename,
-      dropId
+      zipFilename
     );
     if (ret === false) error('Error uploading NFTs');
     if (ret.status && ret.status.toLowerCase() === 'failed')

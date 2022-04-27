@@ -531,14 +531,39 @@ class Test {
     task = await service.uploadBulkNFTs(
       contract.contractId,
       csvFilename,
-      zipFilename,
-      null
+      zipFilename
     );
     taskResult = await checkTask(
       task,
       service,
       'Uploaded NFTS in bulk mode. The state of each NFT is draft',
       'Failed to upload NFTs'
+    );
+
+    /*
+     * Upload only one NFT
+     */
+    warning('\nNFTs - Upload only one NFT\n');
+    task = await service.uploadNFT(
+      contract.contractId,
+      {
+        tokenId: 50,
+        name: 'Only one NFT',
+        description: 'Uploaded alone',
+        price: 0,
+        coin: '',
+        attributes: [],
+      },
+      './assets/nft.png',
+      null
+      // 'nft.png',
+      // fs.readFileSync('./assets/nft.png')
+    );
+    taskResult = await checkTask(
+      task,
+      service,
+      'Uploaded NFT. The state of this NFT is draft',
+      'Failed to upload NFT'
     );
 
     /*

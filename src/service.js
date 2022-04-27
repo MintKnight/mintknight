@@ -172,21 +172,51 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
+   * Upload NFT
+   *
+   * @param {string} contractId: Contract ID
+   * @param {object} nft (tokenId, name, description, price, coin, attributes)
+   *    - attributes is an array (ex: ["hello", "bye", {"key": "value"} ])
+   * @param {string} imgFilename: Filename path or filename image
+   * @param {buffer} imgBuffer: Image buffer
+   */
+  uploadNFT(contractId, nft, imgFilename, imgBuffer = null) {
+    return new Promise((resolve) => {
+      const form = new FormData();
+      if (imgBuffer === null) {
+        imgBuffer = fs.readFileSync(imgFilename);
+      }
+      form.append('files', imgBuffer, imgFilename);
+      form.append('nft', JSON.stringify(nft));
+      const config = {
+        headers: {
+          ...form.getHeaders(),
+          Authorization: `Bearer ${this.apiKey}`,
+        },
+      };
+      return axios
+        .post(`${this.api}nfts/upload_one/${contractId}`, form, config)
+        .then((res) => {
+          resolve(res.data);
+        })
+        .catch((e) => log(chalk.red('Error'), e.message));
+    });
+  }
+
+  /*
    * Upload bulk NFTs
    *
    * @param {string} contractId Contract ID
    * @param {string} csvFilename CSV File name with path
    * @param {string} zipFilename ZIP File name with path
-   * @param {string} dropId Drop ID (optional)
    */
-  uploadBulkNFTs(contractId, csvFilename, zipFilename, dropId) {
+  uploadBulkNFTs(contractId, csvFilename, zipFilename) {
     return new Promise((resolve) => {
       const form = new FormData();
       const csvFile = fs.readFileSync(csvFilename);
       const zipFile = fs.readFileSync(zipFilename);
       form.append('files', csvFile, csvFilename);
       form.append('files', zipFile, zipFilename);
-      if (!!dropId) form.append('dropId', dropId);
       const config = {
         headers: {
           ...form.getHeaders(),
@@ -296,7 +326,7 @@ class MintKnight extends MintKnightBase {
    *
    * @param {string} userRef UserRef
    * @param {string} walletType Type of wallet (onchain, eoa, signer)
-   * @param {string} usage: collection (3 shares) | drops (2 shares)
+   * @param {string} usage: collection (3 shares) | drop (2 shares)
    */
   addWallet(refUser, walletType, usage = 'collection') {
     return this.apiCall(

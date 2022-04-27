@@ -157,11 +157,11 @@ const update = async (nconf) => {
   }
 };
 
-const uploadBulk = async (nconf) => {
+const upload = async (nconf) => {
   const element = process.argv[3];
   switch (element) {
     case 'nft':
-      Actions.uploadBulkNFTs(nconf);
+      Actions.uploadNFT(nconf);
       break;
     case 'dropcode':
       Actions.uploadBulkDropCodes(nconf);
@@ -252,7 +252,7 @@ const main = async () => {
       Actions.sign(nconf);
       break;
     case 'upload':
-      uploadBulk(nconf);
+      upload(nconf);
       break;
     case 'test':
       break;
