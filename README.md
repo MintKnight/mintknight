@@ -56,7 +56,7 @@ The Ids for project, campaign, wallets and tokens are stored inside $HOME/.mintk
 ```bash
 mk add wallet
 ```
-Set a name, reference and choose usage: Collection
+Set a name and reference
 
 ###### Add a new contract
 ```bash
@@ -90,7 +90,7 @@ Tips: After that, you could do: mk info contract or mk info token
 ```bash
 mk add wallet
 ```
-Set a name, reference and choose usage: Collection
+Set a name and reference
 
 ###### Add a new contract
 ```bash
@@ -130,9 +130,9 @@ Set NFT ID, and the recipient wallet
 ### Drops
 ###### Add a new Wallet to project
 ```bash
-mk add wallet
+mk add signer
 ```
-Set a name, reference and choose usage: Drops
+Set a name and reference
 
 ###### Add a new contract
 ```bash

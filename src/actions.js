@@ -129,7 +129,6 @@ class Actions {
     nconf.set(`${env}:${projectId}:${wallet.walletId}:name`, wallet.name);
     nconf.set(`${env}:${projectId}:${wallet.walletId}:skey`, wallet.skey);
     nconf.set(`${env}:${projectId}:${wallet.walletId}:address`, wallet.address);
-    nconf.set(`${env}:${projectId}:${wallet.usage}:usage`, wallet.usage);
     nconf.set(`${env}:${projectId}:walletId`, wallet.walletId);
     nconf.save();
   }
@@ -375,11 +374,7 @@ class Actions {
 
     // Add wallet.
     const wallet = await Prompt.wallet(project.name);
-    let task = await service.addWallet(
-      wallet.refUser,
-      walletType,
-      wallet.usage
-    );
+    let task = await service.addWallet(wallet.refUser, walletType);
     if (task !== false) {
       wallet.walletId = task.wallet._id;
       wallet.skey = task.skey1;

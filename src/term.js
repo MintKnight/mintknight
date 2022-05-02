@@ -280,33 +280,12 @@ class Prompt {
         name: 'refUser',
         message: 'Internal reference of the wallet',
       },
-      {
-        type: 'select',
-        name: 'usage',
-        message: 'Choose a usage',
-        choices: [
-          {
-            title: 'Collection',
-            description: 'Collection (3 shares). ERC20 & ERC721 contracts.',
-            value: 'collection',
-          },
-          {
-            title: 'Drops',
-            description: 'Drops (2 shares). ERC721 contracts.',
-            value: 'drop',
-          },
-        ],
-      },
     ];
     const answers = await prompt(questions, {
       onCancel: cleanup,
       onSubmit: cleanup,
     });
-    if (
-      answers.name === undefined ||
-      answers.refUser === undefined ||
-      answers.usage === undefined
-    )
+    if (answers.name === undefined || answers.refUser === undefined)
       process.exit();
     return answers;
   }

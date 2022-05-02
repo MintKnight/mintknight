@@ -438,6 +438,7 @@ class Test {
 
   static async drops(nconf) {
     const env = nconf.get('env');
+    let task, taskResult;
 
     // Project
     const projectId = nconf.get(`${env}:projectId`);
@@ -460,12 +461,36 @@ class Test {
     );
 
     /*
-     * Add Wallet for drops - signer (not onchain), used to sign txs.
+     * Add Wallet for drops - minter (onchain)
      */
-    warning('\nWallet - Creating wallet for drops\n');
+    // warning(
+    //   '\nWallet - Creating on-chain wallet (MKWallet for direct minting)\n'
+    // );
 
-    let task = await service.addWallet('wdrop2', 'signer', 'drop');
-    let taskResult = await checkTask(
+    // task = await service.addWallet('wonchain', 'onchain');
+    // taskResult = await checkTask(
+    //   task,
+    //   service,
+    //   'Wallet minter deployed',
+    //   'Failed to deploy minter'
+    // );
+    // const minter = {
+    //   name: 'minter',
+    //   walletId: task.wallet._id,
+    //   skey: task.skey1,
+    // };
+    // minter.address = taskResult.contractAddress;
+
+    // // Save to local env.
+    // await Actions.addWallet(nconf, minter);
+
+    /*
+     * Add Wallet for drops - signer (off-chain), used to sign txs.
+     */
+    warning('\nWallet - Creating off-chain wallet\n');
+
+    task = await service.addWallet('woffchain', 'signer');
+    taskResult = await checkTask(
       task,
       service,
       'Wallet offchain for drops created',
