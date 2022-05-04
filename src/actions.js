@@ -129,6 +129,10 @@ class Actions {
     nconf.set(`${env}:${projectId}:${wallet.walletId}:name`, wallet.name);
     nconf.set(`${env}:${projectId}:${wallet.walletId}:skey`, wallet.skey);
     nconf.set(`${env}:${projectId}:${wallet.walletId}:address`, wallet.address);
+    nconf.set(
+      `${env}:${projectId}:${wallet.walletId}:contractAddress`,
+      wallet.contractAddress
+    );
     nconf.set(`${env}:${projectId}:walletId`, wallet.walletId);
     nconf.save();
   }
