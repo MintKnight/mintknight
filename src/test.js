@@ -288,7 +288,7 @@ class Test {
 
   static async drops(nconf, skipInit = false) {
     if (!skipInit) await this.init();
-    let task, taskResult;
+    let task, taskResult, data;
 
     /*
      * Add Wallet for drops (onchain)
@@ -367,12 +367,9 @@ class Test {
       csvFilename,
       zipFilename
     );
-    taskResult = await checkTask(
-      task,
-      service,
-      'Uploaded NFTS in bulk mode. The state of each NFT is draft',
-      'Failed to upload NFTs'
-    );
+    if (task.success)
+      check('Uploaded NFTS in bulk mode. The state of each NFT is draft');
+    else check('Failed to upload NFTs');
 
     /*
      * Upload only one NFT
@@ -393,12 +390,8 @@ class Test {
       // 'nft.png',
       // fs.readFileSync('./assets/nft.png')
     );
-    taskResult = await checkTask(
-      task,
-      service,
-      'Uploaded NFT. The state of this NFT is draft',
-      'Failed to upload NFT'
-    );
+    if (task.success) check('Uploaded NFT. The state of this NFT is draft');
+    else check('Failed to upload NFT');
 
     /*
      * Create drops
@@ -406,26 +399,7 @@ class Test {
     warning('\nDrops - Create drops\n');
 
     // Direct minting drop
-    task = await service.addDrop(contract.contractId, {
-      name: 'Name: Drop with NFTs buyables',
-      description: 'NOT Direct minting',
-      dropType: 'raffle', // fifo or raffle
-      useCodes: 0, // 0 or 1
-      isDirectMinting: 0, // 0 or 1
-      price: 1,
-      coin: 'matic',
-      startDate: '2022-01-01',
-      endDate: '2025-12-31',
-    });
-    taskResult = await checkTask(
-      task,
-      service,
-      'Drop created successfully',
-      'Failed to create Drop'
-    );
-
-    // Not Direct minting drop
-    task = await service.addDrop(contract.contractId, {
+    const directMintingDrop = {
       name: 'Name: Drop with free NFTs',
       description: 'Direct minting',
       dropType: 'fifo', // fifo or raffle
@@ -435,13 +409,51 @@ class Test {
       coin: 'matic',
       startDate: '2022-01-01',
       endDate: '2025-12-31',
-    });
-    taskResult = await checkTask(
-      task,
-      service,
-      'Drop created successfully',
-      'Failed to create Drop'
-    );
+    };
+    task = await service.addDrop(contract.contractId, directMintingDrop);
+    if (!!task) check(`Drop created successfully: ${directMintingDrop.name}`);
+    else check('Failed to create Drop');
+    directMintingDrop._id = task._id;
+
+    // Not Direct minting drop
+    const notDirectMintingDrop = {
+      name: 'Name: Drop with NFTs buyables',
+      description: 'NOT Direct minting',
+      dropType: 'raffle', // fifo or raffle
+      useCodes: 0, // 0 or 1
+      isDirectMinting: 0, // 0 or 1
+      price: 1,
+      coin: 'matic',
+      startDate: '2022-01-01',
+      endDate: '2025-12-31',
+    };
+    task = await service.addDrop(contract.contractId, notDirectMintingDrop);
+    if (!!task)
+      check(`Drop created successfully: ${notDirectMintingDrop.name}`);
+    else check('Failed to create Drop');
+    notDirectMintingDrop._id = task._id;
+
+    /*
+     * Direct minting
+     */
+    warning('\nDrops - Direct minting\n');
+    const buyerAccount = '0xf47B89CB6E174faCb9A3C2cf596dCB8ba1C7EF7a';
+    data = {
+      dropCod: '',
+      userData: {
+        email: 'test@test.com',
+        name: 'Drop Test User',
+      },
+      buyer: buyerAccount,
+    };
+    task = await service.mintNftFromDrop(directMintingDrop._id, data);
+    // taskResult = await checkTask(
+    //   task,
+    //   service,
+    //   'Drop created successfully',
+    //   'Failed to create Drop'
+    // );
+    console.log('NFT to mint', task);
 
     check(`Landing page url: ${urlLandingPage}`);
   }

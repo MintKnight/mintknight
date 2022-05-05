@@ -372,6 +372,14 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
+   * Mint NFT from drop
+   */
+  mintNftFromDrop(dropId, data) {
+    console.log(dropId, data);
+    return this.apiCall('POST', `drops/mintNft/${dropId}`, data, 'tokenAuth');
+  }
+
+  /*
    * Add a new Drop strategy
    */
   addDropStrategy(dropId, data) {
