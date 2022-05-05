@@ -280,64 +280,43 @@ class Test {
     warning('\nTest - Deploy NFT Contract : ERC721 Imnmutable\n');
     log('TODO');
 
+    // Test drops
+    await this.drops(nconf, true);
+
     log('\nTest finished\n');
   }
 
-  static async drops(nconf) {
-    await this.init();
+  static async drops(nconf, skipInit = false) {
+    if (!skipInit) await this.init();
     let task, taskResult;
 
     /*
-     * Add Wallet for drops - signer (off-chain), used to sign txs.
+     * Add Wallet for drops (onchain)
      */
-    // warning('\nWallet - Creating off-chain wallet\n');
+    warning('\nDrops - Creating on-chain wallet\n');
 
-    // task = await service.addWallet('woffchain', 'signer');
-    // taskResult = await checkTask(
-    //   task,
-    //   service,
-    //   'Wallet offchain for drops created',
-    //   'Failed to create wallet for drops'
-    // );
-    // const signer = {
-    //   name: 'signer',
-    //   walletId: task.wallet._id,
-    //   skey: task.skey1,
-    //   address: task.wallet.address,
-    // };
-
-    // // Save to local env.
-    // await Actions.addWallet(nconf, signer);
-
-    /*
-     * Add Wallet for drops - minter (onchain)
-     */
-    warning(
-      '\nWallet - Creating on-chain wallet (MKWallet for direct minting)\n'
-    );
-
-    task = await service.addWallet('wonchain', 'onchain');
+    task = await service.addWallet('wdrops', 'onchain');
     taskResult = await checkTask(
       task,
       service,
-      'Wallet minter deployed',
-      'Failed to deploy minter'
+      'Wallet for drops deployed',
+      'Failed to deploy wallet'
     );
-    const minter = {
-      name: 'minter',
+    const owner = {
+      name: 'owner',
       walletId: task.wallet._id,
       address: task.wallet.address,
       skey: task.skey1,
     };
-    minter.contractAddress = taskResult.contractAddress;
+    owner.contractAddress = taskResult.contractAddress;
 
     // Save to local env.
-    await Actions.addWallet(nconf, minter);
+    await Actions.addWallet(nconf, owner);
 
     /*
      * Add Contract for drops
      */
-    warning('\nContract - Creating contract for drops\n');
+    warning('\nDrops - Creating contract for drops\n');
     // ERC721MinterPauserMutable or ERC721MinterPauserInmutable
 
     // 1 - Deploy ERC721MinterPauserMutable Contract. (type 51)
@@ -347,7 +326,7 @@ class Test {
       name: 'MutableNFTsForDrops',
       symbol: 'MDROPS',
       contractType: 51,
-      walletId: minter.walletId,
+      walletId: owner.walletId,
       // walletId: signer.walletId,
       contractId: 0,
       mediaId: null,
@@ -375,12 +354,12 @@ class Test {
 
     // Save to local env.
     // await Actions.addContract(nconf, contract, signer);
-    await Actions.addContract(nconf, contract, minter);
+    await Actions.addContract(nconf, contract, owner);
 
     /*
      * Upload NFTs (Bulk mode)
      */
-    warning('\nNFTs - Upload NFTS on Bulk mode\n');
+    warning('\nDrops - Upload NFTS on Bulk mode\n');
     const csvFilename = './assets/nft-bulkdata1.csv';
     const zipFilename = './assets/animals.zip';
     task = await service.uploadBulkNFTs(
@@ -398,7 +377,7 @@ class Test {
     /*
      * Upload only one NFT
      */
-    warning('\nNFTs - Upload only one NFT\n');
+    warning('\nDrops - Upload only one NFT\n');
     task = await service.uploadNFT(
       contract.contractId,
       {
@@ -424,7 +403,7 @@ class Test {
     /*
      * Create drops
      */
-    warning('\nDrop - Create drops\n');
+    warning('\nDrops - Create drops\n');
 
     // Direct minting drop
     task = await service.addDrop(contract.contractId, {
