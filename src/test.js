@@ -107,7 +107,7 @@ class Test {
 
   static async go(nconf) {
     await this.init();
-    let task, taskResult;
+    let task, taskResult1;
 
     /*
      * Prepare Wallets : signer, minter & owner
@@ -132,7 +132,7 @@ class Test {
 
     // 3 - Add Wallet - owner (onchain), admin of the NFT contracts.
     task = await service.addWallet('ref2', 'onchain');
-    taskResult = await checkTask(
+    taskResult1 = await checkTask(
       task,
       service,
       'Wallet owner deployed',
@@ -143,7 +143,7 @@ class Test {
       walletId: task.wallet._id,
       skey: task.skey1,
     };
-    nftowner.address = taskResult.contractAddress;
+    nftowner.address = taskResult1.contractAddress;
 
     // Save to local env.
     await Actions.addWallet(nconf, nftowner);
@@ -151,7 +151,7 @@ class Test {
 
     // 4 - Add Wallet - minter (onchain), Can mint to the NFT contracts.
     task = await service.addWallet('ref1', 'onchain');
-    taskResult = await checkTask(
+    taskResult1 = await checkTask(
       task,
       service,
       'Wallet minter deployed',
@@ -162,7 +162,7 @@ class Test {
       walletId: task.wallet._id,
       skey: task.skey1,
     };
-    minter.address = taskResult.contractAddress;
+    minter.address = taskResult1.contractAddress;
 
     // Save to local env.
     await Actions.addWallet(nconf, minter);
@@ -206,15 +206,15 @@ class Test {
       contract.walletId,
       contract.contractId
     );
-    taskResult = await checkTask(
+    taskResult1 = await checkTask(
       task,
       service,
       'ERC721MinterPauserMutable deployed',
       'Failed to deploy ERC721MinterPauserMutable'
     );
 
-    contract.address = taskResult.contractAddress;
-    contract.contractId = taskResult.contractId;
+    contract.address = taskResult1.contractAddress;
+    contract.contractId = taskResult1.contractId;
 
     // Save to local env.
     await Actions.addContract(nconf, contract, minter);
@@ -236,7 +236,7 @@ class Test {
       ],
     };
     task = await service.saveNFT(contract.contractId, nft);
-    taskResult = await checkTask(
+    taskResult1 = await checkTask(
       task,
       service,
       'NFT saved',
@@ -251,7 +251,7 @@ class Test {
       minter.skey,
       minter.walletId
     );
-    taskResult = await checkTask(
+    taskResult1 = await checkTask(
       task,
       service,
       'NFT minted',
@@ -265,7 +265,7 @@ class Test {
       minter.skey,
       nftowner.walletId
     );
-    taskResult = await checkTask(
+    taskResult1 = await checkTask(
       task,
       service,
       'NFT transferred',
@@ -288,7 +288,7 @@ class Test {
 
   static async drops(nconf, skipInit = false) {
     if (!skipInit) await this.init();
-    let task, taskResult, data;
+    let task, taskResult1, taskResult2, data;
 
     /*
      * Add Wallet for drops (onchain)
@@ -296,7 +296,7 @@ class Test {
     warning('\nDrops - Creating on-chain wallet\n');
 
     task = await service.addWallet('wdrops', 'onchain');
-    taskResult = await checkTask(
+    taskResult1 = await checkTask(
       task,
       service,
       'Wallet for drops deployed',
@@ -308,7 +308,7 @@ class Test {
       address: task.wallet.address,
       skey: task.skey1,
     };
-    owner.contractAddress = taskResult.contractAddress;
+    owner.contractAddress = taskResult1.contractAddress;
 
     // Save to local env.
     await Actions.addWallet(nconf, owner);
@@ -317,17 +317,15 @@ class Test {
      * Add Contract for drops
      */
     warning('\nDrops - Creating contract for drops\n');
-    // ERC721MinterPauserMutable or ERC721MinterPauserInmutable
 
-    // 1 - Deploy ERC721MinterPauserMutable Contract. (type 51)
     const urlCode = `collection-${makeid(10)}`;
     const urlLandingPage = `http://localhost:3002/${urlCode}`;
     const contract = {
-      name: 'MutableNFTsForDrops',
-      symbol: 'MDROPS',
-      contractType: 51,
+      name: 'ERC721TestDrops',
+      symbol: 'DROPS',
+      // contractType: 51, // Mutable
+      contractType: 52, // Inmutable
       walletId: owner.walletId,
-      // walletId: signer.walletId,
       contractId: 0,
       mediaId: null,
       urlCode: urlCode,
@@ -341,19 +339,16 @@ class Test {
       contract.mediaId,
       contract.urlCode
     );
-    taskResult = await checkTask(
+    taskResult1 = await checkTask(
       task,
       service,
-      'ERC721MinterPauserMutable deployed',
-      'Failed to deploy ERC721MinterPauserMutable'
+      'Contract deployed',
+      'Failed to deploy contract'
     );
-    contract.address = taskResult.contractAddress;
-    contract.contractId = taskResult.contractId;
-
+    contract.address = taskResult1.contractAddress;
+    contract.contractId = taskResult1.contractId;
     check(`Contract address: ${contract.address}`);
-
     // Save to local env.
-    // await Actions.addContract(nconf, contract, signer);
     await Actions.addContract(nconf, contract, owner);
 
     /*
@@ -369,7 +364,7 @@ class Test {
     );
     if (task.success)
       check('Uploaded NFTS in bulk mode. The state of each NFT is draft');
-    else check('Failed to upload NFTs');
+    else error('Failed to upload NFTs');
 
     /*
      * Upload only one NFT
@@ -391,7 +386,7 @@ class Test {
       // fs.readFileSync('./assets/nft.png')
     );
     if (task.success) check('Uploaded NFT. The state of this NFT is draft');
-    else check('Failed to upload NFT');
+    else error('Failed to upload NFT');
 
     /*
      * Create drops
@@ -412,7 +407,7 @@ class Test {
     };
     task = await service.addDrop(contract.contractId, directMintingDrop);
     if (!!task) check(`Drop created successfully: ${directMintingDrop.name}`);
-    else check('Failed to create Drop');
+    else error('Failed to create Drop');
     directMintingDrop._id = task._id;
 
     // Not Direct minting drop
@@ -430,8 +425,10 @@ class Test {
     task = await service.addDrop(contract.contractId, notDirectMintingDrop);
     if (!!task)
       check(`Drop created successfully: ${notDirectMintingDrop.name}`);
-    else check('Failed to create Drop');
+    else error('Failed to create Drop');
     notDirectMintingDrop._id = task._id;
+
+    check(`Landing page url: ${urlLandingPage}`);
 
     /*
      * Direct minting
@@ -445,17 +442,64 @@ class Test {
         name: 'Drop Test User',
       },
       buyer: buyerAccount,
+      skey1: owner.skey,
     };
-    task = await service.mintNftFromDrop(directMintingDrop._id, data);
-    // taskResult = await checkTask(
-    //   task,
-    //   service,
-    //   'Drop created successfully',
-    //   'Failed to create Drop'
-    // );
-    console.log('NFT to mint', task);
+    let directMintingRet = await service.mintNftFromDrop(
+      directMintingDrop._id,
+      data
+    );
+    if (directMintingRet === false) error(`Something wrong minting NFT`);
+    else {
+      taskResult1 = await checkTask(
+        { taskId: directMintingRet.mediaTaskId },
+        service,
+        'Media created successfully',
+        'Failed to create Media'
+      );
+      taskResult2 = await checkTask(
+        { taskId: directMintingRet.nftTaskId },
+        service,
+        'NFT minted successfully',
+        'Failed to mint NFT'
+      );
 
-    check(`Landing page url: ${urlLandingPage}`);
+      // Get NFT direct minting
+      let nft = directMintingRet.nft;
+      if (!!taskResult1) {
+        const metadata = JSON.parse(nft.metadata);
+        metadata.image = taskResult1.contractAddress;
+        nft.metadata = JSON.stringify(metadata);
+      }
+      // console.log(nft);
+    }
+
+    /*
+     * Not Direct minting
+     */
+    warning('\nDrops - NOT Direct minting\n');
+    let notDirectMintingRet = await service.mintNftFromDrop(
+      notDirectMintingDrop._id,
+      data
+    );
+    if (notDirectMintingRet === false) error(`Something wrong with not direct minting NFT`);
+    else {
+      taskResult1 = await checkTask(
+        { taskId: notDirectMintingRet.mediaTaskId },
+        service,
+        'Media created successfully',
+        'Failed to create Media'
+      );
+      // console.log('signData', notDirectMintingRet.signData);
+
+      // Get NFT
+      let nft = notDirectMintingRet.nft;
+      if (!!taskResult1) {
+        const metadata = JSON.parse(nft.metadata);
+        metadata.image = taskResult1.contractAddress;
+        nft.metadata = JSON.stringify(metadata);
+      }
+      // console.log(nft);
+    }
   }
 }
 
