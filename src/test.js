@@ -437,69 +437,60 @@ class Test {
     const buyerAccount = '0xf47B89CB6E174faCb9A3C2cf596dCB8ba1C7EF7a';
     data = {
       dropCod: '',
-      userData: {
-        email: 'test@test.com',
-        name: 'Drop Test User',
-      },
       buyer: buyerAccount,
-      skey1: owner.skey,
     };
-    let directMintingRet = await service.mintNftFromDrop(
+    let directMintingRet1 = await service.uploadMediaFromDrop(
       directMintingDrop._id,
       data
     );
-    if (directMintingRet === false) error(`Something wrong minting NFT`);
+    console.log('directMintingRet1', directMintingRet1);
+    if (directMintingRet1 === false)
+      error(`Something wrong uploading media to Arweave`);
     else {
       taskResult1 = await checkTask(
-        { taskId: directMintingRet.mediaTaskId },
+        { taskId: directMintingRet1.mediaTaskId },
         service,
-        'Media created successfully',
+        'Media uploaded successfully',
         'Failed to create Media'
       );
       taskResult2 = await checkTask(
-        { taskId: directMintingRet.nftTaskId },
+        { taskId: directMintingRet1.metadataTaskId },
         service,
-        'NFT minted successfully',
-        'Failed to mint NFT'
+        'Metadata uploaded successfully',
+        'Failed to upload Metadata'
       );
-
-      // Get NFT direct minting
-      let nft = directMintingRet.nft;
-      if (!!taskResult1) {
-        const metadata = JSON.parse(nft.metadata);
-        metadata.image = taskResult1.contractAddress;
-        nft.metadata = JSON.stringify(metadata);
-      }
-      // console.log(nft);
+      const nft = directMintingRet1.nft;
+      data = {
+        dropCod: '',
+        userData: {
+          email: 'test@test.com',
+          name: 'Drop Test User',
+        },
+        buyer: buyerAccount,
+        skey1: owner.skey,
+      };
+      let directMintingRet2 = await service.mintNftFromDrop(
+        directMintingDrop._id,
+        nft._id,
+        data
+      );
+      if (directMintingRet2 === false) error(`Something wrong minting NFT`);
+      else {
+        taskResult1 = await checkTask(
+          { taskId: directMintingRet2.nftTaskId },
+          service,
+          'NFT minted successfully',
+          'Failed to mint NFT'
+        );
+        console.log('nft', directMintingRet1.nft);
+      }      
     }
 
     /*
      * Not Direct minting
      */
     warning('\nDrops - NOT Direct minting\n');
-    let notDirectMintingRet = await service.mintNftFromDrop(
-      notDirectMintingDrop._id,
-      data
-    );
-    if (notDirectMintingRet === false) error(`Something wrong with not direct minting NFT`);
-    else {
-      taskResult1 = await checkTask(
-        { taskId: notDirectMintingRet.mediaTaskId },
-        service,
-        'Media created successfully',
-        'Failed to create Media'
-      );
-      // console.log('signData', notDirectMintingRet.signData);
 
-      // Get NFT
-      let nft = notDirectMintingRet.nft;
-      if (!!taskResult1) {
-        const metadata = JSON.parse(nft.metadata);
-        metadata.image = taskResult1.contractAddress;
-        nft.metadata = JSON.stringify(metadata);
-      }
-      // console.log(nft);
-    }
   }
 }
 

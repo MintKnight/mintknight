@@ -372,10 +372,27 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
+   * Upload Media from drop
+   */
+  uploadMediaFromDrop(dropId, data) {
+    return this.apiCall(
+      'POST',
+      `drops/uploadMedia/${dropId}`,
+      data,
+      'tokenAuth'
+    );
+  }
+
+  /*
    * Mint NFT from drop
    */
-  mintNftFromDrop(dropId, data) {
-    return this.apiCall('POST', `drops/mintNft/${dropId}`, data, 'tokenAuth');
+  mintNftFromDrop(dropId, nftId, data) {
+    return this.apiCall(
+      'POST',
+      `drops/mintNft/${dropId}/${nftId}`,
+      data,
+      'tokenAuth'
+    );
   }
 
   /*
