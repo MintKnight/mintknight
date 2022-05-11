@@ -79,7 +79,7 @@ class Test {
     const project = {
       name: 'NFT Project',
       //network: 'localhost',
-      network: process.env.MINTKNIGHT_NETWORK,
+      network: process.env.MINTKNIGHT_TEST_NETWORK,
     };
     result = await mintknight.addProject(project.name, project.network);
     project.projectId = result._id;
