@@ -352,41 +352,43 @@ class Test {
     await Actions.addContract(nconf, contract, owner);
 
     /*
-     * Upload NFTs (Bulk mode)
-     */
-    warning('\nDrops - Upload NFTS on Bulk mode\n');
-    const csvFilename = './assets/nft-bulkdata1.csv';
-    const zipFilename = './assets/animals.zip';
-    task = await service.uploadBulkNFTs(
-      contract.contractId,
-      csvFilename,
-      zipFilename
-    );
-    if (task.success)
-      check('Uploaded NFTS in bulk mode. The state of each NFT is draft');
-    else error('Failed to upload NFTs');
-
-    /*
      * Upload only one NFT
      */
     warning('\nDrops - Upload only one NFT\n');
-    task = await service.uploadNFT(
+    task = await service.addNFT(
       contract.contractId,
       {
         tokenId: 50,
         name: 'Only one NFT',
         description: 'Uploaded alone',
-        price: 0,
-        coin: '',
-        attributes: [],
+        attributes: [
+          {
+            trait_type: '1',
+            display_type: '2',
+            value: '3',
+          },
+        ],
       },
       './assets/nft.png',
       null
       // 'nft.png',
       // fs.readFileSync('./assets/nft.png')
     );
-    if (task.success) check('Uploaded NFT. The state of this NFT is draft');
+    // console.log('nft', task);
+    if (!!task) check('Uploaded NFT. The state of this NFT is draft');
     else error('Failed to upload NFT');
+
+    /*
+     * Upload NFTs (Bulk mode)
+     */
+    warning('\nDrops - Add NFTs at Bulk mode\n');
+    const csvFilename = './assets/nft-bulkdata2.csv';
+    const zipFilename = './assets/animals2.zip';
+    task = await service.addNFTs(contract.contractId, csvFilename, zipFilename);
+    if (!!task.nft)
+      check('Uploaded NFTS in bulk mode. The state of each NFT is draft');
+    else error('Failed to upload NFTs');
+    process.exit(1);
 
     /*
      * Create drops
@@ -483,7 +485,7 @@ class Test {
           'Failed to mint NFT'
         );
         console.log('nft', directMintingRet1.nft);
-      }      
+      }
     }
 
     /*

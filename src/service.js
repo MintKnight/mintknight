@@ -24,7 +24,7 @@ class MintKnight extends MintKnightBase {
       for (let i = 0; i < times; i += 1) {
         const result = await this.apiCall(
           'GET',
-          `tasks/${taskId}`,
+          `tasks/v1/${taskId}`,
           {},
           'tokenAuth'
         );
@@ -62,7 +62,7 @@ class MintKnight extends MintKnightBase {
       mediaId,
       urlCode,
     };
-    return this.apiCall('POST', 'contracts/', contract, 'tokenAuth');
+    return this.apiCall('POST', 'contracts/v1/', contract, 'tokenAuth');
   }
 
   /*
@@ -78,7 +78,7 @@ class MintKnight extends MintKnightBase {
   mintToken(contractId, walletId, skey, value, to = false, address = false) {
     return this.apiCall(
       'POST',
-      'tokens',
+      'tokens/v1',
       { contractId, walletId, skey, value, to, address },
       'tokenAuth'
     );
@@ -90,7 +90,7 @@ class MintKnight extends MintKnightBase {
   getToken(contractId, address) {
     return this.apiCall(
       'GET',
-      `tokens/${contractId}/${address}`,
+      `tokens/v1/${contractId}/${address}`,
       {},
       'tokenAuth'
     );
@@ -116,7 +116,7 @@ class MintKnight extends MintKnightBase {
   ) {
     return this.apiCall(
       'PUT',
-      'tokens',
+      'tokens/v1',
       { contractId, walletId, skey, value, to, address },
       'tokenAuth'
     );
@@ -131,7 +131,7 @@ class MintKnight extends MintKnightBase {
   saveNFT(contractId, metadata, tokenId = 0) {
     return this.apiCall(
       'POST',
-      'nfts/save',
+      'nfts/v1/save',
       { contractId, metadata, tokenId },
       'tokenAuth'
     );
@@ -149,7 +149,7 @@ class MintKnight extends MintKnightBase {
   mintNFT(nftId, walletId, skey, to = false, address = false) {
     return this.apiCall(
       'POST',
-      'nfts/mint',
+      'nfts/v1/mint',
       { nftId, walletId, skey, to, address },
       'tokenAuth'
     );
@@ -165,7 +165,7 @@ class MintKnight extends MintKnightBase {
   updateNFT(contractId, tokenId, metadata) {
     return this.apiCall(
       'PUT',
-      `nfts/${contractId}/${tokenId}`,
+      `nfts/v1/${contractId}/${tokenId}`,
       { metadata },
       'tokenAuth'
     );
@@ -175,12 +175,17 @@ class MintKnight extends MintKnightBase {
    * Upload NFT
    *
    * @param {string} contractId: Contract ID
-   * @param {object} nft (tokenId, name, description, price, coin, attributes)
-   *    - attributes is an array (ex: ["hello", "bye", {"key": "value"} ])
+   * @param {object} nft (tokenId, name, description, attributes)
+   *    - attributes is an array of objects
+   *        ex: [{
+   *              "trait_type": "1",
+   *              "display_type": "2",
+   *              "value": "3",
+   *            }]
    * @param {string} imgFilename: Filename path or filename image
    * @param {buffer} imgBuffer: Image buffer
    */
-  uploadNFT(contractId, nft, imgFilename, imgBuffer = null) {
+  addNFT(contractId, nft, imgFilename, imgBuffer = null) {
     return new Promise((resolve) => {
       const form = new FormData();
       if (imgBuffer === null) {
@@ -195,7 +200,7 @@ class MintKnight extends MintKnightBase {
         },
       };
       return axios
-        .post(`${this.api}nfts/upload_one/${contractId}`, form, config)
+        .post(`${this.api}nfts/v1/${contractId}`, form, config)
         .then((res) => {
           resolve(res.data);
         })
@@ -204,13 +209,13 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
-   * Upload bulk NFTs
+   * Add NFTs at bulk mode
    *
    * @param {string} contractId Contract ID
    * @param {string} csvFilename CSV File name with path
    * @param {string} zipFilename ZIP File name with path
    */
-  uploadBulkNFTs(contractId, csvFilename, zipFilename) {
+  addNFTs(contractId, csvFilename, zipFilename) {
     return new Promise((resolve) => {
       const form = new FormData();
       const csvFile = fs.readFileSync(csvFilename);
@@ -224,7 +229,7 @@ class MintKnight extends MintKnightBase {
         },
       };
       return axios
-        .post(`${this.api}nfts/upload/${contractId}`, form, config)
+        .post(`${this.api}nfts/v1/upload/${contractId}`, form, config)
         .then((res) => {
           resolve(res.data);
         })
@@ -244,7 +249,7 @@ class MintKnight extends MintKnightBase {
   transferNFT(nftId, walletId, skey, to, address) {
     return this.apiCall(
       'PUT',
-      `nfts/${nftId}`,
+      `nfts/v1/${nftId}`,
       { nftId, walletId, skey, to, address },
       'tokenAuth'
     );
@@ -256,7 +261,7 @@ class MintKnight extends MintKnightBase {
    * @param {string} contractId contract ID
    */
   getContract(contractId) {
-    return this.apiCall('GET', `contracts/${contractId}`, {}, 'tokenAuth');
+    return this.apiCall('GET', `contracts/v1/${contractId}`, {}, 'tokenAuth');
   }
 
   /*
@@ -269,7 +274,7 @@ class MintKnight extends MintKnightBase {
   updateContract(contractId, change, walletId, address, owner, skey) {
     return this.apiCall(
       'PUT',
-      `contracts/${contractId}`,
+      `contracts/v1/${contractId}`,
       { change, walletId, address, owner, skey },
       'tokenAuth'
     );
@@ -279,7 +284,7 @@ class MintKnight extends MintKnightBase {
    * Update Contract in DB
    */
   updateContractDB(contractId, data) {
-    return this.apiCall('PUT', `contracts/${contractId}`, data, 'tokenAuth');
+    return this.apiCall('PUT', `contracts/v1/${contractId}`, data, 'tokenAuth');
   }
 
   /*
@@ -292,7 +297,7 @@ class MintKnight extends MintKnightBase {
   updatePrices(contractId, prices, owner, skey) {
     return this.apiCall(
       'PUT',
-      `contracts/${contractId}/prices`,
+      `contracts/v1/${contractId}/prices`,
       { prices, owner, skey },
       'tokenAuth'
     );
@@ -308,7 +313,7 @@ class MintKnight extends MintKnightBase {
   updateVerifier(contractId, walletId, owner, skey) {
     return this.apiCall(
       'PUT',
-      `contracts/${contractId}/verifier`,
+      `contracts/v1/${contractId}/verifier`,
       { walletId, walletId, owner, skey },
       'tokenAuth'
     );
@@ -318,7 +323,7 @@ class MintKnight extends MintKnightBase {
    * Get Contract Info
    */
   getContract(contractId) {
-    return this.apiCall('GET', `contracts/${contractId}`, {}, 'tokenAuth');
+    return this.apiCall('GET', `contracts/v1/${contractId}`, {}, 'tokenAuth');
   }
 
   /*
@@ -330,7 +335,7 @@ class MintKnight extends MintKnightBase {
   addWallet(refUser, walletType) {
     return this.apiCall(
       'POST',
-      'wallets',
+      'wallets/v1',
       { refUser, walletType },
       'tokenAuth'
     );
@@ -342,7 +347,7 @@ class MintKnight extends MintKnightBase {
    * @param {string} walletId wallet ID
    */
   getWallet(walletId) {
-    return this.apiCall('GET', `wallets/${walletId}`, {}, 'tokenAuth');
+    return this.apiCall('GET', `wallets/v1/${walletId}`, {}, 'tokenAuth');
   }
 
   /*
@@ -351,7 +356,7 @@ class MintKnight extends MintKnightBase {
   addDrop(contractId, data) {
     return this.apiCall(
       'POST',
-      `drops/contract/${contractId}`,
+      `drops/v1/contract/${contractId}`,
       data,
       'tokenAuth'
     );
@@ -361,14 +366,19 @@ class MintKnight extends MintKnightBase {
    * Get Drop list by contract
    */
   getDrops(contractId) {
-    return this.apiCall('GET', `drops/contract/${contractId}`, {}, 'tokenAuth');
+    return this.apiCall(
+      'GET',
+      `drops/v1/contract/${contractId}`,
+      {},
+      'tokenAuth'
+    );
   }
 
   /*
    * Update Drop
    */
   updateDrop(dropId, data) {
-    return this.apiCall('PUT', `drops/${dropId}`, data, 'tokenAuth');
+    return this.apiCall('PUT', `drops/v1/${dropId}`, data, 'tokenAuth');
   }
 
   /*
@@ -377,7 +387,7 @@ class MintKnight extends MintKnightBase {
   uploadMediaFromDrop(dropId, data) {
     return this.apiCall(
       'POST',
-      `drops/uploadMedia/${dropId}`,
+      `drops/v1/uploadMedia/${dropId}`,
       data,
       'tokenAuth'
     );
@@ -389,7 +399,7 @@ class MintKnight extends MintKnightBase {
   mintNftFromDrop(dropId, nftId, data) {
     return this.apiCall(
       'POST',
-      `drops/mintNft/${dropId}/${nftId}`,
+      `drops/v1/mintNft/${dropId}/${nftId}`,
       data,
       'tokenAuth'
     );
@@ -399,7 +409,12 @@ class MintKnight extends MintKnightBase {
    * Add a new Drop strategy
    */
   addDropStrategy(dropId, data) {
-    return this.apiCall('POST', `drop_strategies/${dropId}`, data, 'tokenAuth');
+    return this.apiCall(
+      'POST',
+      `drop_strategies/v1/${dropId}`,
+      data,
+      'tokenAuth'
+    );
   }
 
   /*
@@ -408,7 +423,7 @@ class MintKnight extends MintKnightBase {
   getDropStrategies(dropId) {
     return this.apiCall(
       'GET',
-      `drop_strategies/drop/${dropId}`,
+      `drop_strategies/v1/drop/${dropId}`,
       {},
       'tokenAuth'
     );
@@ -420,7 +435,7 @@ class MintKnight extends MintKnightBase {
   updateDropStrategy(dropStrategyId, data) {
     return this.apiCall(
       'PUT',
-      `drop_strategies/${dropStrategyId}`,
+      `drop_strategies/v1/${dropStrategyId}`,
       data,
       'tokenAuth'
     );
@@ -430,21 +445,26 @@ class MintKnight extends MintKnightBase {
    * Add a new Drop code by drop
    */
   addDropCode(dropId, data) {
-    return this.apiCall('POST', `drop_codes/${dropId}`, data, 'tokenAuth');
+    return this.apiCall('POST', `drop_codes/v1/${dropId}`, data, 'tokenAuth');
   }
 
   /*
    * Get Drop codes list
    */
   getDropCodes(dropId) {
-    return this.apiCall('GET', `drop_codes/drop/${dropId}`, {}, 'tokenAuth');
+    return this.apiCall('GET', `drop_codes/v1/drop/${dropId}`, {}, 'tokenAuth');
   }
 
   /*
    * Update Drop code
    */
   updateDropCode(dropCodeId, data) {
-    return this.apiCall('PUT', `drop_codes/${dropCodeId}`, data, 'tokenAuth');
+    return this.apiCall(
+      'PUT',
+      `drop_codes/v1/${dropCodeId}`,
+      data,
+      'tokenAuth'
+    );
   }
 
   /*
@@ -453,7 +473,7 @@ class MintKnight extends MintKnightBase {
    * @param {string} dropId Drop ID
    * @param {string} csvFilename CSV File name with path
    */
-  uploadBulkDropCodes(dropId, csvFilename) {
+  addDropCodes(dropId, csvFilename) {
     return new Promise((resolve) => {
       const form = new FormData();
       const csvFile = fs.readFileSync(csvFilename);
@@ -465,7 +485,7 @@ class MintKnight extends MintKnightBase {
         },
       };
       return axios
-        .post(`${this.api}drop_codes/upload/${dropId}`, form, config)
+        .post(`${this.api}drop_codes/v1/upload/${dropId}`, form, config)
         .then((res) => {
           resolve(res.data);
         })
@@ -477,18 +497,23 @@ class MintKnight extends MintKnightBase {
    * Add a new Drop user
    */
   addDropUser(dropId, data) {
-    return this.apiCall('POST', `drop_users/drop/${dropId}`, data, 'tokenAuth');
+    return this.apiCall(
+      'POST',
+      `drop_users/v1/drop/${dropId}`,
+      data,
+      'tokenAuth'
+    );
   }
 
   /*
    * Get Drop user list by contract
    */
   getDropUsers(dropId) {
-    return this.apiCall('GET', `drop_users/drop/${dropId}`, {}, 'tokenAuth');
+    return this.apiCall('GET', `drop_users/v1/drop/${dropId}`, {}, 'tokenAuth');
   }
 
   addTestMedia() {
-    return this.apiCall('POST', 'media/test', {}, 'tokenAuth');
+    return this.apiCall('POST', 'media/v1/test', {}, 'tokenAuth');
   }
 
   /*
@@ -508,7 +533,7 @@ class MintKnight extends MintKnightBase {
         },
       };
       axios
-        .post(`${this.api}media`, form, config)
+        .post(`${this.api}media/v1`, form, config)
         .then((res) => {
           resolve(res.data);
         })
@@ -520,21 +545,26 @@ class MintKnight extends MintKnightBase {
    * Get Media list
    */
   getMedia() {
-    return this.apiCall('GET', 'media', {}, 'tokenAuth');
+    return this.apiCall('GET', 'media/v1', {}, 'tokenAuth');
   }
 
   /*
    * Get NFT list
    */
   getNfts(contractId) {
-    return this.apiCall('GET', `nfts/${contractId}`, {}, 'tokenAuth');
+    return this.apiCall('GET', `nfts/v1/${contractId}`, {}, 'tokenAuth');
   }
 
   /*
    * Get NFT list by wallet
    */
   getNftsByWallet(walletId) {
-    return this.apiCall('GET', `nfts/all/wallet/${walletId}`, {}, 'tokenAuth');
+    return this.apiCall(
+      'GET',
+      `nfts/v1/all/wallet/${walletId}`,
+      {},
+      'tokenAuth'
+    );
   }
 
   /*
@@ -543,7 +573,7 @@ class MintKnight extends MintKnightBase {
   getNft(contractId, tokenId) {
     return this.apiCall(
       'GET',
-      `nfts/${contractId}/${tokenId}`,
+      `nfts/v1/${contractId}/${tokenId}`,
       {},
       'tokenAuth'
     );
@@ -555,7 +585,7 @@ class MintKnight extends MintKnightBase {
   getSignature(contractId, tokens, buyer, walletId, skey) {
     return this.apiCall(
       'POST',
-      'wallets/sign',
+      'wallets/v1/sign',
       { contractId, tokens, buyer, walletId, skey },
       'tokenAuth'
     );

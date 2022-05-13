@@ -198,22 +198,21 @@ class Actions {
     detail('mk update dropstrategy', 'Update a drop strategy');
 
     title('\nDrop codes');
-    detail('mk add dropcode', 'Add a new Drop code');
+    detail('mk add dropcode', 'Add a new Drop codes (solo or bulk mode)');
     detail('mk list dropcode', 'List all Drop codes in a drop');
     detail('mk update dropcode', 'Update a drop code');
-    detail('mk upload dropcode', 'Upload bulk drop codes');
 
     title('\nDrop users');
     detail('mk add dropuser', 'Add a new user');
     detail('mk list dropuser', 'List all Drop users in the contract');
 
     title('\nNFTs');
-    detail('mk mint nft', 'Mint to the selected Contract');
-    detail('mk transfer nft', 'Transfer an NFT owned by the current Wallet');
+    detail('mk add nft', 'Add news NFT/s (draft)');
     detail('mk info nft', 'Get the metadata for an NFT');
     detail('mk list nft', 'List all NFTs in the contract');
-    detail('mk update nft', 'Update the metadata for an NFT');
-    detail('mk upload nft', 'Upload bulk NFTs');
+    detail('mk update nft', 'Update the metadata for an NFT (draft)');
+    detail('mk mint nft', 'Mint to the selected Contract');
+    detail('mk transfer nft', 'Transfer an NFT owned by the current Wallet');
 
     title('\nMedia');
     detail('mk add media <file>', 'Add a new image to the media Library');
@@ -789,10 +788,30 @@ class Actions {
   }
 
   /**
-   * Add a new Drop code
+   * Add a new Drop code/s
    */
   static async newDropCode(nconf) {
     const { service } = connect(nconf);
+
+    const choices = [
+      {
+        title: 'Only one',
+        description: 'Upload only one Drop code',
+        value: 'one',
+      },
+      {
+        title: 'Bulk mode',
+        description: 'Upload several drop codes at the same time (csv)',
+        value: 'bulk',
+      },
+    ];
+    const option = await Select.option(choices);
+
+    if (option === 'bulk') {
+      await this.addDropCodes(nconf);
+      return;
+    }
+
     // DropId
     const dropId = await Prompt.text('Drop Id (mk list drop)');
     if (!dropId) error(`Drop Id is required`);
@@ -870,7 +889,7 @@ class Actions {
   /**
    * Upload bulk Drop codes
    */
-  static async uploadBulkDropCodes(nconf) {
+  static async addDropCodes(nconf) {
     const { service } = connect(nconf);
     // DropId
     const dropId = await Prompt.text('Drop Id (mk list drop)');
@@ -889,7 +908,7 @@ class Actions {
     if (!['.csv'].includes(ext)) error('Invalid extension. Only csv is valid');
     csvFilename = path.normalize(csvFilename);
 
-    const ret = await service.uploadBulkDropCodes(dropId, csvFilename);
+    const ret = await service.addDropCodes(dropId, csvFilename);
     if (ret === false) error('Error uploading Drop codes');
     if (ret.status && ret.status.toLowerCase() === 'failed')
       error('Error uploading Drop codes: ' + ret.error);
@@ -1160,9 +1179,9 @@ class Actions {
   }
 
   /**
-   * Upload NFT/s
+   * Add (upload) NFT/s
    */
-  static async uploadNFT(nconf) {
+  static async newNFT(nconf) {
     const { service, contractId } = connect(nconf);
     if (!contractId) error('A contract must be selected');
 
@@ -1181,7 +1200,7 @@ class Actions {
     const option = await Select.option(choices);
 
     if (option === 'bulk') {
-      await this.uploadBulkNFTs(nconf);
+      await this.addNFTs(nconf);
       return;
     }
 
@@ -1211,7 +1230,7 @@ class Actions {
       if (attribute !== false) attributes.push(attribute);
     }
 
-    const ret = await service.uploadNFT(
+    const ret = await service.addNFT(
       contractId,
       {
         tokenId,
@@ -1233,7 +1252,7 @@ class Actions {
   /**
    * Upload bulk NFTs
    */
-  static async uploadBulkNFTs(nconf) {
+  static async addNFTs(nconf) {
     const { service, contractId } = connect(nconf);
     if (!contractId) error('A contract must be selected');
 
@@ -1261,7 +1280,7 @@ class Actions {
     if (!['.zip'].includes(ext)) error('Invalid extension. Only zip is valid');
     zipFilename = path.normalize(zipFilename);
 
-    const ret = await service.uploadBulkNFTs(
+    const ret = await service.addNFTs(
       contractId,
       csvFilename,
       zipFilename

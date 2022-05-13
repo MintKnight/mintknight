@@ -1,3 +1,6 @@
-tokenId;name;description;image;price;
-1;cocodrile;Desc cocodrile;cocodrile.jpg;10.45
-2;monkey;Desc monkey;monkey.jpg;0.2
+tokenId;name;description;media;attr_trait_type_1;attr_display_type_1;attr_value_1;attr_trait_type_2;attr_display_type_2;attr_value_2;
+1;Cocodrile Mambo Jimbo;Crocodiles have powerful jaws with many conical teeth and short..;cocodrile.jpg;Rarity Class;;Normal;Health increase;boost_percentage;20
+2;Name 2;Desc token 2;cocodrile.jpg;;;;;;
+3;Name 3;Desc token 3;cocodrile.jpg;;;;;;
+3;Name 4;Desc token 4;cocodrile.jpg;;;;;;
+3;Name 5;Desc token 5;cocodrile.jpg;;;;;;

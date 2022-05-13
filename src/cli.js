@@ -20,6 +20,9 @@ const add = async (nconf) => {
     case 'contract':
       Actions.newContract(nconf);
       break;
+    case 'nft':
+      Actions.newNFT(nconf);
+      break;
     case 'drop':
       Actions.newDrop(nconf);
       break;
@@ -153,21 +156,6 @@ const update = async (nconf) => {
       error(
         'Invalid element to update (nft, minter, owner, verifier, prices, drop, dropstrategy, dropcode)'
       );
-      break;
-  }
-};
-
-const upload = async (nconf) => {
-  const element = process.argv[3];
-  switch (element) {
-    case 'nft':
-      Actions.uploadNFT(nconf);
-      break;
-    case 'dropcode':
-      Actions.uploadBulkDropCodes(nconf);
-      break;
-    default:
-      error('Invalid element to upload bulk (nft, dropcode)');
       break;
   }
 };
