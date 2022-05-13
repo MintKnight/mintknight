@@ -1229,6 +1229,8 @@ class Actions {
       attribute = await Prompt.attribute();
       if (attribute !== false) attributes.push(attribute);
     }
+    // DropId
+    const dropId = await Prompt.text('Drop Id (mk list drop)');
 
     const ret = await service.addNFT(
       contractId,
@@ -1239,6 +1241,7 @@ class Actions {
         price,
         coin,
         attributes,
+        dropId,
       },
       img,
       null
@@ -1260,7 +1263,7 @@ class Actions {
      * Ask CSV file
      */
     var csvFilename = await Prompt.text('Csv file');
-    // csvFilename = './assets/nft-bulkdata1.csv';
+    csvFilename = './assets/nft-bulkdata1.csv';
     if (!csvFilename) error('Csv file needed. e.g: ./assets/nft-bulkdata1.csv');
     if (!fs.existsSync(csvFilename))
       error(`File ${csvFilename} does not exist`);
@@ -1272,7 +1275,7 @@ class Actions {
      * Ask Zip file
      */
     var zipFilename = await Prompt.text('Zip file');
-    // zipFilename = './assets/animals.zip';
+    zipFilename = './assets/animals1.zip';
     if (!zipFilename) error('Csv file needed. e.g: ./assets/animals.zip');
     if (!fs.existsSync(zipFilename))
       error(`File ${zipFilename} does not exist`);
@@ -1280,10 +1283,14 @@ class Actions {
     if (!['.zip'].includes(ext)) error('Invalid extension. Only zip is valid');
     zipFilename = path.normalize(zipFilename);
 
+    // DropId
+    const dropId = await Prompt.text('Drop Id (mk list drop)');
+
     const ret = await service.addNFTs(
       contractId,
       csvFilename,
-      zipFilename
+      zipFilename,
+      dropId
     );
     if (ret === false) error('Error uploading NFTs');
     if (ret.status && ret.status.toLowerCase() === 'failed')

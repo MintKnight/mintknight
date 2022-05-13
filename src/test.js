@@ -352,45 +352,6 @@ class Test {
     await Actions.addContract(nconf, contract, owner);
 
     /*
-     * Upload only one NFT
-     */
-    warning('\nDrops - Upload only one NFT\n');
-    task = await service.addNFT(
-      contract.contractId,
-      {
-        tokenId: 50,
-        name: 'Only one NFT',
-        description: 'Uploaded alone',
-        attributes: [
-          {
-            trait_type: '1',
-            display_type: '2',
-            value: '3',
-          },
-        ],
-      },
-      './assets/nft.png',
-      null
-      // 'nft.png',
-      // fs.readFileSync('./assets/nft.png')
-    );
-    // console.log('nft', task);
-    if (!!task) check('Uploaded NFT. The state of this NFT is draft');
-    else error('Failed to upload NFT');
-
-    /*
-     * Upload NFTs (Bulk mode)
-     */
-    warning('\nDrops - Add NFTs at Bulk mode\n');
-    const csvFilename = './assets/nft-bulkdata2.csv';
-    const zipFilename = './assets/animals2.zip';
-    task = await service.addNFTs(contract.contractId, csvFilename, zipFilename);
-    if (!!task.nft)
-      check('Uploaded NFTS in bulk mode. The state of each NFT is draft');
-    else error('Failed to upload NFTs');
-    process.exit(1);
-
-    /*
      * Create drops
      */
     warning('\nDrops - Create drops\n');
@@ -429,6 +390,51 @@ class Test {
       check(`Drop created successfully: ${notDirectMintingDrop.name}`);
     else error('Failed to create Drop');
     notDirectMintingDrop._id = task._id;
+
+    /*
+     * Upload only one NFT
+     */
+    warning('\nDrops - Upload only one NFT\n');
+    task = await service.addNFT(
+      contract.contractId,
+      {
+        tokenId: 50,
+        name: 'Only one NFT',
+        description: 'Uploaded alone',
+        attributes: [
+          {
+            trait_type: '1',
+            display_type: '2',
+            value: '3',
+          },
+        ],
+        dropId: directMintingDrop._id,
+      },
+      './assets/nft.png',
+      null
+      // 'nft.png',
+      // fs.readFileSync('./assets/nft.png')
+    );
+    // console.log('nft', task);
+    if (!!task) check('Uploaded NFT. The state of this NFT is draft');
+    else error('Failed to upload NFT');
+
+    /*
+     * Upload NFTs (Bulk mode)
+     */
+    warning('\nDrops - Add NFTs at Bulk mode\n');
+    const csvFilename = './assets/nft-bulkdata2.csv';
+    const zipFilename = './assets/animals2.zip';
+    task = await service.addNFTs(
+      contract.contractId,
+      csvFilename,
+      zipFilename,
+      directMintingDrop._id
+    );
+    if (!!task.nft)
+      check('Uploaded NFTS in bulk mode. The state of each NFT is draft');
+    else error('Failed to upload NFTs');
+    process.exit(1);
 
     check(`Landing page url: ${urlLandingPage}`);
 
