@@ -1240,7 +1240,7 @@ class Actions {
         description,
         price,
         coin,
-        attributes,
+        attributes: JSON.stringify(attributes),
         dropId,
       },
       img,
@@ -1263,7 +1263,7 @@ class Actions {
      * Ask CSV file
      */
     var csvFilename = await Prompt.text('Csv file');
-    csvFilename = './assets/nft-bulkdata1.csv';
+    // csvFilename = './assets/nft-bulkdata1.csv';
     if (!csvFilename) error('Csv file needed. e.g: ./assets/nft-bulkdata1.csv');
     if (!fs.existsSync(csvFilename))
       error(`File ${csvFilename} does not exist`);
@@ -1275,7 +1275,7 @@ class Actions {
      * Ask Zip file
      */
     var zipFilename = await Prompt.text('Zip file');
-    zipFilename = './assets/animals1.zip';
+    // zipFilename = './assets/animals1.zip';
     if (!zipFilename) error('Csv file needed. e.g: ./assets/animals.zip');
     if (!fs.existsSync(zipFilename))
       error(`File ${zipFilename} does not exist`);

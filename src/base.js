@@ -9,6 +9,7 @@ class MintKnightBase {
     this.debug = props.debug || false;
     this.token = props.token || false;
     this.apiKey = props.apiKey || false;
+    this.responseType = props.responseType || 'basic';
   }
 
   /*
@@ -108,16 +109,26 @@ class MintKnightBase {
         .then((res) => {
           const status = res.data.status || false;
           if (status === 'Failed') {
-            throw new Error(`${method} ${call} => ${res.data.error}`);
+            this.mkError(`${method} ${call} => ${res.data.error}`);
+            if (this.responseType === 'basic')
+              throw new Error(`${method} ${call} => ${res.data.error}`);
+            else resolve({ success: false, data: null, error: res.data.error });
+            return;
           }
           this.mkLog(`${method} ${call} => Success`);
-          resolve(res.data);
+          if (this.responseType === 'basic') resolve(res.data);
+          else resolve({ success: true, data: res.data, error: null });
         })
         .catch((e) => {
           this.mkError(`${method} ${call} => ${e.message}`);
-          resolve(false);
+          if (this.responseType === 'basic') resolve(false);
+          else resolve({ success: false, data: null, error: e.message });
         });
     });
+  }
+
+  setResponseType(type) {
+    this.responseType = type;
   }
 }
 

@@ -361,7 +361,7 @@ class Test {
       name: 'Name: Drop with free NFTs',
       description: 'Direct minting',
       dropType: 'fifo', // fifo or raffle
-      useCodes: 0, // 0 or 1
+      useCodes: 1, // 0 or 1
       isDirectMinting: 1, // 0 or 1
       price: 0,
       coin: 'matic',
@@ -401,13 +401,13 @@ class Test {
         tokenId: 50,
         name: 'Only one NFT',
         description: 'Uploaded alone',
-        attributes: [
+        attributes: JSON.stringify([
           {
             trait_type: '1',
             display_type: '2',
             value: '3',
           },
-        ],
+        ]),
         dropId: directMintingDrop._id,
       },
       './assets/nft.png',
@@ -420,21 +420,47 @@ class Test {
     else error('Failed to upload NFT');
 
     /*
-     * Upload NFTs (Bulk mode)
+     * Upload NFTs (Bulk mode) -> Drop 1
      */
-    warning('\nDrops - Add NFTs at Bulk mode\n');
-    const csvFilename = './assets/nft-bulkdata2.csv';
-    const zipFilename = './assets/animals2.zip';
+    warning('\nDrops - Add NFTs for Drop 1\n');
+    let csvFilename = './assets/nft-bulkdata1.csv';
+    let zipFilename = './assets/animals1.zip';
     task = await service.addNFTs(
       contract.contractId,
       csvFilename,
       zipFilename,
       directMintingDrop._id
     );
-    if (!!task.nft)
+    if (!!task.success)
       check('Uploaded NFTS in bulk mode. The state of each NFT is draft');
     else error('Failed to upload NFTs');
-    process.exit(1);
+
+    /*
+     * Upload NFTs (Bulk mode) -> Drop 2
+     */
+    warning('\nDrops - Add NFTs for Drop 2\n');
+    csvFilename = './assets/nft-bulkdata2.csv';
+    zipFilename = './assets/animals2.zip';
+    task = await service.addNFTs(
+      contract.contractId,
+      csvFilename,
+      zipFilename,
+      notDirectMintingDrop._id
+    );
+    if (!!task.success)
+      check('Uploaded NFTS in bulk mode. The state of each NFT is draft');
+    else error('Failed to upload NFTs');
+
+    /*
+     * Upload drop codes for Direct minting drop
+     */
+    warning('\nDrops - Upload drop codes\n');
+    task = await service.addDropCodes(
+      directMintingDrop._id,
+      './assets/dropcodes-bulkdata1.csv'
+    );
+    if (!!task) check('Uploaded drop codes');
+    else error('Failed to upload drop codes');
 
     check(`Landing page url: ${urlLandingPage}`);
 
@@ -443,11 +469,15 @@ class Test {
      */
     warning('\nDrops - Direct minting\n');
     const buyerAccount = '0xf47B89CB6E174faCb9A3C2cf596dCB8ba1C7EF7a';
+    const dropCod = '';
+    service.setResponseType('detailed');
+    //const dropCod = 'ABCD1';
     data = {
-      dropCod: '',
+      dropCod,
       buyer: buyerAccount,
     };
-    let directMintingRet1 = await service.uploadMediaFromDrop(
+    // First request
+    let directMintingRet1 = await service.getNftFromDrop(
       directMintingDrop._id,
       data
     );
@@ -469,7 +499,7 @@ class Test {
       );
       const nft = directMintingRet1.nft;
       data = {
-        dropCod: '',
+        dropCod,
         userData: {
           email: 'test@test.com',
           name: 'Drop Test User',
@@ -477,6 +507,7 @@ class Test {
         buyer: buyerAccount,
         skey1: owner.skey,
       };
+      // Second request
       let directMintingRet2 = await service.mintNftFromDrop(
         directMintingDrop._id,
         nft._id,
@@ -497,7 +528,8 @@ class Test {
     /*
      * Not Direct minting
      */
-    warning('\nDrops - NOT Direct minting\n');
+    warning('\nDrops - NOT Direct minting: TODO\n');
+    // TODO
 
   }
 }

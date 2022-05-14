@@ -192,7 +192,9 @@ class MintKnight extends MintKnightBase {
         imgBuffer = fs.readFileSync(imgFilename);
       }
       form.append('files', imgBuffer, imgFilename);
-      form.append('nft', JSON.stringify(nft));
+      for (var key in nft) {
+        form.append(`nft[${key}]`, nft[key]);
+      }
       const config = {
         headers: {
           ...form.getHeaders(),
@@ -203,8 +205,13 @@ class MintKnight extends MintKnightBase {
         .post(`${this.api}nfts/v1/${contractId}`, form, config)
         .then((res) => {
           resolve(res.data);
+          // resolve({ success: true, data: res.data, error: null });
         })
-        .catch((e) => log(chalk.red('Error'), e.message));
+        .catch((e) => {
+          log(chalk.red('Error'), e.message);
+          resolve(false);
+          // resolve({ success: false, data: null, error: e.message });
+        });
     });
   }
 
@@ -234,8 +241,13 @@ class MintKnight extends MintKnightBase {
         .post(`${this.api}nfts/v1/upload/${contractId}`, form, config)
         .then((res) => {
           resolve(res.data);
+          // resolve({ success: true, data: res.data, error: null });
         })
-        .catch((e) => log(chalk.red('Error'), e.message));
+        .catch((e) => {
+          log(chalk.red('Error'), e.message);
+          resolve(false);
+          // resolve({ success: false, data: null, error: e.message });
+        });
     });
   }
 
@@ -384,15 +396,10 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
-   * Upload Media from drop
+   * Get NFT from drop
    */
-  uploadMediaFromDrop(dropId, data) {
-    return this.apiCall(
-      'POST',
-      `drops/v1/uploadMedia/${dropId}`,
-      data,
-      'tokenAuth'
-    );
+  getNftFromDrop(dropId, data) {
+    return this.apiCall('POST', `drops/v1/getNft/${dropId}`, data, 'tokenAuth');
   }
 
   /*
@@ -490,8 +497,13 @@ class MintKnight extends MintKnightBase {
         .post(`${this.api}drop_codes/v1/upload/${dropId}`, form, config)
         .then((res) => {
           resolve(res.data);
+          // resolve({ success: true, data: res.data, error: null });
         })
-        .catch((e) => log(chalk.red('Error'), e.message));
+        .catch((e) => {
+          log(chalk.red('Error'), e.message);
+          resolve(false);
+          // resolve({ success: false, data: null, error: e.message });
+        });
     });
   }
 
@@ -538,8 +550,13 @@ class MintKnight extends MintKnightBase {
         .post(`${this.api}media/v1`, form, config)
         .then((res) => {
           resolve(res.data);
+          // resolve({ success: true, data: res.data, error: null });
         })
-        .catch((e) => log(chalk.red('Error'), e.message));
+        .catch((e) => {
+          log(chalk.red('Error'), e.message);
+          resolve(false);
+          // resolve({ success: false, data: null, error: e.message });
+        });
     });
   }
 
