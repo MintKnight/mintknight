@@ -123,6 +123,9 @@ class MintKnightBase {
           this.mkError(`${method} ${call} => ${e.message}`);
           if (this.responseType === 'basic') resolve(false);
           else resolve({ success: false, data: null, error: e.message });
+          // message = response.error.data.message,
+          // status = response.error.response.status,
+          // statusText = response.error.response.statusText,
         });
     });
   }

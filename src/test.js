@@ -469,22 +469,19 @@ class Test {
      */
     warning('\nDrops - Direct minting\n');
     const buyerAccount = '0xf47B89CB6E174faCb9A3C2cf596dCB8ba1C7EF7a';
-    const dropCod = '';
+    // const dropCod = '';
+    const dropCod = 'ABCD1';
     service.setResponseType('detailed');
-    //const dropCod = 'ABCD1';
     data = {
       dropCod,
       buyer: buyerAccount,
     };
     // First request
-    let directMintingRet1 = await service.getNftFromDrop(
-      directMintingDrop._id,
-      data
-    );
-    console.log('directMintingRet1', directMintingRet1);
-    if (directMintingRet1 === false)
-      error(`Something wrong uploading media to Arweave`);
+    let response = await service.getNftFromDrop(directMintingDrop._id, data);
+    if (!response.success)
+      error(`Something wrong has succed: ${response.error}`);
     else {
+      const directMintingRet1 = response.data;
       taskResult1 = await checkTask(
         { taskId: directMintingRet1.mediaTaskId },
         service,
@@ -508,20 +505,22 @@ class Test {
         skey1: owner.skey,
       };
       // Second request
-      let directMintingRet2 = await service.mintNftFromDrop(
+      response = await service.mintNftFromDrop(
         directMintingDrop._id,
         nft._id,
         data
       );
-      if (directMintingRet2 === false) error(`Something wrong minting NFT`);
+      if (!response.success)
+        error(`Something wrong has succed minting the NFT: ${response.error}`);
       else {
+        const directMintingRet2 = response.data;
         taskResult1 = await checkTask(
           { taskId: directMintingRet2.nftTaskId },
           service,
           'NFT minted successfully',
           'Failed to mint NFT'
         );
-        console.log('nft', directMintingRet1.nft);
+        // console.log('nft', directMintingRet2.nft);
       }
     }
 

@@ -28,11 +28,12 @@ class MintKnight extends MintKnightBase {
           {},
           'tokenAuth'
         );
-        if (result.state === 'running' || result.state === 'queued') {
+        const data = this.responseType === 'basic' ? result : result.data;
+        if (data.state === 'running' || data.state === 'queued') {
           await new Promise((r) => setTimeout(r, 5000));
         } else {
           this.mkLog('Task ended');
-          return resolve(result);
+          return resolve(data);
         }
       }
     });
