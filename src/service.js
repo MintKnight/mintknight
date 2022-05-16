@@ -540,7 +540,7 @@ class MintKnight extends MintKnightBase {
     return new Promise((resolve) => {
       const form = new FormData();
       const image = fs.readFileSync(imageFile);
-      form.append('nftImage', image, imageName);
+      form.append('media', image, imageName);
       const config = {
         headers: {
           ...form.getHeaders(),
@@ -548,7 +548,7 @@ class MintKnight extends MintKnightBase {
         },
       };
       axios
-        .post(`${this.api}media/v1`, form, config)
+        .post(`${this.api}media/v2`, form, config)
         .then((res) => {
           resolve(res.data);
           // resolve({ success: true, data: res.data, error: null });

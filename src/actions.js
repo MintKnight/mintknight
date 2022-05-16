@@ -988,6 +988,7 @@ class Actions {
    * Add a newImage to media Lib.
    */
   static async newMedia(nconf, img = false) {
+    console.log(img);
     const { service } = connect(nconf);
     // Check
     if (img === false) error('Image needed. mk add media ./assets/nft.png');
@@ -996,13 +997,20 @@ class Actions {
       let task = await service.addTestMedia();
       log('Test Media added');
     } else {
+      console.log(img);
+      console.log('test', fs.existsSync(img));
+
       if (!fs.existsSync(img)) error(`File ${img} does not exist`);
       const { name, ext } = path.parse(img);
-      if (!['.png'].includes(ext))
-        error('Invalid extension. Only png is valid');
+      console.log('name', name);
+      console.log('ext', ext);
+
+      if (!['.png', '.jpg', '.gif', '.txt', '.pdf', '.mp3'].includes(ext))
+        error('Invalid extension. Only .png, .jpg, .gif  is valid');
 
       // Connect
       let task = await service.addMedia(img, `${name}${ext}`);
+      console.log(task);
       task = await service.waitTask(task.taskId);
       if (task.state === 'failed') error('Media upload failed');
       else log('Media added');
@@ -1439,7 +1447,12 @@ class Actions {
       ownerId,
       owner.skey
     );
-    await waitTask(task, service, 'Verifier updated', 'Failed to update verifier');
+    await waitTask(
+      task,
+      service,
+      'Verifier updated',
+      'Failed to update verifier'
+    );
   }
 
   /**
@@ -1475,7 +1488,7 @@ class Actions {
       tokenId,
       buyer,
       signerId,
-      signer.skey,
+      signer.skey
     );
     log('Signature', signature);
   }
