@@ -187,6 +187,9 @@ class MintKnight extends MintKnightBase {
    * @param {buffer} imgBuffer: Image buffer
    */
   addNFT(contractId, nft, imgFilename, imgBuffer = null) {
+   console.log('name', imgFilename);
+   console.log('buffer', imgBuffer);
+   
     return new Promise((resolve) => {
       const form = new FormData();
       if (imgBuffer === null) {
@@ -203,7 +206,7 @@ class MintKnight extends MintKnightBase {
         },
       };
       return axios
-        .post(`${this.api}nfts/v1/${contractId}`, form, config)
+        .post(`${this.api}nfts/v2/${contractId}`, form, config)
         .then((res) => {
           resolve(res.data);
           // resolve({ success: true, data: res.data, error: null });

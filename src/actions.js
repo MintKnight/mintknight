@@ -567,7 +567,7 @@ class Actions {
     if (ret === false) error('Error creating Drop');
     if (ret.status && ret.status.toLowerCase() === 'failed')
       error('Error creating Drop: ' + ret.error);
-    log('Drop created with id: ' + ret.drop._id);
+    log('Drop created with id: ' + ret._id);
   }
 
   /**
@@ -1213,13 +1213,15 @@ class Actions {
     }
 
     // Ask image
-    var img = await Prompt.text('Image file. e.g: ./assets/nft.png');
+    var img = null;
+    img = await Prompt.text('Image file. e.g: ./assets/nft.png');
     // img = './assets/nft.png';
-    if (!img) error('Image needed. e.g: ./assets/nft.png');
-    if (!fs.existsSync(img)) error(`File ${img} does not exist`);
+    //if (!img) error('Image needed. e.g: ./assets/nft.png');
+    //if (!fs.existsSync(img)) error(`File ${img} does not exist`);
     // Ask tokenId
     const tokenId = await Prompt.text('Token ID');
-    if (!tokenId) error(`Token ID is required`);
+    //if (!tokenId) error(`Token ID is required`);
+    
     // Ask name
     const name = await Prompt.text('Token Name');
     if (!name) error(`Token Name is required`);
