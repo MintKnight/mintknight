@@ -203,7 +203,7 @@ class MintKnight extends MintKnightBase {
         },
       };
       return axios
-        .post(`${this.api}nfts/v1/${contractId}`, form, config)
+        .post(`${this.api}nfts/v2/${contractId}`, form, config)
         .then((res) => {
           resolve(res.data);
           // resolve({ success: true, data: res.data, error: null });

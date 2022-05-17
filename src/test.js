@@ -295,7 +295,7 @@ class Test {
      */
     warning('\nDrops - Creating on-chain wallet\n');
 
-    task = await service.addWallet('wdrops', 'onchain');
+    task = await service.addWallet('mk', 'onchain');
     taskResult1 = await checkTask(
       task,
       service,
