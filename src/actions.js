@@ -1273,7 +1273,7 @@ class Actions {
      * Ask CSV file
      */
     var csvFilename = await Prompt.text('Csv file');
-    csvFilename = './assets/nfts-v2.csv';
+    // csvFilename = './assets/nfts-v2.csv';
     if (!csvFilename) error('Csv file needed. e.g: ./assets/nfts-v2.csv');
     if (!fs.existsSync(csvFilename))
       error(`File ${csvFilename} does not exist`);
@@ -1285,7 +1285,7 @@ class Actions {
      * Ask Zip file
      */
     var zipFilename = await Prompt.text('Zip file');
-    zipFilename = './assets/animals.zip';
+    // zipFilename = './assets/animals.zip';
     if (!zipFilename) error('Csv file needed. e.g: ./assets/animals.zip');
     if (!fs.existsSync(zipFilename))
       error(`File ${zipFilename} does not exist`);
@@ -1294,8 +1294,8 @@ class Actions {
     zipFilename = path.normalize(zipFilename);
 
     // DropId
-    // const dropId = await Prompt.text('Drop Id (mk list drop)');
-    const dropId = '6284c910e904ba4c55fb5347';
+    const dropId = await Prompt.text('Drop Id (mk list drop)');
+    // const dropId = '6284c910e904ba4c55fb5347';
 
     const ret = await service.addNFTs(
       contractId,
