@@ -423,8 +423,8 @@ class Test {
      * Upload NFTs (Bulk mode) -> Drop 1
      */
     warning('\nDrops - Add NFTs for Drop 1\n');
-    let csvFilename = './assets/nft-bulkdata1.csv';
-    let zipFilename = './assets/animals1.zip';
+    let csvFilename = './assets/nfts-v2.csv';
+    let zipFilename = './assets/animals.zip';
     task = await service.addNFTs(
       contract.contractId,
       csvFilename,
