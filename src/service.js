@@ -209,12 +209,10 @@ class MintKnight extends MintKnightBase {
         .post(`${this.api}nfts/v2/${contractId}`, form, config)
         .then((res) => {
           resolve(res.data);
-          // resolve({ success: true, data: res.data, error: null });
         })
         .catch((e) => {
           log(chalk.red('Error'), e.message);
           resolve(false);
-          // resolve({ success: false, data: null, error: e.message });
         });
     });
   }
@@ -245,12 +243,10 @@ class MintKnight extends MintKnightBase {
         .post(`${this.api}nfts/v1/upload/${contractId}`, form, config)
         .then((res) => {
           resolve(res.data);
-          // resolve({ success: true, data: res.data, error: null });
         })
         .catch((e) => {
           log(chalk.red('Error'), e.message);
           resolve(false);
-          // resolve({ success: false, data: null, error: e.message });
         });
     });
   }
@@ -501,12 +497,10 @@ class MintKnight extends MintKnightBase {
         .post(`${this.api}drop_codes/v1/upload/${dropId}`, form, config)
         .then((res) => {
           resolve(res.data);
-          // resolve({ success: true, data: res.data, error: null });
         })
         .catch((e) => {
           log(chalk.red('Error'), e.message);
           resolve(false);
-          // resolve({ success: false, data: null, error: e.message });
         });
     });
   }
@@ -554,12 +548,10 @@ class MintKnight extends MintKnightBase {
         .post(`${this.api}media/v2`, form, config)
         .then((res) => {
           resolve(res.data);
-          // resolve({ success: true, data: res.data, error: null });
         })
         .catch((e) => {
           log(chalk.red('Error'), e.message);
           resolve(false);
-          // resolve({ success: false, data: null, error: e.message });
         });
     });
   }

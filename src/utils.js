@@ -25,4 +25,29 @@ const init = (action) => {
   return nconf;
 };
 
-module.exports = { init };
+const rowsToCsv = (rows) => {
+  var csv = '';
+  if (rows.length == 0) return csv;
+
+  // Header
+  for (const property in rows[0]) {
+    csv += property + ';';
+  }
+  csv += '\n';
+
+  // Content
+  rows.forEach(async (row) => {
+    for (const property in row) {
+      let value = row[property];
+      if (value != null && property == 'date') {
+        value = this.formatDateTime(value);
+      }
+      csv += value + ';';
+    }
+    csv += '\n';
+  });
+
+  return csv;
+};
+
+module.exports = { init, rowsToCsv };

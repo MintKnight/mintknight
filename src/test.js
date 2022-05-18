@@ -295,7 +295,7 @@ class Test {
      */
     warning('\nDrops - Creating on-chain wallet\n');
 
-    task = await service.addWallet('wdrops', 'onchain');
+    task = await service.addWallet('mk', 'onchain');
     taskResult1 = await checkTask(
       task,
       service,
@@ -474,6 +474,10 @@ class Test {
     service.setResponseType('detailed');
     data = {
       dropCod,
+      userData: {
+        email: 'test@test.com',
+        name: 'Drop Test User',
+      },
       buyer: buyerAccount,
     };
     // First request
@@ -495,15 +499,8 @@ class Test {
         'Failed to upload Metadata'
       );
       const nft = directMintingRet1.nft;
-      data = {
-        dropCod,
-        userData: {
-          email: 'test@test.com',
-          name: 'Drop Test User',
-        },
-        buyer: buyerAccount,
-        skey1: owner.skey,
-      };
+      // Add key
+      data.skey1 = owner.skey;
       // Second request
       response = await service.mintNftFromDrop(
         directMintingDrop._id,

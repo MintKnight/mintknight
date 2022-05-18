@@ -1339,22 +1339,13 @@ class Actions {
 
     for (let i = 0; i < nfts.length; i += 1) {
       const nft = nfts[i];
-      //console.log('nft', nft);
+      // console.log('nft', nft);
       title(`\n${nft.name}`);
       detail('tokenId', nft.tokenId);
       detail('nftId', nft._id);
       detail('state', nft.state);
-      detail('uploaded', nft.uploaded);
-      if (nft.uploaded) {
-        if (nft.state == 'draft') {
-          const metadata = JSON.parse(nft.metadata);
-          detail('image', metadata.image);
-        } else {
-          detail('mediaId', nft.mediaId);
-          detail('owner', nft.walletId);
-        }
-      } else {
-        detail('mediaId', nft.mediaId);
+      detail('mediaId', nft.mediaId);
+      if (nft.state == 'minted') {
         detail('owner', nft.walletId);
       }
       if (!!nft.dropId) detail('dropId', nft.dropId);
