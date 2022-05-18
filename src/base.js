@@ -112,7 +112,14 @@ class MintKnightBase {
             this.mkError(`${method} ${call} => ${res.data.error}`);
             if (this.responseType === 'basic')
               throw new Error(`${method} ${call} => ${res.data.error}`);
-            else resolve({ success: false, data: null, error: res.data.error });
+            else
+              resolve({
+                success: false,
+                data: null,
+                error: res.data.error,
+                code: res.data.code ? res.data.code : 0,
+                retry: res.data.retry ? true : false,
+              });
             return;
           }
           this.mkLog(`${method} ${call} => Success`);
@@ -122,10 +129,14 @@ class MintKnightBase {
         .catch((e) => {
           this.mkError(`${method} ${call} => ${e.message}`);
           if (this.responseType === 'basic') resolve(false);
-          else resolve({ success: false, data: null, error: e.message });
-          // message = response.error.data.message,
-          // status = response.error.response.status,
-          // statusText = response.error.response.statusText,
+          else
+            resolve({
+              success: false,
+              data: null,
+              error: e.message,
+              code: 0,
+              retry: false,
+            });
         });
     });
   }
