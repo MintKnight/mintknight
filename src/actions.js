@@ -900,8 +900,7 @@ class Actions {
      */
     var csvFilename = await Prompt.text('Csv file');
     // csvFilename = './assets/dropcodes.csv';
-    if (!csvFilename)
-      error('Csv file needed. e.g: ./assets/dropcodes.csv');
+    if (!csvFilename) error('Csv file needed. e.g: ./assets/dropcodes.csv');
     if (!fs.existsSync(csvFilename))
       error(`File ${csvFilename} does not exist`);
     var { name, ext } = path.parse(csvFilename);
