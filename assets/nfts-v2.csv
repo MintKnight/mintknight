@@ -1,4 +1,7 @@
 tokenId;name;description;image;dangerous:boost_number;Legs:boost_number;Color
-1;Cocodrile;Cocodrile Mambo Jimbo;cocodrile.jpg;10;4;Black/Yellow
+1;Cocodrile;Cocodrile Mambo Jimbo;cocodrile.jpg;10;4;Black
 2;Monkey;Sir Monkey Pillow;monkey.jpg;2;4;Black/White
 3;Elephant;Pink Smart Elephant;elephant.jpg;8;0;Blue
+4;Cocodrile;Cocodrile Mambo Jimbo;cocodrile.jpg;10;4;Yellow
+5;Monkey;Sir Monkey Pillow;monkey.jpg;2;4;Black/White
+6;Elephant;Pink Smart Elephant;elephant.jpg;8;0;Blue

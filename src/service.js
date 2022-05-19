@@ -187,9 +187,6 @@ class MintKnight extends MintKnightBase {
    * @param {buffer} imgBuffer: Image buffer
    */
   addNFT(contractId, nft, imgFilename, imgBuffer = null) {
-   console.log('name', imgFilename);
-   console.log('buffer', imgBuffer);
-   
     return new Promise((resolve) => {
       const form = new FormData();
       if (imgBuffer === null) {

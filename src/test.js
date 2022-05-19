@@ -439,8 +439,8 @@ class Test {
      * Upload NFTs (Bulk mode) -> Drop 2
      */
     warning('\nDrops - Add NFTs for Drop 2\n');
-    csvFilename = './assets/nft-bulkdata2.csv';
-    zipFilename = './assets/animals2.zip';
+    csvFilename = './assets/nfts-v2-2.csv';
+    zipFilename = './assets/animals.zip';
     task = await service.addNFTs(
       contract.contractId,
       csvFilename,
@@ -457,7 +457,7 @@ class Test {
     warning('\nDrops - Upload drop codes\n');
     task = await service.addDropCodes(
       directMintingDrop._id,
-      './assets/dropcodes-bulkdata1.csv'
+      './assets/dropcodes.csv'
     );
     if (!!task) check('Uploaded drop codes');
     else error('Failed to upload drop codes');
@@ -468,7 +468,7 @@ class Test {
      * Direct minting
      */
     warning('\nDrops - Direct minting\n');
-    const buyerAccount = '0xf47B89CB6E174faCb9A3C2cf596dCB8ba1C7EF7a';
+    const buyerAccount = '0x668417616f1502D13EA1f9528F83072A133e8E01';
     // const dropCod = '';
     const dropCod = 'ABCD1';
     service.setResponseType('detailed');

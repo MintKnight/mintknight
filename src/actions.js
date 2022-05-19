@@ -899,9 +899,9 @@ class Actions {
      * Ask CSV file
      */
     var csvFilename = await Prompt.text('Csv file');
-    // csvFilename = './assets/dropcodes-bulkdata1.csv';
+    // csvFilename = './assets/dropcodes.csv';
     if (!csvFilename)
-      error('Csv file needed. e.g: ./assets/dropcodes-bulkdata1.csv');
+      error('Csv file needed. e.g: ./assets/dropcodes.csv');
     if (!fs.existsSync(csvFilename))
       error(`File ${csvFilename} does not exist`);
     var { name, ext } = path.parse(csvFilename);
