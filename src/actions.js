@@ -1004,15 +1004,38 @@ class Actions {
       console.log('name', name);
       console.log('ext', ext);
 
-      if (!['.png', '.jpg', '.gif', '.txt', '.pdf', '.mp3'].includes(ext))
-        error('Invalid extension. Only .png, .jpg, .gif  is valid');
+      if (
+        !['.png', '.jpg', '.gif', '.txt', '.pdf', '.mp3', '.mp4'].includes(ext)
+      )
+        error(
+          'Invalid extension. Only .png, .jpg, .gif, .txt, .pdf, .mp3, .mp4  is valid'
+        );
+
+      // Upload into Arweave or not?
+      const choices = [
+        {
+          title: 'Only draft',
+          description: 'Save media into database',
+          value: false,
+        },
+        {
+          title: 'Upload to Arweave & save into database',
+          description: 'Do you want to upload into Arweave?',
+          value: true,
+        },
+      ];
+      const uploadToArweave = await Select.option(choices);
 
       // Connect
-      let task = await service.addMedia(img, `${name}${ext}`);
+      let task = await service.addMedia(img, `${name}${ext}`, uploadToArweave);
       console.log(task);
-      task = await service.waitTask(task.taskId);
-      if (task.state === 'failed') error('Media upload failed');
-      else log('Media added');
+      if (task.state === 'failed') error('Media added failed');
+      if (uploadToArweave) {
+        task = await service.waitTask(task.taskId);
+        if (task.state === 'failed') error('Media upload failed');
+        console.log(task);
+      }
+      log('Media added');
     }
   }
 
@@ -1023,8 +1046,11 @@ class Actions {
     const { service } = connect(nconf);
     const media = await service.getMedia();
     for (let i = 0; i < media.length; i += 1) {
+      // console.log(media[i]);
       title(`\n${media[i]._id}`);
-      detail(media[i].name, media[i].url);
+      detail('Name', media[i].name);
+      if (!!media[i].url) detail('url', media[i].url);
+      if (!!media[i].fileUrl) detail('fileUrl', media[i].fileUrl);
     }
   }
 

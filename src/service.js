@@ -529,14 +529,13 @@ class MintKnight extends MintKnightBase {
 
   /*
    * Upload One Image to Arweave.
-   *
-   * @param {string} file File name with path
    */
-  addMedia(imageFile, imageName) {
+  addMedia(imageFile, imageName, uploadToArweave = false) {
     return new Promise((resolve) => {
       const form = new FormData();
       const image = fs.readFileSync(imageFile);
       form.append('media', image, imageName);
+      if (uploadToArweave) form.append('uploadToArweave', 'true');
       const config = {
         headers: {
           ...form.getHeaders(),
