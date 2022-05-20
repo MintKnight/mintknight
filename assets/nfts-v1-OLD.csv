@@ -1,4 +1,4 @@
-tokenId;name;description;image;attr_trait_type_1;attr_display_type_1;attr_value_1;attr_trait_type_2;attr_display_type_2;attr_value_2;
+tokenId;name;description;image;trait_type_1;display_type_1;value_1;trait_type_2;display_type_2;value_2;
 11;Cocodrile Mambo Jimbo;Crocodiles have powerful jaws with many conical teeth and short legs with clawed webbed toes. They share a unique body form that allows the eyes, ears, and nostrils to be above the water surface while most of the animal is hidden below.;cocodrile.jpg;Rarity Class;;Normal;Health increase;boost_percentage;20
 12;Sir Monkey Pillow;Most species are arboreal, using all four limbs to leap from tree to tree. They can sit upright and stand erect. Most species run along branches rather than swinging arm over arm like the apes.;monkey.jpg;;;;;;
 13;Pink Smart Elephant;Elephants are the largest land mammals on earth and have distinctly massive bodies, large ears, and long trunks.;elephant.jpg;;;;;;
