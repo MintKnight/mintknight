@@ -13,14 +13,18 @@ class MintKnightWeb extends MintKnightBase {
    * @param {string} telephone Phone Number
    * @return {object} User object
    */
-  registerUser (email, password) {
-    return new Promise(resolve => {
-      this.apiCall('POST', 'users/v1/register', { email, password }, false)
-        .then(res => {
+  registerUser(email, password) {
+    return new Promise((resolve) => {
+      this.apiCall(
+        'POST',
+        'users/v1/register',
+        { email, password },
+        false
+      ).then((res) => {
         this.token = res.token;
-        resolve(res)
-      })
-    })
+        resolve(res);
+      });
+    });
   }
 
   /*
