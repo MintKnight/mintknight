@@ -240,9 +240,6 @@ const main = async () => {
     case 'sign':
       Actions.sign(nconf);
       break;
-    case 'upload':
-      upload(nconf);
-      break;
     case 'test':
       break;
     case 'update':
