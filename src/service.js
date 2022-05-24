@@ -188,13 +188,15 @@ class MintKnight extends MintKnightBase {
    * @param {string} imgFilename: Filename path or filename image
    * @param {buffer} imgBuffer: Image buffer
    */
-  addNFT(contractId, nft, imgFilename, imgBuffer = null) {
+  addNFT(contractId, nft, imgFilename = null, imgBuffer = null) {
     return new Promise((resolve) => {
       const form = new FormData();
-      if (imgBuffer === null) {
-        imgBuffer = fs.readFileSync(imgFilename);
+      if (!!imgFilename) {
+        if (imgBuffer === null) {
+          imgBuffer = fs.readFileSync(imgFilename);
+        }
+        form.append('files', imgBuffer, imgFilename);
       }
-      form.append('files', imgBuffer, imgFilename);
       for (var key in nft) {
         form.append(`nft[${key}]`, nft[key]);
       }
