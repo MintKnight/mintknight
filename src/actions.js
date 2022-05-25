@@ -144,6 +144,9 @@ class Actions {
    * @param {object} contract
    */
   static async addContract(nconf, contract, wallet) {
+    console.log('nconf', nconf);
+    console.log('@@contract', contract);
+    console.log('@@wallet', wallet);
     const env = nconf.get('env');
     const projectId = nconf.get(`${env}:projectId`);
     const contracts = nconf.get(`${env}:${projectId}:contracts`) || [];
@@ -155,6 +158,7 @@ class Actions {
     nconf.set(`${contractId}:type`, contract.contractType);
     nconf.set(`${contractId}:address`, contract.address);
     nconf.set(`${env}:${projectId}:contractId`, contract.contractId);
+    nconf.set(`${contractId}:thumb`, contract.thumb);
     nconf.save();
   }
 
@@ -186,6 +190,8 @@ class Actions {
     detail('mk info contract', 'Queries stats for current contract');
     detail('mk select contract', 'Select Active contract');
     detail('mk update contract', 'Update the active contract');
+    detail('mk save contract', 'Add a new contract (draft)');
+    detail('mk deploy contract', 'Deploys a draft contarct');
 
     title('\nDrops');
     detail('mk add drop', 'Add a new drop');
@@ -461,6 +467,50 @@ class Actions {
       contract.contractId = task.contractId;
       await Actions.addContract(nconf, contract, wallet);
     }
+  }
+
+  /**
+   * Save on draft new Contract
+   */
+  static async saveContract(nconf) {
+    let name2;
+    let ext2;
+    const { service } = connect(nconf);
+    const { project, wallet } = Actions.info(nconf);
+    // Add contract.
+    const contract = await Prompt.contract(project.name);
+    if (!!contract.thumb) {
+      if (!fs.existsSync(contract.thumb))
+        error(`File ${contract.thumb} does not exist`);
+      const { name, ext } = path.parse(contract.thumb);
+      name2 = name;
+      ext2 = ext;
+      if (!['.png', '.jpg', '.gif', '.pdf'].includes(ext))
+        error('Invalid extension. Only .png, .jpg, .gif  is valid');
+    }
+    
+    
+    // urlCode
+    let urlCode = '';
+    if (contract.contractType === 51 || contract.contractType === 52) {
+      urlCode = await Prompt.text('Url code (landing page path)');
+      if (!urlCode) error(`Url code is required`);
+    }
+
+    let res = await service.saveContract(
+      contract.name,
+      contract.symbol,
+      contract.contractType,
+      wallet.walletId,
+      contract.contractId,
+      contract.mediaId,
+      urlCode,
+      contract.thumb,
+      `${name2}${ext2}`
+    );
+    console.log('RES', res.contract);
+
+    await Actions.addContract(nconf, res.contract, wallet);
   }
 
   /**

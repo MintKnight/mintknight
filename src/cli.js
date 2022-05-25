@@ -190,6 +190,30 @@ const transfer = async (nconf) => {
   }
 };
 
+const save = async (nconf) => {
+  const element = process.argv[3];
+  switch (element) {
+    case 'contract':
+      Actions.saveContract(nconf);
+      break;
+    default:
+      error('Invalid element to list (contract, nft)');
+      break;
+  }
+};
+
+const deploy = async (nconf) => {
+  const element = process.argv[3];
+  switch (element) {
+    case 'contract':
+      Actions.listMedia(nconf);
+      break;
+    default:
+      error('Invalid element to list (contract, nft)');
+      break;
+  }
+};
+
 const main = async () => {
   const action = process.argv[2] || false;
   init(action);
@@ -244,6 +268,12 @@ const main = async () => {
       break;
     case 'update':
       update(nconf);
+      break;
+    case 'save':
+      save(nconf);
+      break;
+    case 'deploy':
+      deploy(nconf);
       break;
     default:
       Actions.info(nconf);

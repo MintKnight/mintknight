@@ -334,6 +334,11 @@ class Prompt {
       },
       {
         type: 'text',
+        name: 'thumb',
+        message: "'Thumbnail Image? ./assets/thumbnail.jpg'",
+      },
+      {
+        type: 'text',
         name: 'symbol',
         message: "What's the symbol of the Contract?",
       },

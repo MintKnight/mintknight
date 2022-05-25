@@ -69,6 +69,61 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
+   * Add a ERC20 Contract
+   *
+   * @param {string} projectId ProjectId
+   */
+  saveContract(
+    name,
+    symbol,
+    contractType,
+    walletId,
+    contractId,
+    mediaId,
+    urlCode,
+    thumbnail,
+    thumbName
+  ) {
+    return new Promise((resolve) => {
+      const contract = {
+        name,
+        symbol,
+        contractType,
+        walletId,
+        urlCode,
+      };
+
+      const form = new FormData();
+      for (var key in contract) {
+        form.append(key, contract[key]);
+      }
+      if (!thumbnail) {
+      } else {
+        const image = fs.readFileSync(thumbnail);
+        form.append('thumb', image, thumbName);
+      }
+
+      const config = {
+        headers: {
+          ...form.getHeaders(),
+          Authorization: `Bearer ${this.apiKey}`,
+        },
+      };
+
+      axios
+        .post(`${this.api}contracts/v2/save`, form, config)
+        .then((res) => {
+          console.log(res.data);
+          resolve(res.data);
+        })
+        .catch((e) => {
+          log(chalk.red('Error'), e.message);
+          resolve(false);
+        });
+    });
+  }
+
+  /*
    * Mint tokens
    *
    * @param {string} contractId Contract ID
@@ -224,7 +279,7 @@ class MintKnight extends MintKnightBase {
    * @param {string} contractId Contract ID
    * @param {string} csvFilename CSV File name with path
    * @param {string} zipFilename ZIP File name with path
-   * @param {string} dropId Drop ID (optional) 
+   * @param {string} dropId Drop ID (optional)
    */
   addNFTs(contractId, csvFilename, zipFilename, dropId) {
     return new Promise((resolve) => {
