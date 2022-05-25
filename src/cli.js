@@ -85,6 +85,13 @@ const list = async (nconf) => {
     case 'dropuser':
       Actions.listDropUser(nconf);
       break;
+    case 'contracts':
+      Actions.listCollections(nconf);
+      break;
+    case 'projects':
+      Actions.listProjects(nconf);
+      break;
+
     default:
       error(
         'Invalid element to list (media, nft, drop, dropstrategy, dropcode)'
@@ -206,7 +213,7 @@ const deploy = async (nconf) => {
   const element = process.argv[3];
   switch (element) {
     case 'contract':
-      Actions.listMedia(nconf);
+      Actions.deployContract(nconf);
       break;
     default:
       error('Invalid element to list (contract, nft)');

@@ -191,7 +191,8 @@ class Actions {
     detail('mk select contract', 'Select Active contract');
     detail('mk update contract', 'Update the active contract');
     detail('mk save contract', 'Add a new contract (draft)');
-    detail('mk deploy contract', 'Deploys a draft contarct');
+    detail('mk deploy contract', 'Deploys selected contract');
+    detail('mk list contracts', 'List all contracts from delected project');
 
     title('\nDrops');
     detail('mk add drop', 'Add a new drop');
@@ -436,7 +437,7 @@ class Actions {
   }
 
   /**
-   * Add a new Contract
+   * Add a new Contract (save + deploy) v1
    */
   static async newContract(nconf) {
     const { service } = connect(nconf);
@@ -470,7 +471,7 @@ class Actions {
   }
 
   /**
-   * Save on draft new Contract
+   * Save a new Contract (draft mode)
    */
   static async saveContract(nconf) {
     let name2;
@@ -488,8 +489,6 @@ class Actions {
       if (!['.png', '.jpg', '.gif', '.pdf'].includes(ext))
         error('Invalid extension. Only .png, .jpg, .gif  is valid');
     }
-    
-    
     // urlCode
     let urlCode = '';
     if (contract.contractType === 51 || contract.contractType === 52) {
@@ -509,6 +508,51 @@ class Actions {
       `${name2}${ext2}`
     );
     console.log('RES', res.contract);
+    res.contract.contractId = res.contract._id;
+
+    await Actions.addContract(nconf, res.contract, wallet);
+  }
+
+  /**
+   * deploys a draft contract
+   */
+
+  static async deployContract(nconf) {
+    let name2;
+    let ext2;
+    const { service } = connect(nconf);
+    const { project, wallet } = Actions.info(nconf);
+    // Add contract.
+    const contract = await Prompt.contract(project.name);
+    if (!!contract.thumb) {
+      if (!fs.existsSync(contract.thumb))
+        error(`File ${contract.thumb} does not exist`);
+      const { name, ext } = path.parse(contract.thumb);
+      name2 = name;
+      ext2 = ext;
+      if (!['.png', '.jpg', '.gif', '.pdf'].includes(ext))
+        error('Invalid extension. Only .png, .jpg, .gif  is valid');
+    }
+    // urlCode
+    let urlCode = '';
+    if (contract.contractType === 51 || contract.contractType === 52) {
+      urlCode = await Prompt.text('Url code (landing page path)');
+      if (!urlCode) error(`Url code is required`);
+    }
+
+    let res = await service.saveContract(
+      contract.name,
+      contract.symbol,
+      contract.contractType,
+      wallet.walletId,
+      contract.contractId,
+      contract.mediaId,
+      urlCode,
+      contract.thumb,
+      `${name2}${ext2}`
+    );
+    console.log('RES', res.contract);
+    res.contract.contractId = res.contract._id;
 
     await Actions.addContract(nconf, res.contract, wallet);
   }
@@ -520,7 +564,7 @@ class Actions {
     const env = nconf.get('env');
     const projectId = nconf.get(`${env}:projectId`);
     const contracts = nconf.get(`${env}:${projectId}:contracts`);
-    if (contracts.length < 2) {
+    if (contracts.length > 10) {
       warning('Only one Contract available. Already selected');
     } else {
       const choices = [];
@@ -1009,6 +1053,22 @@ class Actions {
       discord,
       address,
     };
+  }
+
+  /**
+   * List Collections
+   */
+  static async listCollections(nconf) {
+    const { service } = connect(nconf);
+
+    const collections = await service.getMedia();
+    for (let i = 0; i < media.length; i += 1) {
+      // console.log(media[i]);
+      title(`\n${media[i]._id}`);
+      detail('Name', media[i].name);
+      if (!!media[i].url) detail('url', media[i].url);
+      if (!!media[i].fileUrl) detail('fileUrl', media[i].fileUrl);
+    }
   }
 
   /**

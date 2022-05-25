@@ -69,7 +69,7 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
-   * Add a ERC20 Contract
+   * Save a ERC20 Contract on draft mode v2
    *
    * @param {string} projectId ProjectId
    */
@@ -121,6 +121,18 @@ class MintKnight extends MintKnightBase {
           resolve(false);
         });
     });
+  }
+
+  /*
+   * Deploys an ERC20 Contract (existing in draft)
+   *
+   * @param {string} projectId ProjectId
+   */
+  deployContract(contractId) {
+    const dataForm = {
+      contractId,
+    };
+    return this.apiCall('POST', 'contracts/v2/', dataForm, 'tokenAuth');
   }
 
   /*
