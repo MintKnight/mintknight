@@ -144,9 +144,7 @@ class Actions {
    * @param {object} contract
    */
   static async addContract(nconf, contract, wallet) {
-    console.log('nconf', nconf);
-    console.log('@@contract', contract);
-    console.log('@@wallet', wallet);
+
     const env = nconf.get('env');
     const projectId = nconf.get(`${env}:projectId`);
     const contracts = nconf.get(`${env}:${projectId}:contracts`) || [];
