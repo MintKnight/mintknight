@@ -450,6 +450,12 @@ class Actions {
       urlCode = await Prompt.text('Url code (landing page path)');
       if (!urlCode) error(`Url code is required`);
     }
+    // baseUri
+    let baseUri = null;
+    if (contract.contractType === 51) {
+      const _baseUri = await Prompt.text('Base URI (optional))');
+      if (!!_baseUri) baseUri = _baseUri;
+    }
 
     let task = await service.addContract(
       contract.name,
@@ -458,7 +464,8 @@ class Actions {
       wallet.walletId,
       contract.contractId,
       contract.mediaId,
-      urlCode
+      urlCode,
+      baseUri
     );
     task = await service.waitTask(task.taskId);
     if (task == false || task.state == 'failed') {
