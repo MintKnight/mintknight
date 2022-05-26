@@ -53,7 +53,8 @@ class MintKnight extends MintKnightBase {
     walletId,
     contractId,
     mediaId,
-    urlCode
+    urlCode,
+    baseUri = null
   ) {
     const contract = {
       contractType,
@@ -65,6 +66,7 @@ class MintKnight extends MintKnightBase {
       mediaId,
       urlCode,
     };
+    if (!!baseUri) contract.baseUri = baseUri;
     return this.apiCall('POST', 'contracts/v1/', contract, 'tokenAuth');
   }
 
