@@ -70,6 +70,8 @@ class MintKnight extends MintKnightBase {
     return this.apiCall('POST', 'contracts/v1/', contract, 'tokenAuth');
   }
 
+  
+
   /*
    * Save a ERC20 Contract on draft mode v2
    *
