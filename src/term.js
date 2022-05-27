@@ -237,6 +237,11 @@ class Prompt {
         message: "What's the name of the project?",
       },
       {
+        type: 'text',
+        name: 'thumb',
+        message: "'Thumbnail Image? ./assets/thumbnail.jpg'",
+      },
+      {
         type: 'select',
         name: 'network',
         message: 'Choose a network',
@@ -251,7 +256,7 @@ class Prompt {
       },
     ];
     if (env === 'local') {
-      questions[1].choices.push({
+      questions[2].choices.push({
         title: 'localhost',
         description: 'Ganache local network',
         value: 'localhost',

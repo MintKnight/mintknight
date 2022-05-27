@@ -111,6 +111,7 @@ class Actions {
     nconf.set(`${env}:${project.projectId}:token`, project.token);
     nconf.set(`${env}:${project.projectId}:name`, project.name);
     nconf.set(`${env}:${project.projectId}:network`, project.network);
+    nconf.set(`${env}:${project.projectId}:thumb`, project.thumb);
     nconf.save();
   }
 
@@ -144,7 +145,6 @@ class Actions {
    * @param {object} contract
    */
   static async addContract(nconf, contract, wallet) {
-
     const env = nconf.get('env');
     const projectId = nconf.get(`${env}:projectId`);
     const contracts = nconf.get(`${env}:${projectId}:contracts`) || [];
@@ -175,7 +175,8 @@ class Actions {
     title('\nProjects');
     detail('mk add project', 'Add a new project');
     detail('mk info project', 'Queries stats for current project');
-    detail('mk select project', 'Select Active project');
+    detail('mk select project', 'Select Selected project');
+    detail('mk update project', 'update Selected project');
 
     title('\nWallets');
     detail('mk add wallet', 'Add a new wallet');
@@ -311,7 +312,11 @@ class Actions {
 
     // Add project.
     const project = await Prompt.project(env);
-    result = await mintknight.addProject(project.name, project.network);
+    result = await mintknight.addProject(
+      project.name,
+      project.network,
+      project.thumb
+    );
     project.projectId = result._id;
 
     // Get Token.
@@ -324,11 +329,35 @@ class Actions {
    * Add a new Project
    */
   static async newProject(nconf) {
+    let name2;
+    let ext2;
     const { mintknight } = connect(nconf);
 
     // Add project.
     const project = await Prompt.project(nconf.get('env'));
-    let result = await mintknight.addProject(project.name, project.network);
+
+    console.log('project', project);
+
+    //agafar el nom
+    if (!!project.thumb) {
+      console.log('with thumb');
+      if (!fs.existsSync(project.thumb))
+        error(`File ${project.thumb} does not exist`);
+      const { name, ext } = path.parse(project.thumb);
+      name2 = name;
+      ext2 = ext;
+      if (!['.png', '.jpg', '.gif', '.pdf'].includes(ext))
+        error('Invalid extension. Only .png, .jpg, .gif  is valid');
+    }
+
+    let result = await mintknight.addProject(
+      project.name,
+      project.network,
+      project.thumb,
+      `${name2}${ext2}`
+    );
+    console.log('result', result);
+
     if (result.status === 'failed') error(result.error);
     project.projectId = result._id;
 
@@ -336,6 +365,55 @@ class Actions {
     result = await mintknight.getApiKey(project.projectId);
     project.token = result.token;
     await Actions.addProject(nconf, project);
+  }
+
+  /**
+   * Updates Selected Project
+   */
+  static async updateProject(nconf) {
+    let name2;
+    let ext2;
+    const env = nconf.get('env');
+    const user = nconf.get(env);
+    if (!user || !user.projectId) {
+      error('User not registered. Or you have to create a project before update it');
+      return;
+    }
+    const projectId = user.projectId;
+
+    const { mintknight } = connect(nconf);
+
+    // Add project.
+    const project = await Prompt.project(nconf.get('env'));
+
+    //agafar el nom
+    if (!!project.thumb) {
+      console.log('with thumb');
+      if (!fs.existsSync(project.thumb))
+        error(`File ${project.thumb} does not exist`);
+      const { name, ext } = path.parse(project.thumb);
+      name2 = name;
+      ext2 = ext;
+      if (!['.png', '.jpg', '.gif', '.pdf'].includes(ext))
+        error('Invalid extension. Only .png, .jpg, .gif  is valid');
+    }
+
+    let result = await mintknight.UpdateProject(
+      projectId,
+      project.name,
+      project.network,
+      project.thumb,
+      `${name2}${ext2}`
+    );
+    console.log('result', result);
+
+    if (result.status === 'failed') error(result.error);
+    project.projectId = result._id;
+
+    // Get Token.
+    result = await mintknight.getApiKey(project.projectId);
+    project.token = result.token;
+    // await Actions.addProject(nconf, project);
   }
 
   /**

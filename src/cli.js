@@ -133,6 +133,9 @@ const update = async (nconf) => {
       Actions.updateNft(nconf);
       break;
     case 'project':
+      Actions.updateProject(nconf);
+      break;
+    case 'projectLimits':
       Actions.updateLimits(nconf);
       break;
     case 'contract':
