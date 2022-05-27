@@ -85,6 +85,13 @@ const list = async (nconf) => {
     case 'dropuser':
       Actions.listDropUser(nconf);
       break;
+    case 'contracts':
+      Actions.listCollections(nconf);
+      break;
+    case 'projects':
+      Actions.listProjects(nconf);
+      break;
+
     default:
       error(
         'Invalid element to list (media, nft, drop, dropstrategy, dropcode)'
@@ -126,6 +133,9 @@ const update = async (nconf) => {
       Actions.updateNft(nconf);
       break;
     case 'project':
+      Actions.updateProject(nconf);
+      break;
+    case 'projectLimits':
       Actions.updateLimits(nconf);
       break;
     case 'contract':
@@ -190,6 +200,30 @@ const transfer = async (nconf) => {
   }
 };
 
+const save = async (nconf) => {
+  const element = process.argv[3];
+  switch (element) {
+    case 'contract':
+      Actions.saveContract(nconf);
+      break;
+    default:
+      error('Invalid element to list (contract, nft)');
+      break;
+  }
+};
+
+const deploy = async (nconf) => {
+  const element = process.argv[3];
+  switch (element) {
+    case 'contract':
+      Actions.deployContract(nconf);
+      break;
+    default:
+      error('Invalid element to list (contract, nft)');
+      break;
+  }
+};
+
 const main = async () => {
   const action = process.argv[2] || false;
   init(action);
@@ -244,6 +278,12 @@ const main = async () => {
       break;
     case 'update':
       update(nconf);
+      break;
+    case 'save':
+      save(nconf);
+      break;
+    case 'deploy':
+      deploy(nconf);
       break;
     default:
       Actions.info(nconf);

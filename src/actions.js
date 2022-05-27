@@ -111,6 +111,7 @@ class Actions {
     nconf.set(`${env}:${project.projectId}:token`, project.token);
     nconf.set(`${env}:${project.projectId}:name`, project.name);
     nconf.set(`${env}:${project.projectId}:network`, project.network);
+    nconf.set(`${env}:${project.projectId}:thumb`, project.thumb);
     nconf.save();
   }
 
@@ -155,6 +156,7 @@ class Actions {
     nconf.set(`${contractId}:type`, contract.contractType);
     nconf.set(`${contractId}:address`, contract.address);
     nconf.set(`${env}:${projectId}:contractId`, contract.contractId);
+    nconf.set(`${contractId}:thumb`, contract.thumb);
     nconf.save();
   }
 
@@ -173,7 +175,8 @@ class Actions {
     title('\nProjects');
     detail('mk add project', 'Add a new project');
     detail('mk info project', 'Queries stats for current project');
-    detail('mk select project', 'Select Active project');
+    detail('mk select project', 'Select Selected project');
+    detail('mk update project', 'update Selected project');
 
     title('\nWallets');
     detail('mk add wallet', 'Add a new wallet');
@@ -186,6 +189,9 @@ class Actions {
     detail('mk info contract', 'Queries stats for current contract');
     detail('mk select contract', 'Select Active contract');
     detail('mk update contract', 'Update the active contract');
+    detail('mk save contract', 'Add a new contract (draft)');
+    detail('mk deploy contract', 'Deploys selected contract');
+    detail('mk list contracts', 'List all contracts from delected project');
 
     title('\nDrops');
     detail('mk add drop', 'Add a new drop');
@@ -306,7 +312,11 @@ class Actions {
 
     // Add project.
     const project = await Prompt.project(env);
-    result = await mintknight.addProject(project.name, project.network);
+    result = await mintknight.addProject(
+      project.name,
+      project.network,
+      project.thumb
+    );
     project.projectId = result._id;
 
     // Get Token.
@@ -319,11 +329,35 @@ class Actions {
    * Add a new Project
    */
   static async newProject(nconf) {
+    let name2;
+    let ext2;
     const { mintknight } = connect(nconf);
 
     // Add project.
     const project = await Prompt.project(nconf.get('env'));
-    let result = await mintknight.addProject(project.name, project.network);
+
+    console.log('project', project);
+
+    //agafar el nom
+    if (!!project.thumb) {
+      console.log('with thumb');
+      if (!fs.existsSync(project.thumb))
+        error(`File ${project.thumb} does not exist`);
+      const { name, ext } = path.parse(project.thumb);
+      name2 = name;
+      ext2 = ext;
+      if (!['.png', '.jpg', '.gif', '.pdf'].includes(ext))
+        error('Invalid extension. Only .png, .jpg, .gif  is valid');
+    }
+
+    let result = await mintknight.addProject(
+      project.name,
+      project.network,
+      project.thumb,
+      `${name2}${ext2}`
+    );
+    console.log('result', result);
+
     if (result.status === 'failed') error(result.error);
     project.projectId = result._id;
 
@@ -331,6 +365,55 @@ class Actions {
     result = await mintknight.getApiKey(project.projectId);
     project.token = result.token;
     await Actions.addProject(nconf, project);
+  }
+
+  /**
+   * Updates Selected Project
+   */
+  static async updateProject(nconf) {
+    let name2;
+    let ext2;
+    const env = nconf.get('env');
+    const user = nconf.get(env);
+    if (!user || !user.projectId) {
+      error('User not registered. Or you have to create a project before update it');
+      return;
+    }
+    const projectId = user.projectId;
+
+    const { mintknight } = connect(nconf);
+
+    // Add project.
+    const project = await Prompt.project(nconf.get('env'));
+
+    //agafar el nom
+    if (!!project.thumb) {
+      console.log('with thumb');
+      if (!fs.existsSync(project.thumb))
+        error(`File ${project.thumb} does not exist`);
+      const { name, ext } = path.parse(project.thumb);
+      name2 = name;
+      ext2 = ext;
+      if (!['.png', '.jpg', '.gif', '.pdf'].includes(ext))
+        error('Invalid extension. Only .png, .jpg, .gif  is valid');
+    }
+
+    let result = await mintknight.UpdateProject(
+      projectId,
+      project.name,
+      project.network,
+      project.thumb,
+      `${name2}${ext2}`
+    );
+    console.log('result', result);
+
+    if (result.status === 'failed') error(result.error);
+    project.projectId = result._id;
+
+    // Get Token.
+    result = await mintknight.getApiKey(project.projectId);
+    project.token = result.token;
+    // await Actions.addProject(nconf, project);
   }
 
   /**
@@ -430,7 +513,7 @@ class Actions {
   }
 
   /**
-   * Add a new Contract
+   * Add a new Contract (save + deploy) v1
    */
   static async newContract(nconf) {
     const { service } = connect(nconf);
@@ -471,13 +554,100 @@ class Actions {
   }
 
   /**
+   * Save a new Contract (draft mode)
+   */
+  static async saveContract(nconf) {
+    let name2;
+    let ext2;
+    const { service } = connect(nconf);
+    const { project, wallet } = Actions.info(nconf);
+    // Add contract.
+    const contract = await Prompt.contract(project.name);
+    if (!!contract.thumb) {
+      if (!fs.existsSync(contract.thumb))
+        error(`File ${contract.thumb} does not exist`);
+      const { name, ext } = path.parse(contract.thumb);
+      name2 = name;
+      ext2 = ext;
+      if (!['.png', '.jpg', '.gif', '.pdf'].includes(ext))
+        error('Invalid extension. Only .png, .jpg, .gif  is valid');
+    }
+    // urlCode
+    let urlCode = '';
+    if (contract.contractType === 51 || contract.contractType === 52) {
+      urlCode = await Prompt.text('Url code (landing page path)');
+      if (!urlCode) error(`Url code is required`);
+    }
+
+    let res = await service.saveContract(
+      contract.name,
+      contract.symbol,
+      contract.contractType,
+      wallet.walletId,
+      contract.contractId,
+      contract.mediaId,
+      urlCode,
+      contract.thumb,
+      `${name2}${ext2}`
+    );
+    console.log('RES', res.contract);
+    res.contract.contractId = res.contract._id;
+
+    await Actions.addContract(nconf, res.contract, wallet);
+  }
+
+  /**
+   * deploys a draft contract
+   */
+
+  static async deployContract(nconf) {
+    let name2;
+    let ext2;
+    const { service } = connect(nconf);
+    const { project, wallet } = Actions.info(nconf);
+    // Add contract.
+    const contract = await Prompt.contract(project.name);
+    if (!!contract.thumb) {
+      if (!fs.existsSync(contract.thumb))
+        error(`File ${contract.thumb} does not exist`);
+      const { name, ext } = path.parse(contract.thumb);
+      name2 = name;
+      ext2 = ext;
+      if (!['.png', '.jpg', '.gif', '.pdf'].includes(ext))
+        error('Invalid extension. Only .png, .jpg, .gif  is valid');
+    }
+    // urlCode
+    let urlCode = '';
+    if (contract.contractType === 51 || contract.contractType === 52) {
+      urlCode = await Prompt.text('Url code (landing page path)');
+      if (!urlCode) error(`Url code is required`);
+    }
+
+    let res = await service.saveContract(
+      contract.name,
+      contract.symbol,
+      contract.contractType,
+      wallet.walletId,
+      contract.contractId,
+      contract.mediaId,
+      urlCode,
+      contract.thumb,
+      `${name2}${ext2}`
+    );
+    console.log('RES', res.contract);
+    res.contract.contractId = res.contract._id;
+
+    await Actions.addContract(nconf, res.contract, wallet);
+  }
+
+  /**
    * Select a Contract
    */
   static async selContract(nconf) {
     const env = nconf.get('env');
     const projectId = nconf.get(`${env}:projectId`);
     const contracts = nconf.get(`${env}:${projectId}:contracts`);
-    if (contracts.length < 2) {
+    if (contracts.length > 10) {
       warning('Only one Contract available. Already selected');
     } else {
       const choices = [];
@@ -966,6 +1136,22 @@ class Actions {
       discord,
       address,
     };
+  }
+
+  /**
+   * List Collections
+   */
+  static async listCollections(nconf) {
+    const { service } = connect(nconf);
+
+    const collections = await service.getMedia();
+    for (let i = 0; i < media.length; i += 1) {
+      // console.log(media[i]);
+      title(`\n${media[i]._id}`);
+      detail('Name', media[i].name);
+      if (!!media[i].url) detail('url', media[i].url);
+      if (!!media[i].fileUrl) detail('fileUrl', media[i].fileUrl);
+    }
   }
 
   /**
