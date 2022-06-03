@@ -17,7 +17,7 @@ class MintKnight extends MintKnightBase {
    * @param {string} taskId task ID
    * @param {integer} times It will try every 5 seconds for n times.
    */
-  waitTask(taskId, times = 100) {
+  waitTask(taskId, times = 1000) {
     if (!taskId) return { addressTo: false };
     return new Promise(async (resolve) => {
       this.mkLog('waiting for Task to end...');
