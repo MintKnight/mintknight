@@ -272,13 +272,13 @@ class Test {
       'Failed to transfer NFT'
     );
 
-    // error('Get minted NFTs');
-    // error('Get metadata');
-    // error('Update metadata');
-    // error('Get updated metadata');
-
-    warning('\nTest - Deploy NFT Contract : ERC721 Imnmutable\n');
-    log('TODO');
+    warning('\nTest - Multi tasking\n');
+    task = await service.mintNFT(
+      nftId,
+      minter.walletId,
+      minter.skey,
+      minter.walletId
+    );
 
     // Test drops
     await this.drops(nconf, true);

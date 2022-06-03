@@ -94,7 +94,7 @@ class MintKnightWeb extends MintKnightBase {
       axios
         .post(`${this.api}projects/v2/`, form, config)
         .then((res) => {
-          console.log(res.data);
+          // console.log(res.data);
           resolve(res.data);
         })
         .catch((e) => {

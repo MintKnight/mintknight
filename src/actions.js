@@ -1345,6 +1345,7 @@ class Actions {
     const nftId = task.nft._id;
     if (task.taskId !== 0) {
       task = await service.waitTask(task.taskId);
+      if (!task || task.state === 'failed') error('Failed to upload NFT');
     }
 
     /*
