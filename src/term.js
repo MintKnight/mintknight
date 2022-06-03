@@ -18,6 +18,10 @@ const error = (...args) => {
   process.exit(1);
 };
 
+const errorNoExit = (...args) => {
+  log(chalk.bold.red(args) + '\n');
+};
+
 const warning = (...args) => {
   log(chalk.hex('#FFA500').bold(args));
 };
@@ -503,4 +507,14 @@ class Prompt {
   }
 }
 
-module.exports = { log, title, error, warning, detail, check, Prompt, Select };
+module.exports = {
+  log,
+  title,
+  error,
+  errorNoExit,
+  warning,
+  detail,
+  check,
+  Prompt,
+  Select,
+};

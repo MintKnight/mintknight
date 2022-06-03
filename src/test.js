@@ -1,4 +1,4 @@
-const { log, title, error, warning, detail, check } = require('./term');
+const { log, title, error, errorNoExit, warning, check } = require('./term');
 const { MintKnight, MintKnightWeb } = require('../src/index');
 const { Actions } = require('./actions');
 const ethers = require('ethers');
@@ -31,6 +31,41 @@ async function checkTask(task, service, okMessage, errMessage) {
   }
   check(okMessage);
   return taskResult;
+}
+
+// Check Tasks (multi-tasking)
+async function checkTasks(tasks, service) {
+  let taskResult;
+  const allTaskFinished = () => {
+    let ret = true;
+    for (let i = 0; i < tasks.length; i++) {
+      const task = tasks[i];
+      // console.log('allTaskFinished task.finished', task.finished);
+      if (!task.finished) {
+        return false;
+      }
+    }
+    // console.log('allTaskFinished ret', ret);
+    return ret;
+  };
+  while (!allTaskFinished()) {
+    for (let i = 0; i < tasks.length; i++) {
+      const task = tasks[i];
+      // console.log('task', i, task);
+      if (task.finished) continue;
+      taskResult = await service.waitTask(task.taskId, 1);
+      // console.log('task taskResult', i, taskResult);
+      if (!taskResult.finished) continue;
+      tasks[i].finished = true;
+      if (taskResult.state === 'success') {
+        check(task.okMessage);
+      } else if (taskResult.state === 'failed') {
+        errorNoExit(task.errMessage);
+      } else {
+        warning('Unknown status');
+      }
+    }
+  }
 }
 class Test {
   static async init() {
@@ -273,12 +308,27 @@ class Test {
     );
 
     warning('\nTest - Multi tasking\n');
-    task = await service.mintNFT(
-      nftId,
-      minter.walletId,
-      minter.skey,
-      minter.walletId
-    );
+    const tasks = [];
+    for (let i = 1; i <= 10; i++) {
+      task = await service.saveNFT(contract.contractId, nft);
+      await checkTask(
+        task,
+        service,
+        `NFT ${i} saved`,
+        `Failed to save NFT ${i}`
+      );
+      const nftId = task.nft._id;
+      task = await service.mintNFT(
+        nftId,
+        minter.walletId,
+        minter.skey,
+        minter.walletId
+      );
+      task.okMessage = `NFT ${i} minted`;
+      task.errMessage = `Failed to mint NFT ${i}`;
+      tasks.push(task);
+    }
+    await checkTasks(tasks, service);
 
     // Test drops
     await this.drops(nconf, true);
@@ -520,13 +570,6 @@ class Test {
         // console.log('nft', directMintingRet2.nft);
       }
     }
-
-    /*
-     * Not Direct minting
-     */
-    warning('\nDrops - NOT Direct minting: TODO\n');
-    // TODO
-
   }
 }
 
