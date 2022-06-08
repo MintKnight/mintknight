@@ -34,7 +34,7 @@ async function checkTask(task, service, okMessage, errMessage) {
 }
 
 // Check Tasks (multi-tasking)
-async function checkTasks(tasks, service) {
+async function checkTasks(tasks, service, times = 1000) {
   let taskResult;
   const allTaskFinished = () => {
     let ret = true;
@@ -53,7 +53,7 @@ async function checkTasks(tasks, service) {
       const task = tasks[i];
       // console.log('task', i, task);
       if (task.finished) continue;
-      taskResult = await service.waitTask(task.taskId, 1);
+      taskResult = await service.waitTask(task.taskId, times);
       // console.log('task taskResult', i, taskResult);
       if (!taskResult.finished) continue;
       tasks[i].finished = true;
