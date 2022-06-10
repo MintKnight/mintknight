@@ -1256,7 +1256,7 @@ class Actions {
   static async mintToken(nconf) {
     const { service, env, projectId, contractId } = connect(nconf);
     if (!contractId) error('A contract must be selected');
-    if (checkOwner(env, nconf) === false) error('Invalid Wallet');
+    // if (checkOwner(env, nconf) === false) error('Invalid Wallet');
     const { walletId, address } = await Prompt.getWalletId(
       nconf,
       env,
@@ -1302,7 +1302,7 @@ class Actions {
   static async transferToken(nconf) {
     const { service, env, projectId, contractId } = connect(nconf);
     if (!contractId) error('A contract must be selected');
-    if (checkOwner(env, nconf) === false) error('Invalid Wallet');
+    // if (checkOwner(env, nconf) === false) error('Invalid Wallet');
     log('Send the Token To');
     const { walletId, address } = await Prompt.getWalletId(
       nconf,
@@ -1333,7 +1333,7 @@ class Actions {
    */
   static async mintNFT(nconf) {
     const { service, env, projectId, contractId } = connect(nconf);
-    if (checkOwner(env, nconf) === false) error('Invalid Wallet');
+    // if (checkOwner(env, nconf) === false) error('Invalid Wallet');
     // Get metadata
     const nft = await Prompt.nft();
     const { walletId, address } = await Prompt.getWalletId(
@@ -1381,7 +1381,7 @@ class Actions {
    */
   static async transferNFT(nconf) {
     const { service, env, projectId, contractId } = connect(nconf);
-    if (checkOwner(env, nconf) === false) error('Invalid Wallet');
+    // if (checkOwner(env, nconf) === false) error('Invalid Wallet');
     // Get metadata
     const nftId = await Prompt.text('NftId');
     log('Send the NFT To');
