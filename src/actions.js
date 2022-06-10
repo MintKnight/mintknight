@@ -192,6 +192,9 @@ class Actions {
     detail('mk save contract', 'Add a new contract (draft)');
     detail('mk deploy contract', 'Deploys selected contract');
     detail('mk list contracts', 'List all contracts from delected project');
+    // detail('mk update minter', 'Update the contract´s minter');
+    // detail('mk update owner', 'Update the contract´s owner');
+    // detail('mk update verifier', 'Update the contract´s verifier');
 
     title('\nDrops');
     detail('mk add drop', 'Add a new drop');
@@ -1631,7 +1634,12 @@ class Actions {
       ownerId,
       owner.skey
     );
-    await waitTask(task, service, 'Failed to update owner', 'Owner updated');
+    await waitTask(
+      task,
+      service,
+      `Failed to update ${change}`,
+      `${change} updated`
+    );
   }
 
   /**

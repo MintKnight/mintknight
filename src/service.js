@@ -358,7 +358,7 @@ class MintKnight extends MintKnightBase {
   /*
    * Update owner/minter of the contract
    * @param {string} contractId Contract ID
-   * @param {string} change Role to be updated: mintre/owner
+   * @param {string} change Role to be updated: minter/owner
    * @param {string} walletId Wallet ID
    * @param {string} address optional address if no walletId
    */
