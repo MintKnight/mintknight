@@ -289,6 +289,15 @@ class Prompt {
         name: 'refUser',
         message: 'Internal reference of the wallet',
       },
+      {
+        type: 'select',
+        name: 'deploy',
+        message: 'Deploy wallet after saving or not',
+        choices: [
+          { title: 'Yes', description: 'Deploy wallet', value: true },
+          { title: 'No', description: 'Not to deploy wallet', value: false },
+        ],
+      },
     ];
     const answers = await prompt(questions, {
       onCancel: cleanup,

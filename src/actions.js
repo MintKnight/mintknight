@@ -463,7 +463,11 @@ class Actions {
 
     // Add wallet.
     const wallet = await Prompt.wallet(project.name);
-    let task = await service.addWallet(wallet.refUser, walletType);
+    let task = await service.addWallet(
+      wallet.refUser,
+      walletType,
+      wallet.deploy
+    );
     if (task !== false) {
       wallet.walletId = task.wallet._id;
       wallet.skey = task.skey1;
