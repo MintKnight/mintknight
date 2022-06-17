@@ -180,8 +180,9 @@ class Actions {
 
     title('\nWallets');
     detail('mk add wallet', 'Add a new wallet');
-    detail('mk info wallet', 'Queries stats for current wallet');
     detail('mk add signer', 'Add a new signer (wallet off-chain)');
+    // detail('mk add eoa', 'Add a new eoa (Externally Owned Account,)');
+    detail('mk info wallet', 'Queries stats for current wallet');
     detail('mk select wallet', 'Select Active wallet');
 
     title('\nContracts');
@@ -379,7 +380,9 @@ class Actions {
     const env = nconf.get('env');
     const user = nconf.get(env);
     if (!user || !user.projectId) {
-      error('User not registered. Or you have to create a project before update it');
+      error(
+        'User not registered. Or you have to create a project before update it'
+      );
       return;
     }
     const projectId = user.projectId;
@@ -462,11 +465,11 @@ class Actions {
     const { project } = Actions.info(nconf);
 
     // Add wallet.
-    const wallet = await Prompt.wallet(project.name);
+    const wallet = await Prompt.wallet(project.name, walletType);
     let task = await service.addWallet(
       wallet.refUser,
       walletType,
-      wallet.deploy
+      !!wallet.deploy ? true : false
     );
     if (task !== false) {
       wallet.walletId = task.wallet._id;
@@ -1187,7 +1190,6 @@ class Actions {
    * Add a newImage to media Lib.
    */
   static async newMedia(nconf, img = false) {
-    console.log(img);
     const { service } = connect(nconf);
     // Check
     if (img === false) error('Image needed. mk add media ./assets/nft.png');
@@ -1196,13 +1198,8 @@ class Actions {
       let task = await service.addTestMedia();
       log('Test Media added');
     } else {
-      console.log(img);
-      console.log('test', fs.existsSync(img));
-
       if (!fs.existsSync(img)) error(`File ${img} does not exist`);
       const { name, ext } = path.parse(img);
-      console.log('name', name);
-      console.log('ext', ext);
 
       if (
         !['.png', '.jpg', '.gif', '.txt', '.pdf', '.mp3', '.mp4'].includes(ext)
@@ -1227,13 +1224,19 @@ class Actions {
       const uploadToArweave = await Select.option(choices);
 
       // Connect
-      let task = await service.addMedia(img, `${name}${ext}`, uploadToArweave);
-      console.log(task);
-      if (task.state === 'failed') error('Media added failed');
+      let ret = await service.addMedia(img, `${name}${ext}`, uploadToArweave);
+      if (
+        ret === false ||
+        (ret.status && ret.status.toLowerCase() === 'failed')
+      )
+        error('Media added failed');
       if (uploadToArweave) {
-        task = await service.waitTask(task.taskId);
-        if (task.state === 'failed') error('Media upload failed');
-        console.log(task);
+        const task = await service.waitTask(ret.taskId);
+        if (
+          task === false ||
+          (task.state && task.state.toLowerCase() === 'failed')
+        )
+          error('Media upload failed');
       }
       log('Media added');
     }

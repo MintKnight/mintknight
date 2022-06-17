@@ -315,6 +315,8 @@ class MintKnight extends MintKnightBase {
           ...form.getHeaders(),
           Authorization: `Bearer ${this.apiKey}`,
         },
+        maxContentLength: Infinity,
+        maxBodyLength: Infinity,
       };
       return axios
         .post(`${this.api}nfts/v1/upload/${contractId}`, form, config)
@@ -555,7 +557,7 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
-   * Upload bulk NFTs
+   * Upload bulk Drop codes
    *
    * @param {string} dropId Drop ID
    * @param {string} csvFilename CSV File name with path

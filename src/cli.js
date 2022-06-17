@@ -17,6 +17,9 @@ const add = async (nconf) => {
     case 'signer':
       Actions.newWallet(nconf, 'signer');
       break;
+    case 'eoa':
+      Actions.newWallet(nconf, 'eoa');
+      break;
     case 'contract':
       Actions.newContract(nconf);
       break;
