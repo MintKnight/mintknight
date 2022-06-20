@@ -33,6 +33,7 @@ const connect = (nconf) => {
   let urlService;
   let contractId = false;
   let walletId = false;
+  let network = false;
   const env = nconf.get('env');
   switch (env) {
     case 'local':
@@ -60,9 +61,19 @@ const connect = (nconf) => {
     walletId = nconf.get(`${env}:${projectId}:walletId`);
     contractId = nconf.get(`${env}:${projectId}:contractId`);
     props.apiKey = nconf.get(`${env}:${projectId}:token`);
+    network = nconf.get(`${env}:${projectId}:network`);
     service = new MintKnight(urlService, props, env, projectId, contractId);
   }
-  return { token, mintknight, service, env, contractId, projectId, walletId };
+  return {
+    token,
+    mintknight,
+    service,
+    env,
+    contractId,
+    projectId,
+    walletId,
+    network,
+  };
 };
 
 const checkOwner = (env, nconf) => {
@@ -219,7 +230,7 @@ class Actions {
     title('\nNFTs');
     detail('mk add nft', 'Add news NFT/s (draft)');
     detail('mk info nft', 'Get the metadata for an NFT');
-    detail('mk list nft', 'List all NFTs in the contract');
+    detail('mk list nft', 'List NFTs');
     detail('mk update nft', 'Update the metadata for an NFT (draft)');
     detail('mk mint nft', 'Mint to the selected Contract');
     detail('mk transfer nft', 'Transfer an NFT owned by the current Wallet');
@@ -1553,7 +1564,7 @@ class Actions {
    * List NFTs.
    */
   static async listNft(nconf) {
-    const { service, contractId, walletId } = connect(nconf);
+    const { service, contractId, walletId, network } = connect(nconf);
 
     const choices = [
       {
@@ -1566,6 +1577,11 @@ class Actions {
         description: 'List NFTs by the selected wallet',
         value: 'wallet',
       },
+      {
+        title: 'Address',
+        description: 'List NFTs by address (into the real Blockchain)',
+        value: 'address',
+      },
     ];
     const option = await Select.option(choices);
 
@@ -1573,23 +1589,34 @@ class Actions {
     if (option === 'contract') {
       if (!contractId) error('A contract must be selected');
       nfts = await service.getNfts(contractId);
-    } else {
+    } else if (option === 'wallet') {
       if (!walletId) error('A wallet must be selected');
       nfts = await service.getNftsByWallet(walletId);
+    } else {
+      const address = await Prompt.text('Address');
+      if (!address) error('An Address is required');
+      nfts = await service.getAllNFTsFromBlockchain(address, {
+        withMetadata: false,
+        // pageKey: '',
+      });
     }
 
-    for (let i = 0; i < nfts.length; i += 1) {
-      const nft = nfts[i];
-      // console.log('nft', nft);
-      title(`\n${nft.name}`);
-      detail('tokenId', nft.tokenId);
-      detail('nftId', nft._id);
-      detail('state', nft.state);
-      detail('mediaId', nft.mediaId);
-      if (nft.state == 'minted') {
-        detail('owner', nft.walletId);
+    if (option === 'address') {
+      console.log(nfts);
+    } else {
+      for (let i = 0; i < nfts.length; i += 1) {
+        const nft = nfts[i];
+        // console.log('nft', nft);
+        title(`\n${nft.name}`);
+        detail('tokenId', nft.tokenId);
+        detail('nftId', nft._id);
+        detail('state', nft.state);
+        detail('mediaId', nft.mediaId);
+        if (nft.state == 'minted') {
+          detail('owner', nft.walletId);
+        }
+        if (!!nft.dropId) detail('dropId', nft.dropId);
       }
-      if (!!nft.dropId) detail('dropId', nft.dropId);
     }
   }
 

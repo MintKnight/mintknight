@@ -676,6 +676,22 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
+   * Get all NFT (from network) by address
+   */
+  getAllNFTsFromBlockchain(address, params = {}) {
+    let url = `nfts/v2/blockchain/${address}`;
+    var queryString = Object.keys(params)
+      .map((key) => {
+        return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
+      })
+      .join('&');
+    if (!!queryString) {
+      url += '?' + queryString;
+    }
+    return this.apiCall('GET', url, {}, 'tokenAuth');
+  }
+
+  /*
    * Get NFT metadata
    */
   getNft(contractId, tokenId) {
