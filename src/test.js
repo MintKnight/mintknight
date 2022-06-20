@@ -142,7 +142,7 @@ class Test {
 
   static async go(nconf) {
     await this.init();
-    let task, taskResult1;
+    let task, taskResult1, addWalletRet, deployWalletRet;
 
     /*
      * Prepare Wallets : signer, minter & owner
@@ -153,30 +153,38 @@ class Test {
      */
 
     // 2 - Add Wallet - signer (not onchain), used to sign txs.
-    task = await service.addWallet('ref3', 'signer');
-    await checkTask(task, service, 'Signer created', 'Failed to add signer');
+    addWalletRet = await service.addWallet('ref3', 'signer');
+    await checkTask(
+      addWalletRet,
+      service,
+      'Signer created',
+      'Failed to add signer'
+    );
     const signer = {
       name: 'signer',
-      walletId: task.wallet._id,
-      skey: task.skey1,
-      address: task.wallet.address,
+      walletId: addWalletRet.wallet._id,
+      skey: addWalletRet.skey1,
+      address: addWalletRet.wallet.address,
     };
 
     // Save to local env.
     await Actions.addWallet(nconf, signer);
 
     // 3 - Add Wallet - owner (onchain), admin of the NFT contracts.
-    task = await service.addWallet('ref2', 'onchain');
+    addWalletRet = await service.addWallet('ref2', 'onchain');
+    deployWalletRet = await service.deployWallet(
+      addWalletRet.wallet._id.toString()
+    );
     taskResult1 = await checkTask(
-      task,
+      deployWalletRet,
       service,
       'Wallet owner deployed',
       'Failed to deploy owner'
     );
     const nftowner = {
       name: 'nftowner',
-      walletId: task.wallet._id,
-      skey: task.skey1,
+      walletId: addWalletRet.wallet._id,
+      skey: addWalletRet.skey1,
     };
     nftowner.address = taskResult1.contractAddress;
 
@@ -185,17 +193,20 @@ class Test {
     check('NFT Owner deployed');
 
     // 4 - Add Wallet - minter (onchain), Can mint to the NFT contracts.
-    task = await service.addWallet('ref1', 'onchain');
+    addWalletRet = await service.addWallet('ref1', 'onchain');
+    deployWalletRet = await service.deployWallet(
+      addWalletRet.wallet._id.toString()
+    );
     taskResult1 = await checkTask(
-      task,
+      deployWalletRet,
       service,
       'Wallet minter deployed',
       'Failed to deploy minter'
     );
     const minter = {
       name: 'minter',
-      walletId: task.wallet._id,
-      skey: task.skey1,
+      walletId: addWalletRet.wallet._id,
+      skey: addWalletRet.skey1,
     };
     minter.address = taskResult1.contractAddress;
 
@@ -338,27 +349,30 @@ class Test {
 
   static async drops(nconf, skipInit = false) {
     if (!skipInit) await this.init();
-    let task, taskResult1, taskResult2, data;
+    let task, taskResult1, taskResult2, data, addWalletRet, deployWalletRet;
 
     /*
      * Add Wallet for drops (onchain)
      */
     warning('\nDrops - Creating on-chain wallet\n');
 
-    task = await service.addWallet('mk', 'onchain');
+    addWalletRet = await service.addWallet('mk', 'onchain');
+    deployWalletRet = await service.deployWallet(
+      addWalletRet.wallet._id.toString()
+    );
     taskResult1 = await checkTask(
-      task,
+      deployWalletRet,
       service,
       'Wallet for drops deployed',
       'Failed to deploy wallet'
     );
     const owner = {
       name: 'owner',
-      walletId: task.wallet._id,
-      address: task.wallet.address,
-      skey: task.skey1,
+      walletId: addWalletRet.wallet._id,
+      skey: addWalletRet.skey1,
     };
-    owner.contractAddress = taskResult1.contractAddress;
+    owner.address = taskResult1.contractAddress;
+    console.log('owner', owner);
 
     // Save to local env.
     await Actions.addWallet(nconf, owner);

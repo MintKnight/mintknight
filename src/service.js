@@ -426,11 +426,25 @@ class MintKnight extends MintKnightBase {
    * @param {string} walletType Type of wallet (onchain, eoa, signer)
    * @param {boolean} Deploy wallet into blockchain after saving or not
    */
-  addWallet(refUser, walletType, deploy = true) {
+  addWallet(refUser, walletType) {
     return this.apiCall(
       'POST',
       'wallets/v2',
-      { refUser, walletType, deploy },
+      { refUser, walletType },
+      'tokenAuth'
+    );
+  }
+
+  /*
+   * Deploy wallet
+   *
+   * @param {string} walletId
+   */
+  deployWallet(walletId) {
+    return this.apiCall(
+      'POST',
+      `wallets/v2/deploy/${walletId}`,
+      {},
       'tokenAuth'
     );
   }

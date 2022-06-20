@@ -466,22 +466,19 @@ class Actions {
 
     // Add wallet.
     const wallet = await Prompt.wallet(project.name, walletType);
-    let task = await service.addWallet(
-      wallet.refUser,
-      walletType,
-      !!wallet.deploy ? true : false
-    );
-    if (task !== false) {
-      wallet.walletId = task.wallet._id;
-      wallet.skey = task.skey1;
-      if (task.taskId === 0) {
-        wallet.address = task.wallet.address;
-      } else {
-        task = await service.waitTask(task.taskId);
+    let addWalletRet = await service.addWallet(wallet.refUser, walletType);
+    if (addWalletRet !== false) {
+      const walletId = addWalletRet.wallet._id.toString();
+      wallet.walletId = walletId;
+      wallet.address = addWalletRet.wallet.address;
+      wallet.skey = addWalletRet.skey1;
+      let deployWalletRet = await service.deployWallet(walletId);
+      if (!!deployWalletRet.taskId) {
+        const task = await service.waitTask(deployWalletRet.taskId);
+        if (task.state === 'failed') error('Wallet creation failed');
         wallet.address = task.contractAddress;
       }
-      if (task.state === 'failed') error('Wallet creation failed');
-      else await Actions.addWallet(nconf, wallet);
+      await Actions.addWallet(nconf, wallet);
     }
   }
 

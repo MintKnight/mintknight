@@ -290,6 +290,7 @@ class Prompt {
         message: 'Internal reference of the wallet',
       },
     ];
+    /*
     if (walletType == 'onchain') {
       questions.push({
         type: 'select',
@@ -301,6 +302,7 @@ class Prompt {
         ],
       });
     }
+    */
     const answers = await prompt(questions, {
       onCancel: cleanup,
       onSubmit: cleanup,
