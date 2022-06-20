@@ -75,8 +75,6 @@ class MintKnight extends MintKnightBase {
     return this.apiCall('POST', 'contracts/v1/', contract, 'tokenAuth');
   }
 
-  
-
   /*
    * Save a ERC20 Contract on draft mode v2
    *
@@ -87,9 +85,8 @@ class MintKnight extends MintKnightBase {
     symbol,
     contractType,
     walletId,
-    contractId,
-    mediaId,
     urlCode,
+    baseUri,
     thumbnail,
     thumbName
   ) {
@@ -100,6 +97,9 @@ class MintKnight extends MintKnightBase {
         contractType,
         walletId,
         urlCode,
+        baseUri,
+        minter: walletId,
+        owner: walletId,
       };
 
       const form = new FormData();
@@ -122,7 +122,6 @@ class MintKnight extends MintKnightBase {
       axios
         .post(`${this.api}contracts/v2/save`, form, config)
         .then((res) => {
-          console.log(res.data);
           resolve(res.data);
         })
         .catch((e) => {
@@ -133,9 +132,9 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
-   * Deploys an ERC20 Contract (existing in draft)
+   * Deploys a Contract (existing in draft)
    *
-   * @param {string} projectId ProjectId
+   * @param {string} contractId
    */
   deployContract(contractId) {
     const dataForm = {

@@ -372,7 +372,6 @@ class Test {
       skey: addWalletRet.skey1,
     };
     owner.address = taskResult1.contractAddress;
-    console.log('owner', owner);
 
     // Save to local env.
     await Actions.addWallet(nconf, owner);

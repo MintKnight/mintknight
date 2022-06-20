@@ -198,11 +198,11 @@ class Actions {
 
     title('\nContracts');
     detail('mk add contract', 'Add a new contract');
+    detail('mk save contract', 'Add a new contract (draft)');
+    detail('mk deploy contract', 'Deploys selected contract');
     detail('mk info contract', 'Queries stats for current contract');
     detail('mk select contract', 'Select Active contract');
     detail('mk update contract', 'Update the active contract');
-    detail('mk save contract', 'Add a new contract (draft)');
-    detail('mk deploy contract', 'Deploys selected contract');
     detail('mk list contracts', 'List all contracts from delected project');
     // detail('mk update minter', 'Update the contract´s minter');
     // detail('mk update owner', 'Update the contract´s owner');
@@ -596,66 +596,50 @@ class Actions {
       urlCode = await Prompt.text('Url code (landing page path)');
       if (!urlCode) error(`Url code is required`);
     }
+    // baseUri
+    let baseUri = null;
+    if (contract.contractType === 51) {
+      const _baseUri = await Prompt.text('Base URI (optional))');
+      if (!!_baseUri) baseUri = _baseUri;
+    }
 
     let res = await service.saveContract(
       contract.name,
       contract.symbol,
       contract.contractType,
       wallet.walletId,
-      contract.contractId,
-      contract.mediaId,
       urlCode,
+      baseUri,
       contract.thumb,
       `${name2}${ext2}`
     );
-    console.log('RES', res.contract);
+    if (!res || (res.status && res.status.toLowerCase() === 'failed')) {
+      error(`Error adding contract`);
+    }
     res.contract.contractId = res.contract._id;
-
     await Actions.addContract(nconf, res.contract, wallet);
   }
 
   /**
    * deploys a draft contract
    */
-
   static async deployContract(nconf) {
-    let name2;
-    let ext2;
-    const { service } = connect(nconf);
-    const { project, wallet } = Actions.info(nconf);
-    // Add contract.
-    const contract = await Prompt.contract(project.name);
-    if (!!contract.thumb) {
-      if (!fs.existsSync(contract.thumb))
-        error(`File ${contract.thumb} does not exist`);
-      const { name, ext } = path.parse(contract.thumb);
-      name2 = name;
-      ext2 = ext;
-      if (!['.png', '.jpg', '.gif', '.pdf'].includes(ext))
-        error('Invalid extension. Only .png, .jpg, .gif  is valid');
+    const { service, contractId } = connect(nconf);
+    let task = await service.deployContract(contractId);
+    task = await service.waitTask(task.taskId);
+    console.log('task', task);
+    if (task == false || task.state == 'failed') {
+      error(`Error deploying contract`);
     }
-    // urlCode
-    let urlCode = '';
-    if (contract.contractType === 51 || contract.contractType === 52) {
-      urlCode = await Prompt.text('Url code (landing page path)');
-      if (!urlCode) error(`Url code is required`);
-    }
-
-    let res = await service.saveContract(
-      contract.name,
-      contract.symbol,
-      contract.contractType,
-      wallet.walletId,
-      contract.contractId,
-      contract.mediaId,
-      urlCode,
-      contract.thumb,
-      `${name2}${ext2}`
+    // Update contract
+    const env = nconf.get('env');
+    const projectId = nconf.get(`${env}:projectId`);
+    console.log('projectId', projectId, contractId);
+    nconf.set(
+      `${env}:${projectId}:${contractId}:address`,
+      task.contractAddress
     );
-    console.log('RES', res.contract);
-    res.contract.contractId = res.contract._id;
-
-    await Actions.addContract(nconf, res.contract, wallet);
+    nconf.save();
   }
 
   /**
@@ -716,8 +700,8 @@ class Actions {
           break;
       }
       detail('network', contract.network);
-      detail('owner', contract.owner);
-      detail('minter', contract.minter);
+      if (!!contract.owner) detail('owner', contract.owner);
+      if (!!contract.minter) detail('minter', contract.minter);
       if (contract.mediaId) {
         detail('mediaId', contract.mediaId);
       }
