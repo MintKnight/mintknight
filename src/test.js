@@ -147,12 +147,12 @@ class Test {
     /*
      * Prepare Wallets : signer, minter & owner
      *
-     * 2 - Add Wallet - signer (not onchain), used to sign txs.
-     * 3 - Add Wallet - owner (onchain), final owner of the NFTs.
-     * 4 - Add Wallet - minter (onchain), Can mint to the NFT contracts.
+     * 1 - Add Wallet - signer (not onchain), used to sign txs.
+     * 2 - Add Wallet - owner (onchain), final owner of the NFTs.
+     * 3 - Add Wallet - minter (onchain), Can mint to the NFT contracts.
      */
 
-    // 2 - Add Wallet - signer (not onchain), used to sign txs.
+    // 1 - Add Wallet - signer (not onchain), used to sign txs.
     addWalletRet = await service.addWallet('ref3', 'signer');
     await checkTask(
       addWalletRet,
@@ -170,7 +170,7 @@ class Test {
     // Save to local env.
     await Actions.addWallet(nconf, signer);
 
-    // 3 - Add Wallet - owner (onchain), admin of the NFT contracts.
+    // 2 - Add Wallet - owner (onchain), admin of the NFT contracts.
     addWalletRet = await service.addWallet('ref2', 'onchain');
     deployWalletRet = await service.deployWallet(
       addWalletRet.wallet._id.toString()
@@ -192,7 +192,7 @@ class Test {
     await Actions.addWallet(nconf, nftowner);
     check('NFT Owner deployed');
 
-    // 4 - Add Wallet - minter (onchain), Can mint to the NFT contracts.
+    // 3 - Add Wallet - minter (onchain), Can mint to the NFT contracts.
     addWalletRet = await service.addWallet('ref1', 'onchain');
     deployWalletRet = await service.deployWallet(
       addWalletRet.wallet._id.toString()
@@ -343,6 +343,9 @@ class Test {
 
     // Test drops
     await this.drops(nconf, true);
+
+    // Test multiples wallets
+    await this.wallets(nconf, true);
 
     log('\nTest finished\n');
   }
@@ -583,6 +586,38 @@ class Test {
         // console.log('nft', directMintingRet2.nft);
       }
     }
+  }
+
+  static async wallets(nconf, skipInit = false) {
+    if (!skipInit) await this.init();
+    let addWalletRet, task, taskResult1;
+
+    /*
+     * Add and deploy several wallets (onchain) at the same time
+     */
+    warning(
+      '\nDeploy N MKWallets - Add and deploy several wallets (onchain) at the same time\n'
+    );
+    const numberOfWallets = 5;
+    addWalletRet = await service.addAndDeployWallets(
+      numberOfWallets,
+      'mk',
+      'onchain'
+    );
+    console.log('addWalletRet', addWalletRet);
+    taskResult1 = await checkTask(
+      addWalletRet,
+      service,
+      `${numberOfWallets} wallets have been added`,
+      'Failed to add wallets'
+    );
+    console.log('taskResult1', taskResult1);
+    // const owner = {
+    //   name: 'owner',
+    //   walletId: addWalletRet.wallet._id,
+    //   skey: addWalletRet.skey1,
+    // };
+    // owner.address = taskResult1.contractAddress;
   }
 }
 

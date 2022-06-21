@@ -235,11 +235,10 @@ const main = async () => {
       Actions.help();
       break;
     case 'test':
-      /*if (process.argv[3] && process.argv[3] === 'buy') {
-        Test.buy(nconf);
-      } else */
       if (process.argv[3] && process.argv[3] === 'drops') {
         Test.drops(nconf);
+      } else if (process.argv[3] && process.argv[3] === 'wallets') {
+        Test.wallets(nconf);
       } else {
         Test.go(nconf);
       }
