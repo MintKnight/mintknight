@@ -1,4 +1,4 @@
-const { log, title, error, errorNoExit, warning, check } = require('./term');
+const { log, error, errorNoExit, warning, check, detail } = require('./term');
 const { MintKnight, MintKnightWeb } = require('../src/index');
 const { Actions } = require('./actions');
 const ethers = require('ethers');
@@ -590,7 +590,8 @@ class Test {
 
   static async wallets(nconf, skipInit = false) {
     if (!skipInit) await this.init();
-    let addWalletRet, task, taskResult1;
+    let addWalletRet, taskResult1;
+    service.setResponseType('detailed');
 
     /*
      * Add and deploy several wallets (onchain) at the same time
@@ -604,20 +605,17 @@ class Test {
       'mk',
       'onchain'
     );
-    console.log('addWalletRet', addWalletRet);
     taskResult1 = await checkTask(
-      addWalletRet,
+      addWalletRet.data,
       service,
       `${numberOfWallets} wallets have been added`,
       'Failed to add wallets'
     );
-    console.log('taskResult1', taskResult1);
-    // const owner = {
-    //   name: 'owner',
-    //   walletId: addWalletRet.wallet._id,
-    //   skey: addWalletRet.skey1,
-    // };
-    // owner.address = taskResult1.contractAddress;
+    const wallets = taskResult1.wallets;
+    const contractAddresses = taskResult1.contractAddresses;
+    for (let i = 0; i < wallets.length; i++) {
+      detail(wallets[i], contractAddresses[i]);
+    }
   }
 }
 
