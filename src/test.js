@@ -56,7 +56,7 @@ async function checkTasks(tasks, service, times = 1000) {
       const task = tasks[i];
       // console.log('task', i, task);
       if (task.finished) continue;
-      taskResult = await service.waitTask(task.taskId, times);
+      taskResult = await service.waitTask(task.data.taskId, times);
       // console.log('task taskResult', i, taskResult);
       if (!taskResult.finished) continue;
       tasks[i].finished = true;
@@ -150,7 +150,10 @@ class Test {
       addWalletRet,
       deployWalletRet,
       addContractRet,
-      deployContractRet;
+      deployContractRet,
+      addNFTRet,
+      mintNFTRet,
+      transferNFTRet;
 
     /*
      * Prepare Wallets : signer, minter & owner
@@ -186,9 +189,7 @@ class Test {
       'Wallet owner added',
       'Failed to add owner wallet'
     );
-    deployWalletRet = await service.deployWallet(
-      addWalletRet.data.wallet._id.toString()
-    );
+    deployWalletRet = await service.deployWallet(addWalletRet.data.wallet._id);
     taskResult1 = await checkTask(
       deployWalletRet,
       service,
@@ -214,9 +215,7 @@ class Test {
       'Wallet minter added',
       'Failed to add minter wallet'
     );
-    deployWalletRet = await service.deployWallet(
-      addWalletRet.data.wallet._id.toString()
-    );
+    deployWalletRet = await service.deployWallet(addWalletRet.data.wallet._id);
     taskResult1 = await checkTask(
       deployWalletRet,
       service,
@@ -276,7 +275,7 @@ class Test {
       'ERC721MinterPauserMutable added',
       'Failed to add ERC721MinterPauserMutable'
     );
-    contract.contractId = addContractRet.data.contract._id.toString();
+    contract.contractId = addContractRet.data.contract._id;
     deployContractRet = await service.deployContract(contract.contractId);
     taskResult1 = await checkTask(
       deployContractRet,
@@ -293,51 +292,41 @@ class Test {
     // 2 - Add media (the picture all NFTs will share). It is uploaded to arweave.
     await service.addTestMedia();
     const media = await service.getMedia();
-    if (media[0].name !== 'dragon.png') error('Media not set');
+    if (media.data[0].name !== 'dragon.png') error('Media not set');
     check('Test media added');
 
     // 3 - Saves the NFT as draft (using previous mediaId).
     const nft = {
-      media: media[0]._id,
+      media: media.data[0]._id,
       name: 'dragon',
       description: 'The Dragon NFT',
-      attributes: [
+      attributes: JSON.stringify([
         { trait_type: 'Color', value: 'Green' },
         { display_type: 'number', trait_type: 'Years', value: '888' },
-      ],
+      ]),
     };
-    task = await service.saveNFT(contract.contractId, nft);
-    taskResult1 = await checkTask(
-      task,
-      service,
-      'NFT saved',
-      'Failed to save NFT'
-    );
-    const nftId = task.nft._id;
+    addNFTRet = await service.addNFT(contract.contractId, nft);
+    await checkTask(addNFTRet, service, 'NFT added', 'Failed to add NFT');
+    const nftId = addNFTRet.data._id;
 
     // 4 - Mints the NFT (writes to the Blockchain). Uses the minter wallet and mints also to minter.
-    task = await service.mintNFT(
+    mintNFTRet = await service.mintNFT(
       nftId,
       minter.walletId,
       minter.skey,
       minter.walletId
     );
-    taskResult1 = await checkTask(
-      task,
-      service,
-      'NFT minted',
-      'Failed to mint NFT'
-    );
+    await checkTask(mintNFTRet, service, 'NFT minted', 'Failed to mint NFT');
 
     // 5 - Transfers the NFT to the owner.
-    task = await service.transferNFT(
+    transferNFTRet = await service.transferNFT(
       nftId,
       minter.walletId,
       minter.skey,
       nftowner.walletId
     );
-    taskResult1 = await checkTask(
-      task,
+    await checkTask(
+      transferNFTRet,
       service,
       'NFT transferred',
       'Failed to transfer NFT'
@@ -346,14 +335,14 @@ class Test {
     warning('\nTest - Multi tasking\n');
     const tasks = [];
     for (let i = 1; i <= 10; i++) {
-      task = await service.saveNFT(contract.contractId, nft);
+      task = await service.addNFT(contract.contractId, nft);
       await checkTask(
         task,
         service,
         `NFT ${i} saved`,
         `Failed to save NFT ${i}`
       );
-      const nftId = task.nft._id;
+      const nftId = task.data._id;
       task = await service.mintNFT(
         nftId,
         minter.walletId,
@@ -377,7 +366,13 @@ class Test {
 
   static async drops(nconf, skipInit = false) {
     if (!skipInit) await this.init();
-    let task, taskResult1, taskResult2, data, addWalletRet, deployWalletRet;
+    let task,
+      taskResult1,
+      data,
+      addWalletRet,
+      deployWalletRet,
+      addContractRet,
+      deployContractRet;
 
     /*
      * Add Wallet for drops (onchain)
@@ -385,9 +380,7 @@ class Test {
     warning('\nDrops - Creating on-chain wallet\n');
 
     addWalletRet = await service.addWallet('mk', 'onchain');
-    deployWalletRet = await service.deployWallet(
-      addWalletRet.wallet._id.toString()
-    );
+    deployWalletRet = await service.deployWallet(addWalletRet.data.wallet._id);
     taskResult1 = await checkTask(
       deployWalletRet,
       service,
@@ -396,8 +389,8 @@ class Test {
     );
     const owner = {
       name: 'owner',
-      walletId: addWalletRet.wallet._id,
-      skey: addWalletRet.skey1,
+      walletId: addWalletRet.data.wallet._id,
+      skey: addWalletRet.data.skey1,
     };
     owner.address = taskResult1.contractAddress;
 
@@ -417,21 +410,19 @@ class Test {
       // contractType: 51, // Mutable
       contractType: 52, // Inmutable
       walletId: owner.walletId,
-      contractId: 0,
-      mediaId: null,
       urlCode: urlCode,
     };
-    task = await service.addContract(
+    addContractRet = await service.addContract(
       contract.name,
       contract.symbol,
       contract.contractType,
       contract.walletId,
-      contract.contractId,
-      contract.mediaId,
       contract.urlCode
     );
+    contract.contractId = addContractRet.data.contract._id;
+    deployContractRet = await service.deployContract(contract.contractId);
     taskResult1 = await checkTask(
-      task,
+      deployContractRet,
       service,
       'Contract deployed',
       'Failed to deploy contract'
@@ -460,9 +451,13 @@ class Test {
       endDate: '2025-12-31',
     };
     task = await service.addDrop(contract.contractId, directMintingDrop);
-    if (!!task) check(`Drop created successfully: ${directMintingDrop.name}`);
-    else error('Failed to create Drop');
-    directMintingDrop._id = task._id;
+    await checkTask(
+      task,
+      service,
+      `Drop created successfully: ${directMintingDrop.name}`,
+      'Failed to create Drop'
+    );
+    directMintingDrop._id = task.data._id;
 
     // Not Direct minting drop
     const notDirectMintingDrop = {
@@ -477,10 +472,13 @@ class Test {
       endDate: '2025-12-31',
     };
     task = await service.addDrop(contract.contractId, notDirectMintingDrop);
-    if (!!task)
-      check(`Drop created successfully: ${notDirectMintingDrop.name}`);
-    else error('Failed to create Drop');
-    notDirectMintingDrop._id = task._id;
+    await checkTask(
+      task,
+      service,
+      `Drop created successfully: ${notDirectMintingDrop.name}`,
+      'Failed to create Drop'
+    );
+    notDirectMintingDrop._id = task.data._id;
 
     /*
      * Upload only one NFT
@@ -506,9 +504,12 @@ class Test {
       // 'nft.png',
       // fs.readFileSync('./assets/nft.png')
     );
-    // console.log('nft', task);
-    if (!!task) check('Uploaded NFT. The state of this NFT is draft');
-    else error('Failed to upload NFT');
+    await checkTask(
+      task,
+      service,
+      'Uploaded NFT. The state of this NFT is draft',
+      'Failed to upload NFT'
+    );
 
     /*
      * Upload NFTs (Bulk mode) -> Drop 1
@@ -522,9 +523,12 @@ class Test {
       zipFilename,
       directMintingDrop._id
     );
-    if (!!task.success)
-      check('Uploaded NFTS in bulk mode. The state of each NFT is draft');
-    else error('Failed to upload NFTs');
+    await checkTask(
+      task,
+      service,
+      'Uploaded NFTS in bulk mode. The state of each NFT is draft',
+      'Failed to upload NFTs'
+    );
 
     /*
      * Upload NFTs (Bulk mode) -> Drop 2
@@ -538,9 +542,12 @@ class Test {
       zipFilename,
       notDirectMintingDrop._id
     );
-    if (!!task.success)
-      check('Uploaded NFTS in bulk mode. The state of each NFT is draft');
-    else error('Failed to upload NFTs');
+    await checkTask(
+      task,
+      service,
+      'Uploaded NFTS in bulk mode. The state of each NFT is draft',
+      'Failed to upload NFTs'
+    );
 
     /*
      * Upload drop codes for Direct minting drop
@@ -550,9 +557,12 @@ class Test {
       directMintingDrop._id,
       './assets/dropcodes.csv'
     );
-    if (!!task) check('Uploaded drop codes');
-    else error('Failed to upload drop codes');
-
+    await checkTask(
+      task,
+      service,
+      'Uploaded drop codes',
+      'Failed to upload drop codes'
+    );
     check(`Landing page url: ${urlLandingPage}`);
 
     /*
@@ -581,12 +591,6 @@ class Test {
         service,
         'Media uploaded successfully',
         'Failed to create Media'
-      );
-      taskResult2 = await checkTask(
-        { taskId: directMintingRet1.metadataTaskId },
-        service,
-        'Metadata uploaded successfully',
-        'Failed to upload Metadata'
       );
       const nft = directMintingRet1.nft;
       // Add key

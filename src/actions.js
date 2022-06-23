@@ -1300,16 +1300,6 @@ class Actions {
       projectId
     );
 
-    // Old method
-    let task = await service.saveNFT(contractId, nft);
-    if (!task || task.state === 'failed') error('Failed to upload NFT');
-    const nftId = task.nft._id;
-    if (task.taskId !== 0) {
-      task = await service.waitTask(task.taskId);
-      if (!task || task.state === 'failed') error('Failed to upload NFT');
-    }
-
-    /*
     let task;
     nft.attributes = JSON.stringify(nft.attributes);
     console.log('nft', nft);
@@ -1318,7 +1308,6 @@ class Actions {
     if (theNft === false) error('Error uploading the NFT');
     if (theNft.state === 'failed') error('Failed to upload NFT');
     const nftId = theNft._id;
-    */
 
     const minterId = nconf.get(`${env}:${projectId}:walletId`);
     const minter = nconf.get(`${env}:${projectId}:${minterId}`);

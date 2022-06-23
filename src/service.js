@@ -178,56 +178,7 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
-   * Save NFT
-   *
-   * @param {string} contractId Contract Id
-   * @param {object} metadata NFT minted.
-   */
-  saveNFT(contractId, metadata, tokenId = 0) {
-    return this.apiCall(
-      'POST',
-      'nfts/v2/save',
-      { contractId, metadata, tokenId },
-      'tokenAuth'
-    );
-  }
-
-  /*
-   * Mint an NFT
-   *
-   * @param {string} nftId NFT ID
-   * @param {string} walletId Minter Wallet ID
-   * @param {string} skey Minter Wallet SKEY
-   * @param {string} to Wallet ID receiving the tokens
-   * @param {string} address Alternative address
-   */
-  mintNFT(nftId, walletId, skey, to = false, address = false) {
-    return this.apiCall(
-      'POST',
-      'nfts/v2/mint',
-      { nftId, walletId, skey, to, address },
-      'tokenAuth'
-    );
-  }
-
-  /*
-   * Update an NFT
-   *
-   * @param {string} contractId Contract ID
-   * @param {string} tokenId Token ID
-   * @param {object} metadata NFT minted.
-   */
-  updateNFT(contractId, tokenId, metadata) {
-    return this.apiCall(
-      'PUT',
-      `nfts/v2/${contractId}/${tokenId}`,
-      { metadata },
-      'tokenAuth'
-    );
-  }
-
-  /*
-   * Upload NFT
+   * Add/upload NFT
    *
    * @param {string} contractId: Contract ID
    * @param {object} nft (tokenId, name, description, attributes)
@@ -328,6 +279,40 @@ class MintKnight extends MintKnightBase {
             });
         });
     });
+  }
+
+  /*
+   * Mint an NFT
+   *
+   * @param {string} nftId NFT ID
+   * @param {string} walletId Minter Wallet ID
+   * @param {string} skey Minter Wallet SKEY
+   * @param {string} to Wallet ID receiving the tokens
+   * @param {string} address Alternative address
+   */
+  mintNFT(nftId, walletId, skey, to = false, address = false) {
+    return this.apiCall(
+      'POST',
+      'nfts/v2/mint',
+      { nftId, walletId, skey, to, address },
+      'tokenAuth'
+    );
+  }
+
+  /*
+   * Update an NFT
+   *
+   * @param {string} contractId Contract ID
+   * @param {string} tokenId Token ID
+   * @param {object} metadata NFT minted.
+   */
+  updateNFT(contractId, tokenId, metadata) {
+    return this.apiCall(
+      'PUT',
+      `nfts/v2/${contractId}/${tokenId}`,
+      { metadata },
+      'tokenAuth'
+    );
   }
 
   /*
