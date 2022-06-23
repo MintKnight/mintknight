@@ -1,8 +1,6 @@
 const axios = require('axios');
-const chalk = require('chalk');
 const FormData = require('form-data');
 const fs = require('fs');
-const log = console.log;
 
 const MintKnightBase = require('./base');
 
@@ -24,7 +22,7 @@ class MintKnight extends MintKnightBase {
       for (let i = 0; i < times; i += 1) {
         const result = await this.apiCall(
           'GET',
-          `tasks/v1/${taskId}`,
+          `tasks/v2/${taskId}`,
           {},
           'tokenAuth'
         );
@@ -47,48 +45,17 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
-   * Add a ERC20 Contract
-   *
-   * @param {string} projectId ProjectId
+   * Add a Contract as draft
    */
   addContract(
     name,
     symbol,
     contractType,
     walletId,
-    contractId,
-    mediaId,
-    urlCode,
-    baseUri = null
-  ) {
-    const contract = {
-      contractType,
-      name,
-      symbol,
-      minter: walletId,
-      owner: walletId,
-      contractId,
-      mediaId,
-      urlCode,
-    };
-    if (!!baseUri) contract.baseUri = baseUri;
-    return this.apiCall('POST', 'contracts/v1/', contract, 'tokenAuth');
-  }
-
-  /*
-   * Save a ERC20 Contract on draft mode v2
-   *
-   * @param {string} projectId ProjectId
-   */
-  saveContract(
-    name,
-    symbol,
-    contractType,
-    walletId,
-    urlCode,
-    baseUri,
-    thumbnail,
-    thumbName
+    urlCode = '',
+    baseUri = '',
+    thumbnail = null,
+    thumbName = null
   ) {
     return new Promise((resolve) => {
       const contract = {
@@ -101,32 +68,40 @@ class MintKnight extends MintKnightBase {
         minter: walletId,
         owner: walletId,
       };
-
       const form = new FormData();
       for (var key in contract) {
         form.append(key, contract[key]);
       }
-      if (!thumbnail) {
-      } else {
+      if (!!thumbnail) {
         const image = fs.readFileSync(thumbnail);
         form.append('thumb', image, thumbName);
       }
-
       const config = {
         headers: {
           ...form.getHeaders(),
           Authorization: `Bearer ${this.apiKey}`,
         },
       };
-
+      const method = 'POST';
+      const call = 'contracts/v2';
       axios
-        .post(`${this.api}contracts/v2/save`, form, config)
+        .post(`${this.api}${call}`, form, config)
         .then((res) => {
-          resolve(res.data);
+          this.mkLog(`${method} ${call} => Success`);
+          if (this.responseType === 'basic') resolve(res.data);
+          else resolve({ success: true, data: res.data, error: null });
         })
         .catch((e) => {
-          log(chalk.red('Error'), e.message);
-          resolve(false);
+          this.mkError(`${method} ${call} => ${e.message}`);
+          if (this.responseType === 'basic') resolve(false);
+          else
+            resolve({
+              success: false,
+              data: null,
+              error: e.message,
+              code: 0,
+              retry: false,
+            });
         });
     });
   }
@@ -137,10 +112,12 @@ class MintKnight extends MintKnightBase {
    * @param {string} contractId
    */
   deployContract(contractId) {
-    const dataForm = {
-      contractId,
-    };
-    return this.apiCall('POST', 'contracts/v2/', dataForm, 'tokenAuth');
+    return this.apiCall(
+      'POST',
+      `contracts/v2/deploy/${contractId}`,
+      {},
+      'tokenAuth'
+    );
   }
 
   /*
@@ -156,7 +133,7 @@ class MintKnight extends MintKnightBase {
   mintToken(contractId, walletId, skey, value, to = false, address = false) {
     return this.apiCall(
       'POST',
-      'tokens/v1',
+      'tokens/v2',
       { contractId, walletId, skey, value, to, address },
       'tokenAuth'
     );
@@ -168,7 +145,7 @@ class MintKnight extends MintKnightBase {
   getToken(contractId, address) {
     return this.apiCall(
       'GET',
-      `tokens/v1/${contractId}/${address}`,
+      `tokens/v2/${contractId}/${address}`,
       {},
       'tokenAuth'
     );
@@ -194,7 +171,7 @@ class MintKnight extends MintKnightBase {
   ) {
     return this.apiCall(
       'PUT',
-      'tokens/v1',
+      'tokens/v2',
       { contractId, walletId, skey, value, to, address },
       'tokenAuth'
     );
@@ -209,7 +186,7 @@ class MintKnight extends MintKnightBase {
   saveNFT(contractId, metadata, tokenId = 0) {
     return this.apiCall(
       'POST',
-      'nfts/v1/save',
+      'nfts/v2/save',
       { contractId, metadata, tokenId },
       'tokenAuth'
     );
@@ -227,7 +204,7 @@ class MintKnight extends MintKnightBase {
   mintNFT(nftId, walletId, skey, to = false, address = false) {
     return this.apiCall(
       'POST',
-      'nfts/v1/mint',
+      'nfts/v2/mint',
       { nftId, walletId, skey, to, address },
       'tokenAuth'
     );
@@ -243,7 +220,7 @@ class MintKnight extends MintKnightBase {
   updateNFT(contractId, tokenId, metadata) {
     return this.apiCall(
       'PUT',
-      `nfts/v1/${contractId}/${tokenId}`,
+      `nfts/v2/${contractId}/${tokenId}`,
       { metadata },
       'tokenAuth'
     );
@@ -281,14 +258,26 @@ class MintKnight extends MintKnightBase {
           Authorization: `Bearer ${this.apiKey}`,
         },
       };
+      const method = 'POST';
+      const call = `nfts/v2/${contractId}`;
       return axios
-        .post(`${this.api}nfts/v2/${contractId}`, form, config)
+        .post(`${this.api}${call}`, form, config)
         .then((res) => {
-          resolve(res.data);
+          this.mkLog(`${method} ${call} => Success`);
+          if (this.responseType === 'basic') resolve(res.data);
+          else resolve({ success: true, data: res.data, error: null });
         })
         .catch((e) => {
-          log(chalk.red('Error'), e.message);
-          resolve(false);
+          this.mkError(`${method} ${call} => ${e.message}`);
+          if (this.responseType === 'basic') resolve(false);
+          else
+            resolve({
+              success: false,
+              data: null,
+              error: e.message,
+              code: 0,
+              retry: false,
+            });
         });
     });
   }
@@ -317,14 +306,26 @@ class MintKnight extends MintKnightBase {
         maxContentLength: Infinity,
         maxBodyLength: Infinity,
       };
+      const method = 'POST';
+      const call = `nfts/v2/upload/${contractId}`;
       return axios
-        .post(`${this.api}nfts/v1/upload/${contractId}`, form, config)
+        .post(`${this.api}${call}`, form, config)
         .then((res) => {
-          resolve(res.data);
+          this.mkLog(`${method} ${call} => Success`);
+          if (this.responseType === 'basic') resolve(res.data);
+          else resolve({ success: true, data: res.data, error: null });
         })
         .catch((e) => {
-          log(chalk.red('Error'), e.message);
-          resolve(false);
+          this.mkError(`${method} ${call} => ${e.message}`);
+          if (this.responseType === 'basic') resolve(false);
+          else
+            resolve({
+              success: false,
+              data: null,
+              error: e.message,
+              code: 0,
+              retry: false,
+            });
         });
     });
   }
@@ -341,7 +342,7 @@ class MintKnight extends MintKnightBase {
   transferNFT(nftId, walletId, skey, to, address) {
     return this.apiCall(
       'PUT',
-      `nfts/v1/${nftId}`,
+      `nfts/v2/${nftId}`,
       { nftId, walletId, skey, to, address },
       'tokenAuth'
     );
@@ -353,7 +354,7 @@ class MintKnight extends MintKnightBase {
    * @param {string} contractId contract ID
    */
   getContract(contractId) {
-    return this.apiCall('GET', `contracts/v1/${contractId}`, {}, 'tokenAuth');
+    return this.apiCall('GET', `contracts/v2/${contractId}`, {}, 'tokenAuth');
   }
 
   /*
@@ -366,7 +367,7 @@ class MintKnight extends MintKnightBase {
   updateContract(contractId, change, walletId, address, owner, skey) {
     return this.apiCall(
       'PUT',
-      `contracts/v1/${contractId}`,
+      `contracts/v2/${contractId}`,
       { change, walletId, address, owner, skey },
       'tokenAuth'
     );
@@ -376,7 +377,7 @@ class MintKnight extends MintKnightBase {
    * Update Contract in DB
    */
   updateContractDB(contractId, data) {
-    return this.apiCall('PUT', `contracts/v1/${contractId}`, data, 'tokenAuth');
+    return this.apiCall('PUT', `contracts/v2/${contractId}`, data, 'tokenAuth');
   }
 
   /*
@@ -389,7 +390,7 @@ class MintKnight extends MintKnightBase {
   updatePrices(contractId, prices, owner, skey) {
     return this.apiCall(
       'PUT',
-      `contracts/v1/${contractId}/prices`,
+      `contracts/v2/${contractId}/prices`,
       { prices, owner, skey },
       'tokenAuth'
     );
@@ -405,7 +406,7 @@ class MintKnight extends MintKnightBase {
   updateVerifier(contractId, walletId, owner, skey) {
     return this.apiCall(
       'PUT',
-      `contracts/v1/${contractId}/verifier`,
+      `contracts/v2/${contractId}/verifier`,
       { walletId, walletId, owner, skey },
       'tokenAuth'
     );
@@ -415,7 +416,7 @@ class MintKnight extends MintKnightBase {
    * Get Contract Info
    */
   getContract(contractId) {
-    return this.apiCall('GET', `contracts/v1/${contractId}`, {}, 'tokenAuth');
+    return this.apiCall('GET', `contracts/v2/${contractId}`, {}, 'tokenAuth');
   }
 
   /*
@@ -469,7 +470,7 @@ class MintKnight extends MintKnightBase {
    * @param {string} walletId wallet ID
    */
   getWallet(walletId) {
-    return this.apiCall('GET', `wallets/v1/${walletId}`, {}, 'tokenAuth');
+    return this.apiCall('GET', `wallets/v2/${walletId}`, {}, 'tokenAuth');
   }
 
   /*
@@ -478,7 +479,7 @@ class MintKnight extends MintKnightBase {
   addDrop(contractId, data) {
     return this.apiCall(
       'POST',
-      `drops/v1/contract/${contractId}`,
+      `drops/v2/contract/${contractId}`,
       data,
       'tokenAuth'
     );
@@ -490,7 +491,7 @@ class MintKnight extends MintKnightBase {
   getDrops(contractId) {
     return this.apiCall(
       'GET',
-      `drops/v1/contract/${contractId}`,
+      `drops/v2/contract/${contractId}`,
       {},
       'tokenAuth'
     );
@@ -500,14 +501,14 @@ class MintKnight extends MintKnightBase {
    * Update Drop
    */
   updateDrop(dropId, data) {
-    return this.apiCall('PUT', `drops/v1/${dropId}`, data, 'tokenAuth');
+    return this.apiCall('PUT', `drops/v2/${dropId}`, data, 'tokenAuth');
   }
 
   /*
    * Get NFT from drop
    */
   getNftFromDrop(dropId, data) {
-    return this.apiCall('POST', `drops/v1/getNft/${dropId}`, data, 'tokenAuth');
+    return this.apiCall('POST', `drops/v2/getNft/${dropId}`, data, 'tokenAuth');
   }
 
   /*
@@ -516,7 +517,7 @@ class MintKnight extends MintKnightBase {
   mintNftFromDrop(dropId, nftId, data) {
     return this.apiCall(
       'POST',
-      `drops/v1/mintNft/${dropId}/${nftId}`,
+      `drops/v2/mintNft/${dropId}/${nftId}`,
       data,
       'tokenAuth'
     );
@@ -528,7 +529,7 @@ class MintKnight extends MintKnightBase {
   addDropStrategy(dropId, data) {
     return this.apiCall(
       'POST',
-      `drop_strategies/v1/${dropId}`,
+      `dropStrategies/v2/${dropId}`,
       data,
       'tokenAuth'
     );
@@ -540,7 +541,7 @@ class MintKnight extends MintKnightBase {
   getDropStrategies(dropId) {
     return this.apiCall(
       'GET',
-      `drop_strategies/v1/drop/${dropId}`,
+      `dropStrategies/v2/drop/${dropId}`,
       {},
       'tokenAuth'
     );
@@ -552,7 +553,7 @@ class MintKnight extends MintKnightBase {
   updateDropStrategy(dropStrategyId, data) {
     return this.apiCall(
       'PUT',
-      `drop_strategies/v1/${dropStrategyId}`,
+      `dropStrategies/v2/${dropStrategyId}`,
       data,
       'tokenAuth'
     );
@@ -562,14 +563,14 @@ class MintKnight extends MintKnightBase {
    * Add a new Drop code by drop
    */
   addDropCode(dropId, data) {
-    return this.apiCall('POST', `drop_codes/v1/${dropId}`, data, 'tokenAuth');
+    return this.apiCall('POST', `dropCodes/v2/${dropId}`, data, 'tokenAuth');
   }
 
   /*
    * Get Drop codes list
    */
   getDropCodes(dropId) {
-    return this.apiCall('GET', `drop_codes/v1/drop/${dropId}`, {}, 'tokenAuth');
+    return this.apiCall('GET', `dropCodes/v2/drop/${dropId}`, {}, 'tokenAuth');
   }
 
   /*
@@ -578,7 +579,7 @@ class MintKnight extends MintKnightBase {
   updateDropCode(dropCodeId, data) {
     return this.apiCall(
       'PUT',
-      `drop_codes/v1/${dropCodeId}`,
+      `dropCodes/v2/${dropCodeId}`,
       data,
       'tokenAuth'
     );
@@ -601,14 +602,26 @@ class MintKnight extends MintKnightBase {
           Authorization: `Bearer ${this.apiKey}`,
         },
       };
+      const method = 'POST';
+      const call = `dropCodes/v2/upload/${dropId}`;
       return axios
-        .post(`${this.api}drop_codes/v1/upload/${dropId}`, form, config)
+        .post(`${this.api}${call}`, form, config)
         .then((res) => {
-          resolve(res.data);
+          this.mkLog(`${method} ${call} => Success`);
+          if (this.responseType === 'basic') resolve(res.data);
+          else resolve({ success: true, data: res.data, error: null });
         })
         .catch((e) => {
-          log(chalk.red('Error'), e.message);
-          resolve(false);
+          this.mkError(`${method} ${call} => ${e.message}`);
+          if (this.responseType === 'basic') resolve(false);
+          else
+            resolve({
+              success: false,
+              data: null,
+              error: e.message,
+              code: 0,
+              retry: false,
+            });
         });
     });
   }
@@ -619,7 +632,7 @@ class MintKnight extends MintKnightBase {
   addDropUser(dropId, data) {
     return this.apiCall(
       'POST',
-      `drop_users/v1/drop/${dropId}`,
+      `dropUsers/v2/drop/${dropId}`,
       data,
       'tokenAuth'
     );
@@ -629,11 +642,11 @@ class MintKnight extends MintKnightBase {
    * Get Drop user list by contract
    */
   getDropUsers(dropId) {
-    return this.apiCall('GET', `drop_users/v1/drop/${dropId}`, {}, 'tokenAuth');
+    return this.apiCall('GET', `dropUsers/v2/drop/${dropId}`, {}, 'tokenAuth');
   }
 
   addTestMedia() {
-    return this.apiCall('POST', 'media/v1/test', {}, 'tokenAuth');
+    return this.apiCall('POST', 'media/v2/test', {}, 'tokenAuth');
   }
 
   /*
@@ -651,14 +664,26 @@ class MintKnight extends MintKnightBase {
           Authorization: `Bearer ${this.apiKey}`,
         },
       };
+      const method = 'POST';
+      const call = `media/v2`;
       axios
-        .post(`${this.api}media/v2`, form, config)
+        .post(`${this.api}${call}`, form, config)
         .then((res) => {
-          resolve(res.data);
+          this.mkLog(`${method} ${call} => Success`);
+          if (this.responseType === 'basic') resolve(res.data);
+          else resolve({ success: true, data: res.data, error: null });
         })
         .catch((e) => {
-          log(chalk.red('Error'), e.message);
-          resolve(false);
+          this.mkError(`${method} ${call} => ${e.message}`);
+          if (this.responseType === 'basic') resolve(false);
+          else
+            resolve({
+              success: false,
+              data: null,
+              error: e.message,
+              code: 0,
+              retry: false,
+            });
         });
     });
   }
@@ -667,14 +692,14 @@ class MintKnight extends MintKnightBase {
    * Get Media list
    */
   getMedia() {
-    return this.apiCall('GET', 'media/v1', {}, 'tokenAuth');
+    return this.apiCall('GET', 'media/v2', {}, 'tokenAuth');
   }
 
   /*
    * Get NFT list
    */
   getNfts(contractId) {
-    return this.apiCall('GET', `nfts/v1/${contractId}`, {}, 'tokenAuth');
+    return this.apiCall('GET', `nfts/v2/${contractId}`, {}, 'tokenAuth');
   }
 
   /*
@@ -683,7 +708,7 @@ class MintKnight extends MintKnightBase {
   getNftsByWallet(walletId) {
     return this.apiCall(
       'GET',
-      `nfts/v1/all/wallet/${walletId}`,
+      `nfts/v2/all/wallet/${walletId}`,
       {},
       'tokenAuth'
     );
@@ -711,7 +736,7 @@ class MintKnight extends MintKnightBase {
   getNft(contractId, tokenId) {
     return this.apiCall(
       'GET',
-      `nfts/v1/${contractId}/${tokenId}`,
+      `nfts/v2/${contractId}/${tokenId}`,
       {},
       'tokenAuth'
     );
@@ -723,7 +748,7 @@ class MintKnight extends MintKnightBase {
   getSignature(contractId, tokens, buyer, walletId, skey) {
     return this.apiCall(
       'POST',
-      'wallets/v1/sign',
+      'wallets/v2/sign',
       { contractId, tokens, buyer, walletId, skey },
       'tokenAuth'
     );

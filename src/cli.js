@@ -203,18 +203,6 @@ const transfer = async (nconf) => {
   }
 };
 
-const save = async (nconf) => {
-  const element = process.argv[3];
-  switch (element) {
-    case 'contract':
-      Actions.saveContract(nconf);
-      break;
-    default:
-      error('Invalid element to list (contract, nft)');
-      break;
-  }
-};
-
 const deploy = async (nconf) => {
   const element = process.argv[3];
   switch (element) {
@@ -280,9 +268,6 @@ const main = async () => {
       break;
     case 'update':
       update(nconf);
-      break;
-    case 'save':
-      save(nconf);
       break;
     case 'deploy':
       deploy(nconf);

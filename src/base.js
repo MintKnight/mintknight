@@ -9,7 +9,7 @@ class MintKnightBase {
     this.debug = props.debug || false;
     this.token = props.token || false;
     this.apiKey = props.apiKey || false;
-    this.responseType = props.responseType || 'basic';
+    this.responseType = props.responseType || 'detailed';
   }
 
   /*

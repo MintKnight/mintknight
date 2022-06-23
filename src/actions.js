@@ -531,50 +531,9 @@ class Actions {
   }
 
   /**
-   * Add a new Contract (save + deploy) v1
+   * Add a new Contract (draft mode)
    */
   static async newContract(nconf) {
-    const { service } = connect(nconf);
-    const { project, wallet } = Actions.info(nconf);
-    // Add contract.
-    const contract = await Prompt.contract(project.name);
-    // urlCode
-    let urlCode = '';
-    if (contract.contractType === 51 || contract.contractType === 52) {
-      urlCode = await Prompt.text('Url code (landing page path)');
-      if (!urlCode) error(`Url code is required`);
-    }
-    // baseUri
-    let baseUri = null;
-    if (contract.contractType === 51) {
-      const _baseUri = await Prompt.text('Base URI (optional))');
-      if (!!_baseUri) baseUri = _baseUri;
-    }
-
-    let task = await service.addContract(
-      contract.name,
-      contract.symbol,
-      contract.contractType,
-      wallet.walletId,
-      contract.contractId,
-      contract.mediaId,
-      urlCode,
-      baseUri
-    );
-    task = await service.waitTask(task.taskId);
-    if (task == false || task.state == 'failed') {
-      error(`Error creating contract`);
-    } else {
-      contract.address = task.contractAddress;
-      contract.contractId = task.contractId;
-      await Actions.addContract(nconf, contract, wallet);
-    }
-  }
-
-  /**
-   * Save a new Contract (draft mode)
-   */
-  static async saveContract(nconf) {
     let name2;
     let ext2;
     const { service } = connect(nconf);
@@ -603,7 +562,7 @@ class Actions {
       if (!!_baseUri) baseUri = _baseUri;
     }
 
-    let res = await service.saveContract(
+    let res = await service.addContract(
       contract.name,
       contract.symbol,
       contract.contractType,

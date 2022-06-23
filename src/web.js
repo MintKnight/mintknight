@@ -22,7 +22,7 @@ class MintKnightWeb extends MintKnightBase {
     return new Promise((resolve) => {
       this.apiCall(
         'POST',
-        'users/v1/register',
+        'users/v2/register',
         { email, password },
         false
       ).then((res) => {
@@ -40,7 +40,7 @@ class MintKnightWeb extends MintKnightBase {
    */
   loginUser(email, password) {
     return new Promise((resolve) => {
-      this.apiCall('POST', 'users/v1/login', { email, password }, false).then(
+      this.apiCall('POST', 'users/v2/login', { email, password }, false).then(
         (res) => {
           this.token = res.token;
           resolve(res);
@@ -56,7 +56,7 @@ class MintKnightWeb extends MintKnightBase {
    * @param {string} password Password
    */
   setCompany(name) {
-    return this.apiCall('POST', 'companies/v1', { name }, 'userAuth');
+    return this.apiCall('POST', 'companies/v2', { name }, 'userAuth');
   }
 
   /*
@@ -94,12 +94,20 @@ class MintKnightWeb extends MintKnightBase {
       axios
         .post(`${this.api}projects/v2/`, form, config)
         .then((res) => {
-          // console.log(res.data);
-          resolve(res.data);
+          if (this.responseType === 'basic') resolve(res.data);
+          else resolve({ success: true, data: res.data, error: null });
         })
         .catch((e) => {
           log(chalk.red('Error'), e.message);
-          resolve(false);
+          if (this.responseType === 'basic') resolve(false);
+          else
+            resolve({
+              success: false,
+              data: null,
+              error: e.message,
+              code: 0,
+              retry: false,
+            });
         });
     });
   }
@@ -153,7 +161,7 @@ class MintKnightWeb extends MintKnightBase {
    * Get Project.
    */
   getProject() {
-    return this.apiCall('GET', 'projects/v1', {}, 'userAuth');
+    return this.apiCall('GET', 'projects/v2', {}, 'userAuth');
   }
 
   /*
@@ -162,7 +170,7 @@ class MintKnightWeb extends MintKnightBase {
    * @param {string} projectId ProjectId
    */
   updateLimits(projectId) {
-    return this.apiCall('PUT', 'projects/v1/limits', { projectId }, 'userAuth');
+    return this.apiCall('PUT', 'projects/v2/limits', { projectId }, 'userAuth');
   }
 
   /*
@@ -174,7 +182,7 @@ class MintKnightWeb extends MintKnightBase {
     return new Promise((resolve) => {
       this.apiCall(
         'GET',
-        `projects/v1/apikey/${projectId}`,
+        `projects/v2/apikey/${projectId}`,
         {},
         'userAuth'
       ).then((res) => {

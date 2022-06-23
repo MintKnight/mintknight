@@ -24,9 +24,12 @@ function makeid(length) {
 // Check Task and wait for result.
 async function checkTask(task, service, okMessage, errMessage) {
   let taskResult = false;
-  if (task === false) error(errMessage);
-  if (task.taskId !== 0) {
-    taskResult = await service.waitTask(task.taskId);
+  if (task === false || task.success === false) error(errMessage);
+  let taskId = null;
+  if (!!task.taskId) taskId = task.taskId;
+  else if (!!task.data && !!task.data.taskId) taskId = task.data.taskId;
+  if (!!taskId) {
+    taskResult = await service.waitTask(taskId);
     if (taskResult.state === 'failed') error(errMessage);
   }
   check(okMessage);
@@ -94,20 +97,20 @@ class Test {
       `${makeid(10)}$mk.com`,
       'testpassword'
     );
-    if (config === false) error('Error while registering the user');
-    if (config.status === 'failed') error(config.error);
+    if (!config.success)
+      error(`Error while registering the user: ${config.error}`);
     check('User registered');
 
     // 2 - Connect to MintKnight Web with the user Token.
-    props.token = config.token;
+    props.token = config.data.token;
     mintknight = new MintKnightWeb(urlWeb, props);
 
     // 3 - Register company.
     let result = await mintknight.setCompany('NFT Org');
-    config.companyId = result._id;
+    config.data.companyId = result._id;
 
     // Save user to local env.
-    await Actions.saveUser(nconf, config);
+    await Actions.saveUser(nconf, config.data);
     check('Company added');
 
     // 4 - Add first project.
@@ -117,12 +120,12 @@ class Test {
       network: process.env.MINTKNIGHT_TEST_NETWORK,
     };
     result = await mintknight.addProject(project.name, project.network);
-    project.projectId = result._id;
+    project.projectId = result.data._id;
     check('Project added');
 
     // 5 - Get API KEY of the project
     result = await mintknight.getApiKey(project.projectId);
-    project.token = result.token;
+    project.token = result.data.token;
 
     // Save project to local env.
     await Actions.addProject(nconf, project);
@@ -142,7 +145,12 @@ class Test {
 
   static async go(nconf) {
     await this.init();
-    let task, taskResult1, addWalletRet, deployWalletRet;
+    let task,
+      taskResult1,
+      addWalletRet,
+      deployWalletRet,
+      addContractRet,
+      deployContractRet;
 
     /*
      * Prepare Wallets : signer, minter & owner
@@ -162,9 +170,9 @@ class Test {
     );
     const signer = {
       name: 'signer',
-      walletId: addWalletRet.wallet._id,
-      skey: addWalletRet.skey1,
-      address: addWalletRet.wallet.address,
+      walletId: addWalletRet.data.wallet._id,
+      skey: addWalletRet.data.skey1,
+      address: addWalletRet.data.wallet.address,
     };
 
     // Save to local env.
@@ -172,8 +180,14 @@ class Test {
 
     // 2 - Add Wallet - owner (onchain), admin of the NFT contracts.
     addWalletRet = await service.addWallet('ref2', 'onchain');
+    await checkTask(
+      addWalletRet,
+      service,
+      'Wallet owner added',
+      'Failed to add owner wallet'
+    );
     deployWalletRet = await service.deployWallet(
-      addWalletRet.wallet._id.toString()
+      addWalletRet.data.wallet._id.toString()
     );
     taskResult1 = await checkTask(
       deployWalletRet,
@@ -183,8 +197,8 @@ class Test {
     );
     const nftowner = {
       name: 'nftowner',
-      walletId: addWalletRet.wallet._id,
-      skey: addWalletRet.skey1,
+      walletId: addWalletRet.data.wallet._id,
+      skey: addWalletRet.data.skey1,
     };
     nftowner.address = taskResult1.contractAddress;
 
@@ -194,8 +208,14 @@ class Test {
 
     // 3 - Add Wallet - minter (onchain), Can mint to the NFT contracts.
     addWalletRet = await service.addWallet('ref1', 'onchain');
+    await checkTask(
+      addWalletRet,
+      service,
+      'Wallet minter added',
+      'Failed to add minter wallet'
+    );
     deployWalletRet = await service.deployWallet(
-      addWalletRet.wallet._id.toString()
+      addWalletRet.data.wallet._id.toString()
     );
     taskResult1 = await checkTask(
       deployWalletRet,
@@ -205,8 +225,8 @@ class Test {
     );
     const minter = {
       name: 'minter',
-      walletId: addWalletRet.wallet._id,
-      skey: addWalletRet.skey1,
+      walletId: addWalletRet.data.wallet._id,
+      skey: addWalletRet.data.skey1,
     };
     minter.address = taskResult1.contractAddress;
 
@@ -243,22 +263,27 @@ class Test {
       symbol: 'M1',
       contractType: 51,
       walletId: minter.walletId, //admin and minter of this contract
-      contractId: 0,
     };
-    task = await service.addContract(
+    addContractRet = await service.addContract(
       contract.name,
       contract.symbol,
       contract.contractType,
-      contract.walletId,
-      contract.contractId
+      contract.walletId
     );
+    await checkTask(
+      addContractRet,
+      service,
+      'ERC721MinterPauserMutable added',
+      'Failed to add ERC721MinterPauserMutable'
+    );
+    contract.contractId = addContractRet.data.contract._id.toString();
+    deployContractRet = await service.deployContract(contract.contractId);
     taskResult1 = await checkTask(
-      task,
+      deployContractRet,
       service,
       'ERC721MinterPauserMutable deployed',
       'Failed to deploy ERC721MinterPauserMutable'
     );
-
     contract.address = taskResult1.contractAddress;
     contract.contractId = taskResult1.contractId;
 
@@ -537,7 +562,6 @@ class Test {
     const buyerAccount = '0x668417616f1502D13EA1f9528F83072A133e8E01';
     // const dropCod = '';
     const dropCod = 'ABCD1';
-    service.setResponseType('detailed');
     data = {
       dropCod,
       userData: {
@@ -591,7 +615,6 @@ class Test {
   static async wallets(nconf, skipInit = false) {
     if (!skipInit) await this.init();
     let addWalletRet, taskResult1;
-    service.setResponseType('detailed');
 
     /*
      * Add and deploy several wallets (onchain) at the same time
