@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { Prompt, Select } = require('./term');
 const { log, title, error, warning, detail } = require('./term');
-const { MintKnight, MintKnightWeb } = require('../src/index');
+const { MintKnight } = require('../src/index');
 const HOMEMK = (process.env.HOME || process.env.USERPROFILE) + '/.mintknight';
 
 /**
@@ -14,9 +14,9 @@ const addConfDir = async () => {
   }
 };
 
-const waitTask = async (task, service, msgOk, msgKo) => {
+const waitTask = async (task, mintknight, msgOk, msgKo) => {
   if (task === false) error(msgKo);
-  const result = await service.waitTask(task.taskId);
+  const result = await mintknight.waitTask(task.taskId);
   if (result.state === 'failed') error(msgKo);
   log(msgOk);
   return result;
@@ -29,45 +29,38 @@ const waitTask = async (task, service, msgOk, msgKo) => {
  * @param {boolean} debug
  */
 const connect = (nconf) => {
-  let urlWeb;
-  let urlService;
+  let urlApi;
   let contractId = false;
   let walletId = false;
   let network = false;
   const env = nconf.get('env');
   switch (env) {
     case 'local':
-      urlWeb = 'http://localhost:3000/';
-      urlService = 'http://localhost:3001/';
+      urlApi = 'http://localhost:3001/';
       break;
     case 'sandbox':
-      urlWeb = 'https://webapi.sandbox.mintknight.com/';
-      urlService = 'https://api.sandbox.mintknight.com/';
+      urlApi = 'https://api.sandbox.mintknight.com/';
       break;
     case 'production':
-      urlWeb = 'https://webapi.mintknight.com/';
-      urlService = 'https://api.mintknight.com/';
+      urlApi = 'https://api.mintknight.com/';
       break;
   }
-  let service = false;
   const token = nconf.get(`${env}:token`) || false;
   const props = {
     debug: nconf.get('debug') || true,
     token,
   };
   const projectId = nconf.get(`${env}:projectId`);
-  const mintknight = new MintKnightWeb(urlWeb, props);
   if (projectId) {
     walletId = nconf.get(`${env}:${projectId}:walletId`);
     contractId = nconf.get(`${env}:${projectId}:contractId`);
     props.apiKey = nconf.get(`${env}:${projectId}:token`);
     network = nconf.get(`${env}:${projectId}:network`);
-    service = new MintKnight(urlService, props, env, projectId, contractId);
   }
+  const mintknight = new MintKnight(urlApi, props);
   return {
     token,
     mintknight,
-    service,
     env,
     contractId,
     projectId,
@@ -472,20 +465,20 @@ class Actions {
    * Add a new Wallet
    */
   static async newWallet(nconf, walletType) {
-    const { service } = connect(nconf);
+    const { mintknight } = connect(nconf);
     const { project } = Actions.info(nconf);
 
     // Add wallet.
     const wallet = await Prompt.wallet(project.name, walletType);
-    let addWalletRet = await service.addWallet(wallet.refUser, walletType);
+    let addWalletRet = await mintknight.addWallet(wallet.refUser, walletType);
     if (addWalletRet !== false) {
       const walletId = addWalletRet.wallet._id.toString();
       wallet.walletId = walletId;
       wallet.address = addWalletRet.wallet.address;
       wallet.skey = addWalletRet.skey1;
-      let deployWalletRet = await service.deployWallet(walletId);
+      let deployWalletRet = await mintknight.deployWallet(walletId);
       if (!!deployWalletRet.taskId) {
-        const task = await service.waitTask(deployWalletRet.taskId);
+        const task = await mintknight.waitTask(deployWalletRet.taskId);
         if (task.state === 'failed') error('Wallet creation failed');
         wallet.address = task.contractAddress;
       }
@@ -525,8 +518,8 @@ class Actions {
    * Info Wallet.
    */
   static async infoWallet(nconf) {
-    const { service, walletId } = connect(nconf);
-    const wallet = await service.getWallet(walletId);
+    const { mintknight, walletId } = connect(nconf);
+    const wallet = await mintknight.getWallet(walletId);
     console.log(wallet);
   }
 
@@ -536,7 +529,7 @@ class Actions {
   static async newContract(nconf) {
     let name2;
     let ext2;
-    const { service } = connect(nconf);
+    const { mintknight } = connect(nconf);
     const { project, wallet } = Actions.info(nconf);
     // Add contract.
     const contract = await Prompt.contract(project.name);
@@ -562,7 +555,7 @@ class Actions {
       if (!!_baseUri) baseUri = _baseUri;
     }
 
-    let res = await service.addContract(
+    let res = await mintknight.addContract(
       contract.name,
       contract.symbol,
       contract.contractType,
@@ -583,9 +576,9 @@ class Actions {
    * deploys a draft contract
    */
   static async deployContract(nconf) {
-    const { service, contractId } = connect(nconf);
-    let task = await service.deployContract(contractId);
-    task = await service.waitTask(task.taskId);
+    const { mintknight, contractId } = connect(nconf);
+    let task = await mintknight.deployContract(contractId);
+    task = await mintknight.waitTask(task.taskId);
     console.log('task', task);
     if (task == false || task.state == 'failed') {
       error(`Error deploying contract`);
@@ -634,8 +627,8 @@ class Actions {
    * Info Contract.
    */
   static async infoContract(nconf) {
-    const { service, contractId } = connect(nconf);
-    const contract = await service.getContract(contractId);
+    const { mintknight, contractId } = connect(nconf);
+    const contract = await mintknight.getContract(contractId);
     if (contract) {
       warning(`\n${contract.name} (${contract.symbol})`);
       switch (contract.contractType) {
@@ -677,7 +670,7 @@ class Actions {
    * Add a new Drop
    */
   static async newDrop(nconf) {
-    const { service, contractId } = connect(nconf);
+    const { mintknight, contractId } = connect(nconf);
     if (!contractId) error('A contract must be selected');
     const {
       name,
@@ -691,7 +684,7 @@ class Actions {
       endDate,
     } = await this.askDropParams();
 
-    const ret = await service.addDrop(contractId, {
+    const ret = await mintknight.addDrop(contractId, {
       name,
       description,
       dropType,
@@ -776,9 +769,9 @@ class Actions {
    * List Drops
    */
   static async listDrop(nconf) {
-    const { service, contractId, walletId } = connect(nconf);
+    const { mintknight, contractId, walletId } = connect(nconf);
     if (!contractId) error('A contract must be selected');
-    const data = await service.getDrops(contractId);
+    const data = await mintknight.getDrops(contractId);
     for (let i = 0; i < data.length; i += 1) {
       const obj = data[i];
       // console.log('obj', obj);
@@ -799,7 +792,7 @@ class Actions {
    * Update Drop
    */
   static async updateDrop(nconf) {
-    const { service } = connect(nconf);
+    const { mintknight } = connect(nconf);
     // DropId
     const dropId = await Prompt.text('Drop Id (mk list drop)');
     if (!dropId) error(`Drop Id is required`);
@@ -815,7 +808,7 @@ class Actions {
       endDate,
     } = await this.askDropParams('update');
 
-    const ret = await service.updateDrop(dropId, {
+    const ret = await mintknight.updateDrop(dropId, {
       name,
       description,
       dropType,
@@ -836,13 +829,13 @@ class Actions {
    * Add a new Drop strategy
    */
   static async newDropStrategy(nconf) {
-    const { service } = connect(nconf);
+    const { mintknight } = connect(nconf);
     // DropId
     const dropId = await Prompt.text('Drop Id (mk list drop)');
     if (!dropId) error(`Drop Id is required`);
     const { channel, actions, reference } = await this.askDropStrategyParams();
 
-    const ret = await service.addDropStrategy(dropId, {
+    const ret = await mintknight.addDropStrategy(dropId, {
       channel,
       actions,
       reference,
@@ -883,11 +876,11 @@ class Actions {
    * List Drop strategies
    */
   static async listDropStrategy(nconf) {
-    const { service } = connect(nconf);
+    const { mintknight } = connect(nconf);
     // DropId
     const dropId = await Prompt.text('Drop Id (mk list drop)');
     if (!dropId) error(`Drop Id is required`);
-    const data = await service.getDropStrategies(dropId);
+    const data = await mintknight.getDropStrategies(dropId);
     for (let i = 0; i < data.length; i += 1) {
       const obj = data[i];
       // console.log('obj', obj);
@@ -903,7 +896,7 @@ class Actions {
    * Update Drop strategy
    */
   static async updateDropStrategy(nconf) {
-    const { service } = connect(nconf);
+    const { mintknight } = connect(nconf);
     // dropStrategyId
     const dropStrategyId = await Prompt.text(
       'Drop strategy Id (mk list dropstrategy)'
@@ -913,7 +906,7 @@ class Actions {
       'update'
     );
 
-    const ret = await service.updateDropStrategy(dropStrategyId, {
+    const ret = await mintknight.updateDropStrategy(dropStrategyId, {
       channel,
       actions,
       reference,
@@ -929,7 +922,7 @@ class Actions {
    * Add a new Drop code/s
    */
   static async newDropCode(nconf) {
-    const { service } = connect(nconf);
+    const { mintknight } = connect(nconf);
 
     const choices = [
       {
@@ -956,7 +949,7 @@ class Actions {
 
     const { code, maxUsage } = await this.askDropCodeParams();
 
-    const ret = await service.addDropCode(dropId, {
+    const ret = await mintknight.addDropCode(dropId, {
       code,
       maxUsage,
     });
@@ -987,11 +980,11 @@ class Actions {
    * List Drop codes
    */
   static async listDropCode(nconf) {
-    const { service } = connect(nconf);
+    const { mintknight } = connect(nconf);
     // DropId
     const dropId = await Prompt.text('Drop Id (mk list drop)');
     if (!dropId) error(`Drop Id is required`);
-    const data = await service.getDropCodes(dropId);
+    const data = await mintknight.getDropCodes(dropId);
     for (let i = 0; i < data.length; i += 1) {
       const obj = data[i];
       // console.log('obj', obj);
@@ -1007,13 +1000,13 @@ class Actions {
    * Update Drop code
    */
   static async updateDropCode(nconf) {
-    const { service } = connect(nconf);
+    const { mintknight } = connect(nconf);
     // dropCodeId
     const dropCodeId = await Prompt.text('Drop code Id (mk list dropcode)');
     if (!dropCodeId) error(`Drop code Id is required`);
     const { code, maxUsage } = await this.askDropCodeParams('update');
 
-    const ret = await service.updateDropCode(dropCodeId, {
+    const ret = await mintknight.updateDropCode(dropCodeId, {
       code,
       maxUsage,
     });
@@ -1028,7 +1021,7 @@ class Actions {
    * Upload bulk Drop codes
    */
   static async addDropCodes(nconf) {
-    const { service } = connect(nconf);
+    const { mintknight } = connect(nconf);
     // DropId
     const dropId = await Prompt.text('Drop Id (mk list drop)');
     if (!dropId) error(`Drop Id is required`);
@@ -1045,7 +1038,7 @@ class Actions {
     if (!['.csv'].includes(ext)) error('Invalid extension. Only csv is valid');
     csvFilename = path.normalize(csvFilename);
 
-    const ret = await service.addDropCodes(dropId, csvFilename);
+    const ret = await mintknight.addDropCodes(dropId, csvFilename);
     if (ret === false) error('Error uploading Drop codes');
     if (ret.status && ret.status.toLowerCase() === 'failed')
       error('Error uploading Drop codes: ' + ret.error);
@@ -1056,14 +1049,14 @@ class Actions {
    * Add a new Drop user
    */
   static async newDropUser(nconf) {
-    const { service } = connect(nconf);
+    const { mintknight } = connect(nconf);
     // DropId
     const dropId = await Prompt.text('Drop Id (mk list drop)');
     if (!dropId) error(`Drop Id is required`);
     const { name, email, twitter, telegram, discord, address } =
       await this.askDropUserParams();
 
-    const ret = await service.addDropUser(dropId, {
+    const ret = await mintknight.addDropUser(dropId, {
       name,
       email,
       twitter,
@@ -1103,9 +1096,9 @@ class Actions {
    * List Collections
    */
   static async listCollections(nconf) {
-    const { service } = connect(nconf);
+    const { mintknight } = connect(nconf);
 
-    const collections = await service.getMedia();
+    const collections = await mintknight.getMedia();
     for (let i = 0; i < media.length; i += 1) {
       // console.log(media[i]);
       title(`\n${media[i]._id}`);
@@ -1119,11 +1112,11 @@ class Actions {
    * List Drop users
    */
   static async listDropUser(nconf) {
-    const { service } = connect(nconf);
+    const { mintknight } = connect(nconf);
     // DropId
     const dropId = await Prompt.text('Drop Id (mk list drop)');
     if (!dropId) error(`Drop Id is required`);
-    const data = await service.getDropUsers(dropId);
+    const data = await mintknight.getDropUsers(dropId);
     for (let i = 0; i < data.length; i += 1) {
       const obj = data[i];
       // console.log('obj', obj);
@@ -1141,12 +1134,12 @@ class Actions {
    * Add a newImage to media Lib.
    */
   static async newMedia(nconf, img = false) {
-    const { service } = connect(nconf);
+    const { mintknight } = connect(nconf);
     // Check
     if (img === false) error('Image needed. mk add media ./assets/nft.png');
 
     if (img === 'test') {
-      let task = await service.addTestMedia();
+      let task = await mintknight.addTestMedia();
       log('Test Media added');
     } else {
       if (!fs.existsSync(img)) error(`File ${img} does not exist`);
@@ -1175,14 +1168,14 @@ class Actions {
       const uploadToArweave = await Select.option(choices);
 
       // Connect
-      let ret = await service.addMedia(img, `${name}${ext}`, uploadToArweave);
+      let ret = await mintknight.addMedia(img, `${name}${ext}`, uploadToArweave);
       if (
         ret === false ||
         (ret.status && ret.status.toLowerCase() === 'failed')
       )
         error('Media added failed');
       if (uploadToArweave) {
-        const task = await service.waitTask(ret.taskId);
+        const task = await mintknight.waitTask(ret.taskId);
         if (
           task === false ||
           (task.state && task.state.toLowerCase() === 'failed')
@@ -1197,8 +1190,8 @@ class Actions {
    * List all media files.
    */
   static async listMedia(nconf) {
-    const { service } = connect(nconf);
-    const media = await service.getMedia();
+    const { mintknight } = connect(nconf);
+    const media = await mintknight.getMedia();
     for (let i = 0; i < media.length; i += 1) {
       // console.log(media[i]);
       title(`\n${media[i]._id}`);
@@ -1212,7 +1205,7 @@ class Actions {
    * Mint a new token
    */
   static async mintToken(nconf) {
-    const { service, env, projectId, contractId } = connect(nconf);
+    const { mintknight, env, projectId, contractId } = connect(nconf);
     if (!contractId) error('A contract must be selected');
     // if (checkOwner(env, nconf) === false) error('Invalid Wallet');
     const { walletId, address } = await Prompt.getWalletId(
@@ -1225,7 +1218,7 @@ class Actions {
 
     const minterId = nconf.get(`${env}:${projectId}:walletId`);
     const minter = nconf.get(`${env}:${projectId}:${minterId}`);
-    let task = await service.mintToken(
+    let task = await mintknight.mintToken(
       contractId,
       minterId,
       minter.skey,
@@ -1233,7 +1226,7 @@ class Actions {
       walletId,
       address
     );
-    task = await service.waitTask(task.taskId);
+    task = await mintknight.waitTask(task.taskId);
     if (task.state === 'failed') error('Mint failed');
     log('Tokens Minted');
   }
@@ -1242,10 +1235,10 @@ class Actions {
    * Get info token (blance of address)
    */
   static async infoToken(nconf) {
-    const { service, contractId } = connect(nconf);
+    const { mintknight, contractId } = connect(nconf);
     if (!contractId) error('A contract must be selected');
     const address = await Prompt.text('Public address');
-    const token = await service.getToken(contractId, address);
+    const token = await mintknight.getToken(contractId, address);
     if (token === false) return;
     title(`\n${address}`);
     detail('Name', token.name);
@@ -1258,7 +1251,7 @@ class Actions {
    * Transfer a token
    */
   static async transferToken(nconf) {
-    const { service, env, projectId, contractId } = connect(nconf);
+    const { mintknight, env, projectId, contractId } = connect(nconf);
     if (!contractId) error('A contract must be selected');
     // if (checkOwner(env, nconf) === false) error('Invalid Wallet');
     log('Send the Token To');
@@ -1272,7 +1265,7 @@ class Actions {
 
     const ownerId = nconf.get(`${env}:${projectId}:walletId`);
     const owner = nconf.get(`${env}:${projectId}:${ownerId}`);
-    let task = await service.transferToken(
+    let task = await mintknight.transferToken(
       contractId,
       ownerId,
       owner.skey,
@@ -1281,7 +1274,7 @@ class Actions {
       address
     );
     if (task == false) error('Transfer Failed');
-    task = await service.waitTask(task.taskId);
+    task = await mintknight.waitTask(task.taskId);
     if (task.state === 'failed') error('Transfer failed');
     log('Token Transferred');
   }
@@ -1290,7 +1283,7 @@ class Actions {
    * Mint a new NFT
    */
   static async mintNFT(nconf) {
-    const { service, env, projectId, contractId } = connect(nconf);
+    const { mintknight, env, projectId, contractId } = connect(nconf);
     // if (checkOwner(env, nconf) === false) error('Invalid Wallet');
     // Get metadata
     const nft = await Prompt.nft();
@@ -1303,7 +1296,7 @@ class Actions {
     let task;
     nft.attributes = JSON.stringify(nft.attributes);
     console.log('nft', nft);
-    let theNft = await service.addNFT(contractId, nft);
+    let theNft = await mintknight.addNFT(contractId, nft);
     console.log('theNft', theNft);
     if (theNft === false) error('Error uploading the NFT');
     if (theNft.state === 'failed') error('Failed to upload NFT');
@@ -1311,14 +1304,14 @@ class Actions {
 
     const minterId = nconf.get(`${env}:${projectId}:walletId`);
     const minter = nconf.get(`${env}:${projectId}:${minterId}`);
-    task = await service.mintNFT(
+    task = await mintknight.mintNFT(
       nftId,
       minterId,
       minter.skey,
       walletId,
       address
     );
-    task = await service.waitTask(task.taskId);
+    task = await mintknight.waitTask(task.taskId);
     if (task.state === 'failed') error('Mint failed');
     log('NFT Minted');
   }
@@ -1327,7 +1320,7 @@ class Actions {
    * Transfer a NFT
    */
   static async transferNFT(nconf) {
-    const { service, env, projectId, contractId } = connect(nconf);
+    const { mintknight, env, projectId, contractId } = connect(nconf);
     // if (checkOwner(env, nconf) === false) error('Invalid Wallet');
     // Get metadata
     const nftId = await Prompt.text('NftId');
@@ -1340,7 +1333,7 @@ class Actions {
 
     const ownerId = nconf.get(`${env}:${projectId}:walletId`);
     const owner = nconf.get(`${env}:${projectId}:${ownerId}`);
-    let task = await service.transferNFT(
+    let task = await mintknight.transferNFT(
       nftId,
       ownerId,
       owner.skey,
@@ -1348,7 +1341,7 @@ class Actions {
       address
     );
     if (task == false) error('Transfer Failed');
-    task = await service.waitTask(task.taskId);
+    task = await mintknight.waitTask(task.taskId);
     if (task.state === 'failed') error('Transfer failed');
     log('NFT Transferred');
   }
@@ -1357,7 +1350,7 @@ class Actions {
    * Update NFT metadata
    */
   static async updateNft(nconf) {
-    const { service, contractId } = connect(nconf);
+    const { mintknight, contractId } = connect(nconf);
     const tokenId = await Prompt.text('TokenId');
     const attributes = [];
     let attribute = true;
@@ -1365,7 +1358,7 @@ class Actions {
       attribute = await Prompt.attribute();
       if (attribute !== false) attributes.push(attribute);
     }
-    await service.updateNFT(contractId, tokenId, attributes);
+    await mintknight.updateNFT(contractId, tokenId, attributes);
     log('NFT Updated');
   }
 
@@ -1373,7 +1366,7 @@ class Actions {
    * Add (upload) NFT/s
    */
   static async newNFT(nconf) {
-    const { service, contractId } = connect(nconf);
+    const { mintknight, contractId } = connect(nconf);
     if (!contractId) error('A contract must be selected');
 
     const choices = [
@@ -1425,7 +1418,7 @@ class Actions {
     // DropId
     const dropId = await Prompt.text('Drop Id (mk list drop)');
 
-    const ret = await service.addNFT(
+    const ret = await mintknight.addNFT(
       contractId,
       {
         tokenId,
@@ -1449,7 +1442,7 @@ class Actions {
    * Upload bulk NFTs
    */
   static async addNFTs(nconf) {
-    const { service, contractId } = connect(nconf);
+    const { mintknight, contractId } = connect(nconf);
     if (!contractId) error('A contract must be selected');
 
     /*
@@ -1480,7 +1473,7 @@ class Actions {
     const dropId = await Prompt.text('Drop Id (mk list drop)');
     // const dropId = '6284c910e904ba4c55fb5347';
 
-    const ret = await service.addNFTs(
+    const ret = await mintknight.addNFTs(
       contractId,
       csvFilename,
       zipFilename,
@@ -1496,7 +1489,7 @@ class Actions {
    * List NFTs.
    */
   static async listNft(nconf) {
-    const { service, contractId, walletId, network } = connect(nconf);
+    const { mintknight, contractId, walletId, network } = connect(nconf);
 
     const choices = [
       {
@@ -1520,14 +1513,14 @@ class Actions {
     var nfts;
     if (option === 'contract') {
       if (!contractId) error('A contract must be selected');
-      nfts = await service.getNfts(contractId);
+      nfts = await mintknight.getNfts(contractId);
     } else if (option === 'wallet') {
       if (!walletId) error('A wallet must be selected');
-      nfts = await service.getNftsByWallet(walletId);
+      nfts = await mintknight.getNftsByWallet(walletId);
     } else {
       const address = await Prompt.text('Address');
       if (!address) error('An Address is required');
-      nfts = await service.getAllNFTsFromBlockchain(address, {
+      nfts = await mintknight.getAllNFTsFromBlockchain(address, {
         withMetadata: false,
         // pageKey: '',
       });
@@ -1556,9 +1549,9 @@ class Actions {
    * Metadata NFTs.
    */
   static async infoNft(nconf) {
-    const { service, contractId } = connect(nconf);
+    const { mintknight, contractId } = connect(nconf);
     const tokenId = await Prompt.text('TokenId');
-    const nft = await service.getNft(contractId, tokenId);
+    const nft = await mintknight.getNft(contractId, tokenId);
     title(`\n${nft.name}`);
     detail('Description, ', nft.description);
     detail('Image', nft.image);
@@ -1580,7 +1573,7 @@ class Actions {
    * Update minter/owner of a contract
    */
   static async updateContract(nconf, change) {
-    const { env, service, projectId, contractId } = connect(nconf);
+    const { env, mintknight, projectId, contractId } = connect(nconf);
     if (!contractId) error('A contract must be selected');
     const { walletId, address } = await Prompt.getWalletId(
       nconf,
@@ -1589,7 +1582,7 @@ class Actions {
     );
     const ownerId = nconf.get(`${env}:${projectId}:walletId`);
     const owner = nconf.get(`${env}:${projectId}:${ownerId}`);
-    const task = await service.updateContract(
+    const task = await mintknight.updateContract(
       contractId,
       change,
       walletId,
@@ -1599,7 +1592,7 @@ class Actions {
     );
     await waitTask(
       task,
-      service,
+      mintknight,
       `Failed to update ${change}`,
       `${change} updated`
     );
@@ -1609,7 +1602,7 @@ class Actions {
    * Update Contract DB
    */
   static async updateContractDB(nconf) {
-    const { env, service, projectId, contractId } = connect(nconf);
+    const { env, mintknight, projectId, contractId } = connect(nconf);
     if (!contractId) error('A contract must be selected');
     const contract = nconf.get(`${env}:${projectId}:${contractId}`);
     // urlCode
@@ -1621,7 +1614,7 @@ class Actions {
       error('This type of contract cannot update');
       return;
     }
-    const ret = await service.updateContractDB(contractId, {
+    const ret = await mintknight.updateContractDB(contractId, {
       urlCode,
     });
     if (ret === false) error('Error updating Contract');
@@ -1634,12 +1627,12 @@ class Actions {
    * Update verifier
    */
   static async updateVerifier(nconf) {
-    const { env, service, projectId, contractId } = connect(nconf);
+    const { env, mintknight, projectId, contractId } = connect(nconf);
     if (!contractId) error('A contract must be selected');
     const verifier = await Prompt.text('Verifier (wallet Id of a Signer)');
     const ownerId = nconf.get(`${env}:${projectId}:walletId`);
     const owner = nconf.get(`${env}:${projectId}:${ownerId}`);
-    const task = await service.updateVerifier(
+    const task = await mintknight.updateVerifier(
       contractId,
       verifier,
       ownerId,
@@ -1647,7 +1640,7 @@ class Actions {
     );
     await waitTask(
       task,
-      service,
+      mintknight,
       'Verifier updated',
       'Failed to update verifier'
     );
@@ -1657,31 +1650,36 @@ class Actions {
    * Update minter/owner of a contract
    */
   static async updatePrices(nconf) {
-    const { env, service, projectId, contractId } = connect(nconf);
+    const { env, mintknight, projectId, contractId } = connect(nconf);
     if (!contractId) error('A contract must be selected');
     let prices = await Prompt.text('Prices (separated by coma)');
     prices = prices.replace(/\s+/g, '');
     const ownerId = nconf.get(`${env}:${projectId}:walletId`);
     const owner = nconf.get(`${env}:${projectId}:${ownerId}`);
-    const task = await service.updatePrices(
+    const task = await mintknight.updatePrices(
       contractId,
       prices,
       ownerId,
       owner.skey
     );
-    await waitTask(task, service, 'Prices updated', 'Failed to update prices');
+    await waitTask(
+      task,
+      mintknight,
+      'Prices updated',
+      'Failed to update prices'
+    );
   }
 
   /**
    * Sign to buy a tokenId.
    */
   static async sign(nconf) {
-    const { env, service, projectId, contractId } = connect(nconf);
+    const { env, mintknight, projectId, contractId } = connect(nconf);
     const signerId = nconf.get(`${env}:${projectId}:walletId`);
     const signer = nconf.get(`${env}:${projectId}:${signerId}`);
     const tokenId = await Prompt.text('TokenId');
     const buyer = await Prompt.text('Buyer address');
-    const signature = await service.getSignature(
+    const signature = await mintknight.getSignature(
       contractId,
       tokenId,
       buyer,

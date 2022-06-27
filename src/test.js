@@ -1,5 +1,5 @@
 const { log, error, errorNoExit, warning, check, detail } = require('./term');
-const { MintKnight, MintKnightWeb } = require('../src/index');
+const { MintKnight } = require('../src/index');
 const { Actions } = require('./actions');
 const ethers = require('ethers');
 const nconf = require('nconf');
@@ -8,7 +8,7 @@ const props = {
   debug: false,
   token: false,
 };
-let service;
+let mintknight;
 
 function makeid(length) {
   let result = '';
@@ -22,14 +22,14 @@ function makeid(length) {
 }
 
 // Check Task and wait for result.
-async function checkTask(task, service, okMessage, errMessage) {
+async function checkTask(task, okMessage, errMessage) {
   let taskResult = false;
   if (task === false || task.success === false) error(errMessage);
   let taskId = null;
   if (!!task.taskId) taskId = task.taskId;
   else if (!!task.data && !!task.data.taskId) taskId = task.data.taskId;
   if (!!taskId) {
-    taskResult = await service.waitTask(taskId);
+    taskResult = await mintknight.waitTask(taskId);
     if (taskResult.state === 'failed') error(errMessage);
   }
   check(okMessage);
@@ -37,7 +37,7 @@ async function checkTask(task, service, okMessage, errMessage) {
 }
 
 // Check Tasks (multi-tasking)
-async function checkTasks(tasks, service, times = 1000) {
+async function checkTasks(tasks, times = 1000) {
   let taskResult;
   const allTaskFinished = () => {
     let ret = true;
@@ -56,7 +56,7 @@ async function checkTasks(tasks, service, times = 1000) {
       const task = tasks[i];
       // console.log('task', i, task);
       if (task.finished) continue;
-      taskResult = await service.waitTask(task.data.taskId, times);
+      taskResult = await mintknight.waitTask(task.data.taskId, times);
       // console.log('task taskResult', i, taskResult);
       if (!taskResult.finished) continue;
       tasks[i].finished = true;
@@ -72,9 +72,9 @@ async function checkTasks(tasks, service, times = 1000) {
 }
 class Test {
   static async init() {
-    // Setup connection to Mintknight - Web.
-    const urlWeb = process.env.MINTKNIGHT_API_WEB;
-    let mintknight = new MintKnightWeb(urlWeb, props);
+    // Setup connection to Mintknight.
+    const urlApi = process.env.MINTKNIGHT_API_SERVICE;
+    mintknight = new MintKnight(urlApi, props);
 
     // Prepare local env.
     const env = 'local';
@@ -84,8 +84,8 @@ class Test {
     /*
      * User Registration
      *
-     * 1 - User Regsitration -> get user Token
-     * 2 - Connect to MintKnight Web with the user Token.
+     * 1 - User Registration -> get user Token
+     * 2 - Connect to MintKnight with the user Token.
      * 3 - Register company
      * 4 - Add first project
      * 5 - Get API KEY for the project
@@ -101,9 +101,9 @@ class Test {
       error(`Error while registering the user: ${config.error}`);
     check('User registered');
 
-    // 2 - Connect to MintKnight Web with the user Token.
+    // 2 - Connect to MintKnight Api with the user Token.
     props.token = config.data.token;
-    mintknight = new MintKnightWeb(urlWeb, props);
+    mintknight.setToken(config.data.token);
 
     // 3 - Register company.
     let result = await mintknight.setCompany('NFT Org');
@@ -131,16 +131,8 @@ class Test {
     await Actions.addProject(nconf, project);
     check('Got API KEY');
 
-    // Connect to MintKnight Web with the project Token.
-    const urlService = process.env.MINTKNIGHT_API_SERVICE;
-    props.apiKey = project.token;
-    service = new MintKnight(
-      urlService,
-      props,
-      'local',
-      project.projectId,
-      false
-    );
+    // Set the project Token.
+    mintknight.setApiKey(project.token);
   }
 
   static async go(nconf) {
@@ -164,13 +156,8 @@ class Test {
      */
 
     // 1 - Add Wallet - signer (not onchain), used to sign txs.
-    addWalletRet = await service.addWallet('ref3', 'signer');
-    await checkTask(
-      addWalletRet,
-      service,
-      'Signer created',
-      'Failed to add signer'
-    );
+    addWalletRet = await mintknight.addWallet('ref3', 'signer');
+    await checkTask(addWalletRet, 'Signer created', 'Failed to add signer');
     const signer = {
       name: 'signer',
       walletId: addWalletRet.data.wallet._id,
@@ -182,17 +169,17 @@ class Test {
     await Actions.addWallet(nconf, signer);
 
     // 2 - Add Wallet - owner (onchain), admin of the NFT contracts.
-    addWalletRet = await service.addWallet('ref2', 'onchain');
+    addWalletRet = await mintknight.addWallet('ref2', 'onchain');
     await checkTask(
       addWalletRet,
-      service,
       'Wallet owner added',
       'Failed to add owner wallet'
     );
-    deployWalletRet = await service.deployWallet(addWalletRet.data.wallet._id);
+    deployWalletRet = await mintknight.deployWallet(
+      addWalletRet.data.wallet._id
+    );
     taskResult1 = await checkTask(
       deployWalletRet,
-      service,
       'Wallet owner deployed',
       'Failed to deploy owner'
     );
@@ -208,17 +195,17 @@ class Test {
     check('NFT Owner deployed');
 
     // 3 - Add Wallet - minter (onchain), Can mint to the NFT contracts.
-    addWalletRet = await service.addWallet('ref1', 'onchain');
+    addWalletRet = await mintknight.addWallet('ref1', 'onchain');
     await checkTask(
       addWalletRet,
-      service,
       'Wallet minter added',
       'Failed to add minter wallet'
     );
-    deployWalletRet = await service.deployWallet(addWalletRet.data.wallet._id);
+    deployWalletRet = await mintknight.deployWallet(
+      addWalletRet.data.wallet._id
+    );
     taskResult1 = await checkTask(
       deployWalletRet,
-      service,
       'Wallet minter deployed',
       'Failed to deploy minter'
     );
@@ -263,7 +250,7 @@ class Test {
       contractType: 51,
       walletId: minter.walletId, //admin and minter of this contract
     };
-    addContractRet = await service.addContract(
+    addContractRet = await mintknight.addContract(
       contract.name,
       contract.symbol,
       contract.contractType,
@@ -271,15 +258,13 @@ class Test {
     );
     await checkTask(
       addContractRet,
-      service,
       'ERC721MinterPauserMutable added',
       'Failed to add ERC721MinterPauserMutable'
     );
     contract.contractId = addContractRet.data.contract._id;
-    deployContractRet = await service.deployContract(contract.contractId);
+    deployContractRet = await mintknight.deployContract(contract.contractId);
     taskResult1 = await checkTask(
       deployContractRet,
-      service,
       'ERC721MinterPauserMutable deployed',
       'Failed to deploy ERC721MinterPauserMutable'
     );
@@ -290,8 +275,8 @@ class Test {
     await Actions.addContract(nconf, contract, minter);
 
     // 2 - Add media (the picture all NFTs will share). It is uploaded to arweave.
-    await service.addTestMedia();
-    const media = await service.getMedia();
+    await mintknight.addTestMedia();
+    const media = await mintknight.getMedia();
     if (media.data[0].name !== 'dragon.png') error('Media not set');
     check('Test media added');
 
@@ -305,21 +290,21 @@ class Test {
         { display_type: 'number', trait_type: 'Years', value: '888' },
       ]),
     };
-    addNFTRet = await service.addNFT(contract.contractId, nft);
-    await checkTask(addNFTRet, service, 'NFT added', 'Failed to add NFT');
+    addNFTRet = await mintknight.addNFT(contract.contractId, nft);
+    await checkTask(addNFTRet, 'NFT added', 'Failed to add NFT');
     const nftId = addNFTRet.data._id;
 
     // 4 - Mints the NFT (writes to the Blockchain). Uses the minter wallet and mints also to minter.
-    mintNFTRet = await service.mintNFT(
+    mintNFTRet = await mintknight.mintNFT(
       nftId,
       minter.walletId,
       minter.skey,
       minter.walletId
     );
-    await checkTask(mintNFTRet, service, 'NFT minted', 'Failed to mint NFT');
+    await checkTask(mintNFTRet, 'NFT minted', 'Failed to mint NFT');
 
     // 5 - Transfers the NFT to the owner.
-    transferNFTRet = await service.transferNFT(
+    transferNFTRet = await mintknight.transferNFT(
       nftId,
       minter.walletId,
       minter.skey,
@@ -327,7 +312,6 @@ class Test {
     );
     await checkTask(
       transferNFTRet,
-      service,
       'NFT transferred',
       'Failed to transfer NFT'
     );
@@ -335,15 +319,10 @@ class Test {
     warning('\nTest - Multi tasking\n');
     const tasks = [];
     for (let i = 1; i <= 10; i++) {
-      task = await service.addNFT(contract.contractId, nft);
-      await checkTask(
-        task,
-        service,
-        `NFT ${i} saved`,
-        `Failed to save NFT ${i}`
-      );
+      task = await mintknight.addNFT(contract.contractId, nft);
+      await checkTask(task, `NFT ${i} saved`, `Failed to save NFT ${i}`);
       const nftId = task.data._id;
-      task = await service.mintNFT(
+      task = await mintknight.mintNFT(
         nftId,
         minter.walletId,
         minter.skey,
@@ -353,7 +332,7 @@ class Test {
       task.errMessage = `Failed to mint NFT ${i}`;
       tasks.push(task);
     }
-    await checkTasks(tasks, service);
+    await checkTasks(tasks);
 
     // Test drops
     await this.drops(nconf, true);
@@ -379,11 +358,12 @@ class Test {
      */
     warning('\nDrops - Creating on-chain wallet\n');
 
-    addWalletRet = await service.addWallet('mk', 'onchain');
-    deployWalletRet = await service.deployWallet(addWalletRet.data.wallet._id);
+    addWalletRet = await mintknight.addWallet('mk', 'onchain');
+    deployWalletRet = await mintknight.deployWallet(
+      addWalletRet.data.wallet._id
+    );
     taskResult1 = await checkTask(
       deployWalletRet,
-      service,
       'Wallet for drops deployed',
       'Failed to deploy wallet'
     );
@@ -412,7 +392,7 @@ class Test {
       walletId: owner.walletId,
       urlCode: urlCode,
     };
-    addContractRet = await service.addContract(
+    addContractRet = await mintknight.addContract(
       contract.name,
       contract.symbol,
       contract.contractType,
@@ -420,10 +400,9 @@ class Test {
       contract.urlCode
     );
     contract.contractId = addContractRet.data.contract._id;
-    deployContractRet = await service.deployContract(contract.contractId);
+    deployContractRet = await mintknight.deployContract(contract.contractId);
     taskResult1 = await checkTask(
       deployContractRet,
-      service,
       'Contract deployed',
       'Failed to deploy contract'
     );
@@ -450,10 +429,9 @@ class Test {
       startDate: '2022-01-01',
       endDate: '2025-12-31',
     };
-    task = await service.addDrop(contract.contractId, directMintingDrop);
+    task = await mintknight.addDrop(contract.contractId, directMintingDrop);
     await checkTask(
       task,
-      service,
       `Drop created successfully: ${directMintingDrop.name}`,
       'Failed to create Drop'
     );
@@ -471,10 +449,9 @@ class Test {
       startDate: '2022-01-01',
       endDate: '2025-12-31',
     };
-    task = await service.addDrop(contract.contractId, notDirectMintingDrop);
+    task = await mintknight.addDrop(contract.contractId, notDirectMintingDrop);
     await checkTask(
       task,
-      service,
       `Drop created successfully: ${notDirectMintingDrop.name}`,
       'Failed to create Drop'
     );
@@ -484,7 +461,7 @@ class Test {
      * Upload only one NFT
      */
     warning('\nDrops - Upload only one NFT\n');
-    task = await service.addNFT(
+    task = await mintknight.addNFT(
       contract.contractId,
       {
         tokenId: 50,
@@ -506,7 +483,6 @@ class Test {
     );
     await checkTask(
       task,
-      service,
       'Uploaded NFT. The state of this NFT is draft',
       'Failed to upload NFT'
     );
@@ -517,7 +493,7 @@ class Test {
     warning('\nDrops - Add NFTs for Drop 1\n');
     let csvFilename = './assets/nfts-v2.csv';
     let zipFilename = './assets/animals.zip';
-    task = await service.addNFTs(
+    task = await mintknight.addNFTs(
       contract.contractId,
       csvFilename,
       zipFilename,
@@ -525,7 +501,6 @@ class Test {
     );
     await checkTask(
       task,
-      service,
       'Uploaded NFTS in bulk mode. The state of each NFT is draft',
       'Failed to upload NFTs'
     );
@@ -536,7 +511,7 @@ class Test {
     warning('\nDrops - Add NFTs for Drop 2\n');
     csvFilename = './assets/nfts-v2-2.csv';
     zipFilename = './assets/animals.zip';
-    task = await service.addNFTs(
+    task = await mintknight.addNFTs(
       contract.contractId,
       csvFilename,
       zipFilename,
@@ -544,7 +519,6 @@ class Test {
     );
     await checkTask(
       task,
-      service,
       'Uploaded NFTS in bulk mode. The state of each NFT is draft',
       'Failed to upload NFTs'
     );
@@ -553,16 +527,11 @@ class Test {
      * Upload drop codes for Direct minting drop
      */
     warning('\nDrops - Upload drop codes\n');
-    task = await service.addDropCodes(
+    task = await mintknight.addDropCodes(
       directMintingDrop._id,
       './assets/dropcodes.csv'
     );
-    await checkTask(
-      task,
-      service,
-      'Uploaded drop codes',
-      'Failed to upload drop codes'
-    );
+    await checkTask(task, 'Uploaded drop codes', 'Failed to upload drop codes');
     check(`Landing page url: ${urlLandingPage}`);
 
     /*
@@ -581,14 +550,13 @@ class Test {
       buyer: buyerAccount,
     };
     // First request
-    let response = await service.getNftFromDrop(directMintingDrop._id, data);
+    let response = await mintknight.getNftFromDrop(directMintingDrop._id, data);
     if (!response.success)
       error(`Something wrong has succed: ${response.error}`);
     else {
       const directMintingRet1 = response.data;
       taskResult1 = await checkTask(
         { taskId: directMintingRet1.mediaTaskId },
-        service,
         'Media uploaded successfully',
         'Failed to create Media'
       );
@@ -596,7 +564,7 @@ class Test {
       // Add key
       data.skey1 = owner.skey;
       // Second request
-      response = await service.mintNftFromDrop(
+      response = await mintknight.mintNftFromDrop(
         directMintingDrop._id,
         nft._id,
         data
@@ -607,7 +575,6 @@ class Test {
         const directMintingRet2 = response.data;
         taskResult1 = await checkTask(
           { taskId: directMintingRet2.nftTaskId },
-          service,
           'NFT minted successfully',
           'Failed to mint NFT'
         );
@@ -627,14 +594,13 @@ class Test {
       '\nDeploy N MKWallets - Add and deploy several wallets (onchain) at the same time\n'
     );
     const numberOfWallets = 5;
-    addWalletRet = await service.addAndDeployWallets(
+    addWalletRet = await mintknight.addAndDeployWallets(
       numberOfWallets,
       'mk',
       'onchain'
     );
     taskResult1 = await checkTask(
       addWalletRet.data,
-      service,
       `${numberOfWallets} wallets have been added`,
       'Failed to add wallets'
     );

@@ -141,8 +141,16 @@ class MintKnightBase {
     });
   }
 
-  setResponseType(type) {
-    this.responseType = type;
+  setResponseType(value) {
+    this.responseType = value;
+  }
+
+  setToken(value) {
+    this.token = value;
+  }
+
+  setApiKey(value) {
+    this.apiKey = value;
   }
 }
 

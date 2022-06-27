@@ -1,4 +1,3 @@
-const MintKnightWeb = require('./web')
-const MintKnight = require('./service')
+const MintKnight = require('./service');
 
-module.exports = { MintKnight, MintKnightWeb }
+module.exports = { MintKnight };

@@ -17,7 +17,6 @@ cp .env.example .env
 
 Edit .env file with the desired connection parameters:
 
-- MINTKNIGHT_API_WEB=https://webapi.sandbox.mintknight.com/
 - MINTKNIGHT_API_SERVICE=https://api.sandbox.mintknight.com/
 
 We have two APIs, one for management (users, companies, projects...) and one strictly for Blockchain. At Sandbox level it is possible to access the Web API, but in production it is restricted.
@@ -25,7 +24,7 @@ We have two APIs, one for management (users, companies, projects...) and one str
 Example:
 ```javascript
 const MintKnight = require('mintknight');
-const mintknight = new MintKnight(process.env.MINTKNIGHT_API_WEB);
+const mintknight = new MintKnight(process.env.MINTKNIGHT_API);
 ```
 
 Learn more about Mintknight API:
