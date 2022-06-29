@@ -293,6 +293,8 @@ class Actions {
    * Register action
    */
   static async register(nconf) {
+    let result,
+      config = {};
     const env = nconf.get('env');
     if (env === undefined) {
       nconf.set('env', 'production');
@@ -307,15 +309,19 @@ class Actions {
     const user = await Prompt.user('Register new user');
 
     const { mintknight } = connect(nconf);
-    const config = await mintknight.registerUser(user.email, user.password);
-    if (config === false) error('Error while registering the user');
-    if (config.status === 'failed') error(config.error);
+    result = await mintknight.registerUser(user.email, user.password);
+    if (!result.success) error('Error while registering the user');
+    config = result.data;
+
+    // Connect to MintKnight Api with the user Token.
+    mintknight.setToken(result.data.token);
 
     // Register company.
     warning('\nCompany and Project');
     const name = await Prompt.text('Name of the Company');
-    let result = await mintknight.setCompany(name);
-    config.companyId = result._id;
+    result = await mintknight.setCompany(name);
+    if (!result.success) error('Error adding company');
+    config.companyId = result.data._id;
     await Actions.saveUser(nconf, config);
 
     // Add project.
@@ -325,11 +331,12 @@ class Actions {
       project.network,
       project.thumb
     );
-    project.projectId = result._id;
+    if (!result.success) error('Error adding project');
+    project.projectId = result.data._id;
 
     // Get Token.
     result = await mintknight.getApiKey(project.projectId);
-    project.token = result.token;
+    project.token = result.data.token;
     await Actions.addProject(nconf, project);
   }
 
@@ -471,19 +478,19 @@ class Actions {
     // Add wallet.
     const wallet = await Prompt.wallet(project.name, walletType);
     let addWalletRet = await mintknight.addWallet(wallet.refUser, walletType);
-    if (addWalletRet !== false) {
-      const walletId = addWalletRet.wallet._id.toString();
-      wallet.walletId = walletId;
-      wallet.address = addWalletRet.wallet.address;
-      wallet.skey = addWalletRet.skey1;
-      let deployWalletRet = await mintknight.deployWallet(walletId);
-      if (!!deployWalletRet.taskId) {
-        const task = await mintknight.waitTask(deployWalletRet.taskId);
-        if (task.state === 'failed') error('Wallet creation failed');
-        wallet.address = task.contractAddress;
-      }
-      await Actions.addWallet(nconf, wallet);
+    if (!addWalletRet.success) error('Error adding wallet');
+    const walletId = addWalletRet.data.wallet._id.toString();
+    wallet.walletId = walletId;
+    wallet.address = addWalletRet.data.wallet.address;
+    wallet.skey = addWalletRet.data.skey1;
+    let deployWalletRet = await mintknight.deployWallet(walletId);
+    if (!deployWalletRet.success) error('Error adding wallet');
+    if (!!deployWalletRet.data.taskId) {
+      const task = await mintknight.waitTask(deployWalletRet.data.taskId);
+      if (task.state === 'failed') error('Wallet creation failed');
+      wallet.address = task.contractAddress;
     }
+    await Actions.addWallet(nconf, wallet);
   }
 
   /**

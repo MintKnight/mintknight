@@ -72,6 +72,8 @@ async function checkTasks(tasks, times = 1000) {
 }
 class Test {
   static async init() {
+    let result,
+      config = {};
     // Setup connection to Mintknight.
     const urlApi = process.env.MINTKNIGHT_API_SERVICE;
     mintknight = new MintKnight(urlApi, props);
@@ -85,32 +87,34 @@ class Test {
      * User Registration
      *
      * 1 - User Registration -> get user Token
-     * 2 - Connect to MintKnight with the user Token.
+     * 2 - Set the user token in order to connect with MintKnight
      * 3 - Register company
      * 4 - Add first project
      * 5 - Get API KEY for the project
      */
     warning('\nTest - User Registration & Setup\n');
 
-    // 1 - User Regsitration -> get user Token
-    const config = await mintknight.registerUser(
+    // 1 - User Registration -> get user Token
+    result = await mintknight.registerUser(
       `${makeid(10)}$mk.com`,
       'testpassword'
     );
-    if (!config.success)
-      error(`Error while registering the user: ${config.error}`);
+    if (!result.success)
+      error(`Error while registering the user: ${result.error}`);
     check('User registered');
+    config = result.data;
 
     // 2 - Connect to MintKnight Api with the user Token.
-    props.token = config.data.token;
-    mintknight.setToken(config.data.token);
+    mintknight.setToken(result.data.token);
 
     // 3 - Register company.
-    let result = await mintknight.setCompany('NFT Org');
-    config.data.companyId = result._id;
+    result = await mintknight.setCompany('NFT Org');
+    if (!result.success) error('Error adding company');
+    check('User registered');
+    config.companyId = result.data._id;
 
     // Save user to local env.
-    await Actions.saveUser(nconf, config.data);
+    await Actions.saveUser(nconf, config);
     check('Company added');
 
     // 4 - Add first project.
@@ -120,6 +124,7 @@ class Test {
       network: process.env.MINTKNIGHT_TEST_NETWORK,
     };
     result = await mintknight.addProject(project.name, project.network);
+    if (!result.success) error('Error adding project');
     project.projectId = result.data._id;
     check('Project added');
 
