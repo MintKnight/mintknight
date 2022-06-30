@@ -176,6 +176,21 @@ class Config {
     nconf.set(`${contractId}:thumb`, contract.thumb);
     nconf.save();
   }
+
+  /**
+   * Update contract to the config
+   *
+   * @param {object} nconf
+   * @param {object} contract
+   * @param {string} contractAddress
+   */
+  static async updateContract(nconf, contract, contractAddress) {
+    const env = nconf.get('env');
+    const projectId = nconf.get(`${env}:projectId`);
+    const contractId = `${env}:${projectId}:${contract.contractId}`;
+    nconf.set(`${contractId}:address`, contractAddress);
+    nconf.save();
+  }
 }
 class Actions {
   /**
@@ -192,9 +207,9 @@ class Actions {
 
     title('\nProjects');
     detail('mk add project', 'Add a new project');
+    detail('mk update project', 'update Selected project');
     detail('mk info project', 'Queries stats for current project');
     detail('mk select project', 'Select Selected project');
-    detail('mk update project', 'update Selected project');
 
     title('\nWallets');
     detail('mk add wallet', 'Add a new wallet');
@@ -205,30 +220,28 @@ class Actions {
 
     title('\nContracts');
     detail('mk add contract', 'Add a new contract');
-    detail('mk save contract', 'Add a new contract (draft)');
+    detail('mk update contract', 'Update the active contract');
     detail('mk deploy contract', 'Deploys selected contract');
     detail('mk info contract', 'Queries stats for current contract');
     detail('mk select contract', 'Select Active contract');
-    detail('mk update contract', 'Update the active contract');
-    detail('mk list contracts', 'List all contracts from delected project');
     // detail('mk update minter', 'Update the contract´s minter');
     // detail('mk update owner', 'Update the contract´s owner');
     // detail('mk update verifier', 'Update the contract´s verifier');
 
     title('\nDrops');
     detail('mk add drop', 'Add a new drop');
-    detail('mk list drop', 'List all Drops in the contract');
     detail('mk update drop', 'Update a drop in the contract');
+    detail('mk list drop', 'List all Drops in the contract');
 
     title('\nDrop strategies');
     detail('mk add dropstrategy', 'Add a new Drop strategy');
-    detail('mk list dropstrategy', 'List all Drop strategies in a drop');
     detail('mk update dropstrategy', 'Update a drop strategy');
+    detail('mk list dropstrategy', 'List all Drop strategies in a drop');
 
     title('\nDrop codes');
     detail('mk add dropcode', 'Add a new Drop codes (solo or bulk mode)');
-    detail('mk list dropcode', 'List all Drop codes in a drop');
     detail('mk update dropcode', 'Update a drop code');
+    detail('mk list dropcode', 'List all Drop codes in a drop');
 
     title('\nDrop users');
     detail('mk add dropuser', 'Add a new user');
@@ -236,11 +249,11 @@ class Actions {
 
     title('\nNFTs');
     detail('mk add nft', 'Add news NFT/s (draft)');
-    detail('mk info nft', 'Get the metadata for an NFT');
-    detail('mk list nft', 'List NFTs');
     detail('mk update nft', 'Update the metadata for an NFT (draft)');
     detail('mk mint nft', 'Mint to the selected Contract');
     detail('mk transfer nft', 'Transfer an NFT owned by the current Wallet');
+    detail('mk info nft', 'Get the metadata for an NFT');
+    detail('mk list nft', 'List NFTs');
 
     title('\nMedia');
     detail('mk add media <file>', 'Add a new image to the media Library');
@@ -298,7 +311,7 @@ class Actions {
     if (project.contractId) {
       contract = nconf.get(`${env}:${project.projectId}:${project.contractId}`);
       contract.contractId = project.contractId;
-      detail('contract', contract.name);
+      detail('contract', contract.name, contract.type);
     }
     return { user, project, wallet, contract };
   }
@@ -576,13 +589,14 @@ class Actions {
       if (!urlCode) error(`Url code is required`);
     }
     // baseUri
-    let baseUri = null;
+    let baseUri = '';
     if (contract.contractType === 51) {
       const _baseUri = await Prompt.text('Base URI (optional))');
       if (!!_baseUri) baseUri = _baseUri;
     }
 
-    let res = await mintknight.addContract(
+    // Add contract
+    let result = await mintknight.addContract(
       contract.name,
       contract.symbol,
       contract.contractType,
@@ -592,11 +606,37 @@ class Actions {
       contract.thumb,
       `${name2}${ext2}`
     );
-    if (!res || (res.status && res.status.toLowerCase() === 'failed')) {
-      error(`Error adding contract`);
+    if (!result.success) error('Error adding contract');
+    if (result.data.status && result.data.status.toLowerCase() === 'failed')
+      error(result.data.error);
+    const theContract = result.data.contract;
+    theContract.contractId = theContract._id;
+    await Config.addContract(nconf, theContract, wallet);
+  }
+
+  /**
+   * Update Contract DB
+   */
+  static async updateContractDB(nconf) {
+    const { env, mintknight, projectId, contractId } = connect(nconf);
+    if (!contractId) error('A contract must be selected');
+    const contract = nconf.get(`${env}:${projectId}:${contractId}`);
+    // urlCode
+    let urlCode = '';
+    if (contract.type === 51 || contract.type === 52) {
+      urlCode = await Prompt.text('Url code (landing page path)');
+      if (!urlCode) error(`Url code is required`);
+    } else {
+      error('This type of contract cannot update');
+      return;
     }
-    res.contract.contractId = res.contract._id;
-    await Config.addContract(nconf, res.contract, wallet);
+    const result = await mintknight.updateContractDB(contractId, {
+      urlCode,
+    });
+    if (!result.success) error('Error adding contract');
+    if (result.data.status && result.data.status.toLowerCase() === 'failed')
+      error(result.data.error);
+    log('Contract updated');
   }
 
   /**
@@ -604,21 +644,18 @@ class Actions {
    */
   static async deployContract(nconf) {
     const { mintknight, contractId } = connect(nconf);
-    let task = await mintknight.deployContract(contractId);
-    task = await mintknight.waitTask(task.taskId);
-    console.log('task', task);
+    const result = await mintknight.deployContract(contractId);
+    if (!result.success) error('Error deploying contract');
+    if (result.data.status && result.data.status.toLowerCase() === 'failed')
+      error(result.data.error);
+    const theContract = result.data.contract;
+    const task = await mintknight.waitTask(result.data.taskId);
     if (task == false || task.state == 'failed') {
       error(`Error deploying contract`);
     }
     // Update contract
-    const env = nconf.get('env');
-    const projectId = nconf.get(`${env}:projectId`);
-    console.log('projectId', projectId, contractId);
-    nconf.set(
-      `${env}:${projectId}:${contractId}:address`,
-      task.contractAddress
-    );
-    nconf.save();
+    theContract.contractId = theContract._id;
+    await Config.updateContract(nconf, theContract, task.contractAddress);
   }
 
   /**
@@ -637,7 +674,7 @@ class Actions {
         if (!contract) continue;
         const choice = {
           title: contract.name,
-          description: `${contract.name}`,
+          description: `${contract.type}`,
           value: contracts[i],
         };
         choices.push(choice);
@@ -670,22 +707,17 @@ class Actions {
         case 52:
           detail('type', 'ERC721 Immutable');
           break;
-        case 53:
-          detail('type', 'ERC721 Immutable');
-          break;
-        case 100:
-          detail('type', 'BUY Contract');
-          break;
         default:
           detail('type', 'unknown');
           break;
       }
       detail('network', contract.network);
+      detail('status', contract.status);
       if (!!contract.owner) detail('owner', contract.owner);
       if (!!contract.minter) detail('minter', contract.minter);
-      if (contract.mediaId) {
-        detail('mediaId', contract.mediaId);
-      }
+      if (!!contract.mediaId) detail('mediaId', contract.mediaId);
+      if (!!contract.urlCode) detail('urlCode', contract.urlCode);
+      if (!!contract.baseUri) detail('baseUri', contract.baseUri);
       if (!!contract.blockchain) {
         detail('name', contract.blockchain.name);
         detail('symbol', contract.blockchain.symbol);
@@ -1119,22 +1151,6 @@ class Actions {
       discord,
       address,
     };
-  }
-
-  /**
-   * List Collections
-   */
-  static async listCollections(nconf) {
-    const { mintknight } = connect(nconf);
-
-    const collections = await mintknight.getMedia();
-    for (let i = 0; i < media.length; i += 1) {
-      // console.log(media[i]);
-      title(`\n${media[i]._id}`);
-      detail('Name', media[i].name);
-      if (!!media[i].url) detail('url', media[i].url);
-      if (!!media[i].fileUrl) detail('fileUrl', media[i].fileUrl);
-    }
   }
 
   /**
@@ -1628,31 +1644,6 @@ class Actions {
       `Failed to update ${change}`,
       `${change} updated`
     );
-  }
-
-  /**
-   * Update Contract DB
-   */
-  static async updateContractDB(nconf) {
-    const { env, mintknight, projectId, contractId } = connect(nconf);
-    if (!contractId) error('A contract must be selected');
-    const contract = nconf.get(`${env}:${projectId}:${contractId}`);
-    // urlCode
-    let urlCode = '';
-    if (contract.type === 51 || contract.type === 52) {
-      urlCode = await Prompt.text('Url code (landing page path)');
-      if (!urlCode) error(`Url code is required`);
-    } else {
-      error('This type of contract cannot update');
-      return;
-    }
-    const ret = await mintknight.updateContractDB(contractId, {
-      urlCode,
-    });
-    if (ret === false) error('Error updating Contract');
-    if (ret.status && ret.status.toLowerCase() === 'failed')
-      error('Error updating Contract: ' + ret.error);
-    log('Contract updated');
   }
 
   /**

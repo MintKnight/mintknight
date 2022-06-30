@@ -88,9 +88,6 @@ const list = async (nconf) => {
     case 'dropuser':
       Actions.listDropUser(nconf);
       break;
-    case 'contracts':
-      Actions.listCollections(nconf);
-      break;
     case 'projects':
       Actions.listProjects(nconf);
       break;

@@ -586,13 +586,6 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
-   * Get Contract Info
-   */
-  getContract(contractId) {
-    return this.apiCall('GET', `contracts/v2/${contractId}`, {}, 'tokenAuth');
-  }
-
-  /*
    * Add a wallet
    *
    * @param {string} userRef UserRef
