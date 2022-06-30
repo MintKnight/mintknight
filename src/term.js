@@ -1,5 +1,6 @@
 const prompt = require('prompts');
 const chalk = require('chalk');
+const { defaults } = require('nconf');
 
 let interval;
 
@@ -30,16 +31,17 @@ const check = (args) => {
   log(args, chalk.hex('#00FF00').bold('OK'));
 };
 
-const detail = (label, value1, network = false) => {
+const detail = (label, value1, option = false) => {
   let color = '';
-  switch (network) {
+  switch (option) {
     case 'localhost':
+    case 'signer':
       color = '#32afff';
       break;
     case 'mumbai':
       color = '#34afff';
       break;
-    case 'polygon':
+    default:
       color = '#4e9a06';
       break;
   }
@@ -47,7 +49,7 @@ const detail = (label, value1, network = false) => {
     chalk.hex('#FFA500').bold(label) +
       ': ' +
       value1 +
-      (network === false ? '' : chalk.hex(color).bold(` (${network})`))
+      (option === false ? '' : chalk.hex(color).bold(` (${option})`))
   );
 };
 

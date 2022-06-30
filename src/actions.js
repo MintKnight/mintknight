@@ -81,8 +81,7 @@ const checkOwner = (env, nconf) => {
   }
   return true;
 };
-
-class Actions {
+class Config {
   /**
    * Saves a user to the config
    *
@@ -120,6 +119,19 @@ class Actions {
   }
 
   /**
+   * Update project to the config
+   *
+   * @param {object} nconf
+   * @param {object} project
+   */
+  static async updateProject(nconf, project) {
+    const env = nconf.get('env');
+    nconf.set(`${env}:${project.projectId}:name`, project.name);
+    nconf.set(`${env}:${project.projectId}:thumb`, project.thumb);
+    nconf.save();
+  }
+
+  /**
    * Add a wallet to the config
    *
    * @param {object} nconf
@@ -134,6 +146,7 @@ class Actions {
     nconf.set(`${env}:${projectId}:${wallet.walletId}:name`, wallet.name);
     nconf.set(`${env}:${projectId}:${wallet.walletId}:skey`, wallet.skey);
     nconf.set(`${env}:${projectId}:${wallet.walletId}:address`, wallet.address);
+    nconf.set(`${env}:${projectId}:${wallet.walletId}:type`, wallet.type);
     nconf.set(
       `${env}:${projectId}:${wallet.walletId}:contractAddress`,
       wallet.contractAddress
@@ -163,7 +176,8 @@ class Actions {
     nconf.set(`${contractId}:thumb`, contract.thumb);
     nconf.save();
   }
-
+}
+class Actions {
   /**
    * Help Action.
    */
@@ -279,7 +293,7 @@ class Actions {
     if (project.walletId) {
       wallet = nconf.get(`${env}:${project.projectId}:${project.walletId}`);
       wallet.walletId = project.walletId;
-      detail('wallet', wallet.name);
+      detail('wallet', wallet.name, wallet.type);
     }
     if (project.contractId) {
       contract = nconf.get(`${env}:${project.projectId}:${project.contractId}`);
@@ -322,7 +336,7 @@ class Actions {
     result = await mintknight.setCompany(name);
     if (!result.success) error('Error adding company');
     config.companyId = result.data._id;
-    await Actions.saveUser(nconf, config);
+    await Config.saveUser(nconf, config);
 
     // Add project.
     const project = await Prompt.project(env);
@@ -337,7 +351,7 @@ class Actions {
     // Get Token.
     result = await mintknight.getApiKey(project.projectId);
     project.token = result.data.token;
-    await Actions.addProject(nconf, project);
+    await Config.addProject(nconf, project);
   }
 
   /**
@@ -351,9 +365,6 @@ class Actions {
     // Add project.
     const project = await Prompt.project(nconf.get('env'));
 
-    console.log('project', project);
-
-    //agafar el nom
     if (!!project.thumb) {
       console.log('with thumb');
       if (!fs.existsSync(project.thumb))
@@ -371,15 +382,21 @@ class Actions {
       project.thumb,
       `${name2}${ext2}`
     );
-    console.log('result', result);
-
-    if (result.status === 'failed') error(result.error);
-    project.projectId = result._id;
+    if (!result.success)
+      error(!!result.error ? result.error : 'Error adding Project');
+    if (result.data.status && result.data.status.toLowerCase() === 'failed')
+      error(result.data.error);
+    project.projectId = result.data._id;
 
     // Get Token.
     result = await mintknight.getApiKey(project.projectId);
-    project.token = result.token;
-    await Actions.addProject(nconf, project);
+    project.token = result.data.token;
+
+    // Add project
+    await Config.addProject(nconf, project);
+
+    // Set the project Token.
+    mintknight.setApiKey(project.token);
   }
 
   /**
@@ -400,10 +417,9 @@ class Actions {
 
     const { mintknight } = connect(nconf);
 
-    // Add project.
+    // Get project
     const project = await Prompt.project(nconf.get('env'));
 
-    //agafar el nom
     if (!!project.thumb) {
       console.log('with thumb');
       if (!fs.existsSync(project.thumb))
@@ -422,15 +438,14 @@ class Actions {
       project.thumb,
       `${name2}${ext2}`
     );
-    console.log('result', result);
+    if (!result.success)
+      error(!!result.error ? result.error : 'Error adding Project');
+    if (result.data.status && result.data.status.toLowerCase() === 'failed')
+      error(result.data.error);
+    project.projectId = result.data._id;
 
-    if (result.status === 'failed') error(result.error);
-    project.projectId = result._id;
-
-    // Get Token.
-    result = await mintknight.getApiKey(project.projectId);
-    project.token = result.token;
-    // await Actions.addProject(nconf, project);
+    // Update project
+    await Config.updateProject(nconf, project);
   }
 
   /**
@@ -464,8 +479,9 @@ class Actions {
    */
   static async infoProject(nconf) {
     const { mintknight } = connect(nconf);
-    const nft = await mintknight.getProject();
-    console.log(nft);
+    const result = await mintknight.getProject();
+    if (!result.success) error('Error getting NFT');
+    console.log(result.data);
   }
 
   /**
@@ -483,14 +499,17 @@ class Actions {
     wallet.walletId = walletId;
     wallet.address = addWalletRet.data.wallet.address;
     wallet.skey = addWalletRet.data.skey1;
-    let deployWalletRet = await mintknight.deployWallet(walletId);
-    if (!deployWalletRet.success) error('Error adding wallet');
-    if (!!deployWalletRet.data.taskId) {
-      const task = await mintknight.waitTask(deployWalletRet.data.taskId);
-      if (task.state === 'failed') error('Wallet creation failed');
-      wallet.address = task.contractAddress;
+    wallet.type = walletType;
+    if (walletType === 'onchain') {
+      let deployWalletRet = await mintknight.deployWallet(walletId);
+      if (!deployWalletRet.success) error('Error adding wallet');
+      if (!!deployWalletRet.data.taskId) {
+        const task = await mintknight.waitTask(deployWalletRet.data.taskId);
+        if (task.state === 'failed') error('Wallet creation failed');
+        wallet.address = task.contractAddress;
+      }
     }
-    await Actions.addWallet(nconf, wallet);
+    await Config.addWallet(nconf, wallet);
   }
 
   /**
@@ -526,8 +545,9 @@ class Actions {
    */
   static async infoWallet(nconf) {
     const { mintknight, walletId } = connect(nconf);
-    const wallet = await mintknight.getWallet(walletId);
-    console.log(wallet);
+    const result = await mintknight.getWallet(walletId);
+    if (!result.success) error('Error getting wallet');
+    console.log(result.data);
   }
 
   /**
@@ -576,7 +596,7 @@ class Actions {
       error(`Error adding contract`);
     }
     res.contract.contractId = res.contract._id;
-    await Actions.addContract(nconf, res.contract, wallet);
+    await Config.addContract(nconf, res.contract, wallet);
   }
 
   /**
@@ -635,7 +655,9 @@ class Actions {
    */
   static async infoContract(nconf) {
     const { mintknight, contractId } = connect(nconf);
-    const contract = await mintknight.getContract(contractId);
+    const result = await mintknight.getContract(contractId);
+    if (!result.success) error('Error getting contract');
+    const contract = result.data;
     if (contract) {
       warning(`\n${contract.name} (${contract.symbol})`);
       switch (contract.contractType) {
@@ -1245,8 +1267,9 @@ class Actions {
     const { mintknight, contractId } = connect(nconf);
     if (!contractId) error('A contract must be selected');
     const address = await Prompt.text('Public address');
-    const token = await mintknight.getToken(contractId, address);
-    if (token === false) return;
+    const result = await mintknight.getToken(contractId, address);
+    if (!result.success) error('Error getting token');
+    const token = result.data;
     title(`\n${address}`);
     detail('Name', token.name);
     detail('Symbol', token.symbol);
@@ -1558,7 +1581,9 @@ class Actions {
   static async infoNft(nconf) {
     const { mintknight, contractId } = connect(nconf);
     const tokenId = await Prompt.text('TokenId');
-    const nft = await mintknight.getNft(contractId, tokenId);
+    const result = await mintknight.getNft(contractId, tokenId);
+    if (!result.success) error('Error getting NFT');
+    const nft = result.data;
     title(`\n${nft.name}`);
     detail('Description, ', nft.description);
     detail('Image', nft.image);

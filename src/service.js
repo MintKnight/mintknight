@@ -643,6 +643,7 @@ class MintKnight extends MintKnightBase {
    * @param {string} walletId wallet ID
    */
   getWallet(walletId) {
+    console.log(walletId);
     return this.apiCall('GET', `wallets/v2/${walletId}`, {}, 'tokenAuth');
   }
 
