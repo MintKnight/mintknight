@@ -492,13 +492,13 @@ class MintKnight extends MintKnightBase {
    *
    * @param {string} contractId Contract ID
    * @param {string} tokenId Token ID
-   * @param {object} metadata NFT minted.
+   * @param {object} nft properties
    */
-  updateNFT(contractId, tokenId, metadata) {
+  updateNFT(contractId, tokenId, nft) {
     return this.apiCall(
       'PUT',
       `nfts/v2/${contractId}/${tokenId}`,
-      { metadata },
+      { nft },
       'tokenAuth'
     );
   }

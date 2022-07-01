@@ -249,7 +249,7 @@ class Actions {
 
     title('\nNFTs');
     detail('mk add nft', 'Add news NFT/s (draft)');
-    detail('mk update nft', 'Update the metadata for an NFT (draft)');
+    detail('mk update nft', 'Update an NFT (draft)');
     detail('mk mint nft', 'Mint to the selected Contract');
     detail('mk transfer nft', 'Transfer an NFT owned by the current Wallet');
     detail('mk info nft', 'Get the metadata for an NFT');
@@ -650,9 +650,8 @@ class Actions {
       error(result.data.error);
     const theContract = result.data.contract;
     const task = await mintknight.waitTask(result.data.taskId);
-    if (task == false || task.state == 'failed') {
+    if (task == false || task.state == 'failed')
       error(`Error deploying contract`);
-    }
     // Update contract
     theContract.contractId = theContract._id;
     await Config.updateContract(nconf, theContract, task.contractAddress);
@@ -1183,52 +1182,48 @@ class Actions {
     // Check
     if (img === false) error('Image needed. mk add media ./assets/nft.png');
 
-    if (img === 'test') {
-      let task = await mintknight.addTestMedia();
-      log('Test Media added');
-    } else {
-      if (!fs.existsSync(img)) error(`File ${img} does not exist`);
-      const { name, ext } = path.parse(img);
+    if (!fs.existsSync(img)) error(`File ${img} does not exist`);
+    const { name, ext } = path.parse(img);
 
+    if (!['.png', '.jpg', '.gif', '.txt', '.pdf', '.mp3', '.mp4'].includes(ext))
+      error(
+        'Invalid extension. Only .png, .jpg, .gif, .txt, .pdf, .mp3, .mp4  is valid'
+      );
+
+    // Upload into Arweave or not?
+    const choices = [
+      {
+        title: 'Only draft',
+        description: 'Save media into database',
+        value: false,
+      },
+      {
+        title: 'Upload to Arweave & save into database',
+        description: 'Do you want to upload into Arweave?',
+        value: true,
+      },
+    ];
+    const uploadToArweave = await Select.option(choices);
+
+    // Add media
+    const result = await mintknight.addMedia(
+      img,
+      `${name}${ext}`,
+      uploadToArweave
+    );
+    if (!result.success) error('Error adding media');
+    if (result.data.status && result.data.status.toLowerCase() === 'failed')
+      error(result.data.error);
+
+    if (uploadToArweave) {
+      const task = await mintknight.waitTask(result.data.taskId);
       if (
-        !['.png', '.jpg', '.gif', '.txt', '.pdf', '.mp3', '.mp4'].includes(ext)
+        task === false ||
+        (task.state && task.state.toLowerCase() === 'failed')
       )
-        error(
-          'Invalid extension. Only .png, .jpg, .gif, .txt, .pdf, .mp3, .mp4  is valid'
-        );
-
-      // Upload into Arweave or not?
-      const choices = [
-        {
-          title: 'Only draft',
-          description: 'Save media into database',
-          value: false,
-        },
-        {
-          title: 'Upload to Arweave & save into database',
-          description: 'Do you want to upload into Arweave?',
-          value: true,
-        },
-      ];
-      const uploadToArweave = await Select.option(choices);
-
-      // Connect
-      let ret = await mintknight.addMedia(img, `${name}${ext}`, uploadToArweave);
-      if (
-        ret === false ||
-        (ret.status && ret.status.toLowerCase() === 'failed')
-      )
-        error('Media added failed');
-      if (uploadToArweave) {
-        const task = await mintknight.waitTask(ret.taskId);
-        if (
-          task === false ||
-          (task.state && task.state.toLowerCase() === 'failed')
-        )
-          error('Media upload failed');
-      }
-      log('Media added');
+        error('Media upload failed');
     }
+    log('Media added');
   }
 
   /**
@@ -1236,7 +1231,9 @@ class Actions {
    */
   static async listMedia(nconf) {
     const { mintknight } = connect(nconf);
-    const media = await mintknight.getMedia();
+    const result = await mintknight.getMedia();
+    if (!result.success) error('Error getting media');
+    const media = result.data;
     for (let i = 0; i < media.length; i += 1) {
       // console.log(media[i]);
       title(`\n${media[i]._id}`);
@@ -1263,7 +1260,7 @@ class Actions {
 
     const minterId = nconf.get(`${env}:${projectId}:walletId`);
     const minter = nconf.get(`${env}:${projectId}:${minterId}`);
-    let task = await mintknight.mintToken(
+    let result = await mintknight.mintToken(
       contractId,
       minterId,
       minter.skey,
@@ -1271,8 +1268,11 @@ class Actions {
       walletId,
       address
     );
-    task = await mintknight.waitTask(task.taskId);
-    if (task.state === 'failed') error('Mint failed');
+    if (!result.success) error('Error minting tokens');
+    if (result.data.status && result.data.status.toLowerCase() === 'failed')
+      error(result.data.error);
+    const task = await mintknight.waitTask(result.data.taskId);
+    if (task == false || task.state == 'failed') error(`Error minting tokens`);
     log('Tokens Minted');
   }
 
@@ -1311,7 +1311,7 @@ class Actions {
 
     const ownerId = nconf.get(`${env}:${projectId}:walletId`);
     const owner = nconf.get(`${env}:${projectId}:${ownerId}`);
-    let task = await mintknight.transferToken(
+    let result = await mintknight.transferToken(
       contractId,
       ownerId,
       owner.skey,
@@ -1319,93 +1319,12 @@ class Actions {
       walletId,
       address
     );
-    if (task == false) error('Transfer Failed');
-    task = await mintknight.waitTask(task.taskId);
-    if (task.state === 'failed') error('Transfer failed');
+    if (!result.success) error('Transfer Failed');
+    if (result.data.status && result.data.status.toLowerCase() === 'failed')
+      error(result.data.error);
+    const task = await mintknight.waitTask(result.data.taskId);
+    if (task == false || task.state == 'failed') error(`Transfer Failed`);
     log('Token Transferred');
-  }
-
-  /**
-   * Mint a new NFT
-   */
-  static async mintNFT(nconf) {
-    const { mintknight, env, projectId, contractId } = connect(nconf);
-    // if (checkOwner(env, nconf) === false) error('Invalid Wallet');
-    // Get metadata
-    const nft = await Prompt.nft();
-    const { walletId, address } = await Prompt.getWalletId(
-      nconf,
-      env,
-      projectId
-    );
-
-    let task;
-    nft.attributes = JSON.stringify(nft.attributes);
-    console.log('nft', nft);
-    let theNft = await mintknight.addNFT(contractId, nft);
-    console.log('theNft', theNft);
-    if (theNft === false) error('Error uploading the NFT');
-    if (theNft.state === 'failed') error('Failed to upload NFT');
-    const nftId = theNft._id;
-
-    const minterId = nconf.get(`${env}:${projectId}:walletId`);
-    const minter = nconf.get(`${env}:${projectId}:${minterId}`);
-    task = await mintknight.mintNFT(
-      nftId,
-      minterId,
-      minter.skey,
-      walletId,
-      address
-    );
-    task = await mintknight.waitTask(task.taskId);
-    if (task.state === 'failed') error('Mint failed');
-    log('NFT Minted');
-  }
-
-  /**
-   * Transfer a NFT
-   */
-  static async transferNFT(nconf) {
-    const { mintknight, env, projectId, contractId } = connect(nconf);
-    // if (checkOwner(env, nconf) === false) error('Invalid Wallet');
-    // Get metadata
-    const nftId = await Prompt.text('NftId');
-    log('Send the NFT To');
-    const { walletId, address } = await Prompt.getWalletId(
-      nconf,
-      env,
-      projectId
-    );
-
-    const ownerId = nconf.get(`${env}:${projectId}:walletId`);
-    const owner = nconf.get(`${env}:${projectId}:${ownerId}`);
-    let task = await mintknight.transferNFT(
-      nftId,
-      ownerId,
-      owner.skey,
-      walletId,
-      address
-    );
-    if (task == false) error('Transfer Failed');
-    task = await mintknight.waitTask(task.taskId);
-    if (task.state === 'failed') error('Transfer failed');
-    log('NFT Transferred');
-  }
-
-  /**
-   * Update NFT metadata
-   */
-  static async updateNft(nconf) {
-    const { mintknight, contractId } = connect(nconf);
-    const tokenId = await Prompt.text('TokenId');
-    const attributes = [];
-    let attribute = true;
-    while (attribute !== false) {
-      attribute = await Prompt.attribute();
-      if (attribute !== false) attributes.push(attribute);
-    }
-    await mintknight.updateNFT(contractId, tokenId, attributes);
-    log('NFT Updated');
   }
 
   /**
@@ -1434,53 +1353,17 @@ class Actions {
       return;
     }
 
-    // Ask image
-    var img = null;
-    img = await Prompt.text('Image file. e.g: ./assets/nft.png');
-    // img = './assets/nft.png';
-    //if (!img) error('Image needed. e.g: ./assets/nft.png');
-    //if (!fs.existsSync(img)) error(`File ${img} does not exist`);
-    // Ask tokenId
-    const tokenId = await Prompt.text('Token ID');
-    //if (!tokenId) error(`Token ID is required`);
-
-    // Ask name
-    const name = await Prompt.text('Token Name');
-    if (!name) error(`Token Name is required`);
-    // Ask description
-    const description = await Prompt.text('Token Description');
-    if (!description) error(`Token Description is required`);
-    // Ask price
-    const price = await Prompt.text('Price');
-    // Ask coin
-    const coin = await Prompt.text('Coin');
-    // Ask attributes
-    const attributes = [];
-    let attribute = true;
-    while (attribute !== false) {
-      attribute = await Prompt.attribute();
-      if (attribute !== false) attributes.push(attribute);
-    }
-    // DropId
-    const dropId = await Prompt.text('Drop Id (mk list drop)');
-
-    const ret = await mintknight.addNFT(
-      contractId,
-      {
-        tokenId,
-        name,
-        description,
-        price,
-        coin,
-        attributes: JSON.stringify(attributes),
-        dropId,
-      },
-      img,
-      null
-    );
-    if (ret === false) error('Error uploading the NFT');
-    if (ret.status && ret.status.toLowerCase() === 'failed')
-      error('Error uploading the NFT: ' + ret.error);
+    // Get Nft
+    const nft = await Prompt.nft();
+    // Check properties
+    if (!nft.name) error(`Token Name is required`);
+    if (!nft.description) error(`Token Description is required`);
+    nft.attributes = JSON.stringify(nft.attributes);
+    // Add the nft
+    const result = await mintknight.addNFT(contractId, nft, nft.img, null);
+    if (!result.success) error('Error uploading the NFT');
+    if (result.data.status && result.data.status.toLowerCase() === 'failed')
+      error(result.data.error);
     log('NFT Uploaded');
   }
 
@@ -1517,18 +1400,111 @@ class Actions {
 
     // DropId
     const dropId = await Prompt.text('Drop Id (mk list drop)');
-    // const dropId = '6284c910e904ba4c55fb5347';
 
-    const ret = await mintknight.addNFTs(
+    const result = await mintknight.addNFTs(
       contractId,
       csvFilename,
       zipFilename,
       dropId
     );
-    if (ret === false) error('Error uploading NFTs');
-    if (ret.status && ret.status.toLowerCase() === 'failed')
-      error('Error uploading NFTs' + (!!ret.error ? ': ' + ret.error : ''));
+    if (!result.success) error('Error uploading NFTs');
+    if (result.data.status && result.data.status.toLowerCase() === 'failed')
+      error(
+        'Error uploading NFTs' +
+          (!!result.data.error ? ': ' + result.data.error : '')
+      );
     log('NFTs Uploaded');
+  }
+
+  /**
+   * Update a NFT
+   */
+  static async updateNft(nconf) {
+    const { mintknight, contractId } = connect(nconf);
+    // Get Nft
+    const nft = await Prompt.nft();
+    // Check properties
+    if (!nft.tokenId) error(`Token ID is required`);
+    // if (!nft.name) error(`Token Name is required`);
+    // if (!nft.description) error(`Token Description is required`);
+    nft.attributes = JSON.stringify(nft.attributes);
+    // Update NFT
+    const result = await mintknight.updateNFT(contractId, nft.tokenId, nft);
+    if (!result.success) error('NFT Updated Failed');
+    if (result.data.status && result.data.status.toLowerCase() === 'failed')
+      error(result.data.error);
+    log('NFT Updated');
+  }
+
+  /**
+   * Mint a new NFT
+   */
+  static async mintNFT(nconf) {
+    const { mintknight, env, projectId, contractId } = connect(nconf);
+    // if (checkOwner(env, nconf) === false) error('Invalid Wallet');
+    // Get Nft
+    const nft = await Prompt.nft();
+    const { walletId, address } = await Prompt.getWalletId(
+      nconf,
+      env,
+      projectId
+    );
+
+    nft.attributes = JSON.stringify(nft.attributes);
+    console.log('nft', nft);
+    // let theNft = await mintknight.addNFT(contractId, nft);
+    // console.log('theNft', theNft);
+    // if (theNft === false) error('Error uploading the NFT');
+    // if (theNft.state === 'failed') error('Failed to upload NFT');
+    const nftId = nft._id;
+
+    const minterId = nconf.get(`${env}:${projectId}:walletId`);
+    const minter = nconf.get(`${env}:${projectId}:${minterId}`);
+    const result = await mintknight.mintNFT(
+      nftId,
+      minterId,
+      minter.skey,
+      walletId,
+      address
+    );
+    if (!result.success) error('Mint Failed');
+    if (result.data.status && result.data.status.toLowerCase() === 'failed')
+      error(result.data.error);
+    const task = await mintknight.waitTask(result.data.taskId);
+    if (task == false || task.state == 'failed') error(`Mint Failed`);
+    log('NFT Minted');
+  }
+
+  /**
+   * Transfer a NFT
+   */
+  static async transferNFT(nconf) {
+    const { mintknight, env, projectId, contractId } = connect(nconf);
+    // if (checkOwner(env, nconf) === false) error('Invalid Wallet');
+    // Get metadata
+    const nftId = await Prompt.text('NftId');
+    log('Send the NFT To');
+    const { walletId, address } = await Prompt.getWalletId(
+      nconf,
+      env,
+      projectId
+    );
+
+    const ownerId = nconf.get(`${env}:${projectId}:walletId`);
+    const owner = nconf.get(`${env}:${projectId}:${ownerId}`);
+    const result = await mintknight.transferNFT(
+      nftId,
+      ownerId,
+      owner.skey,
+      walletId,
+      address
+    );
+    if (!result.success) error('Transfer Failed');
+    if (result.data.status && result.data.status.toLowerCase() === 'failed')
+      error(result.data.error);
+    const task = await mintknight.waitTask(result.data.taskId);
+    if (task == false || task.state == 'failed') error(`Transfer Failed`);
+    log('NFT Transferred');
   }
 
   /**
@@ -1556,22 +1532,26 @@ class Actions {
     ];
     const option = await Select.option(choices);
 
-    var nfts;
+    let result;
     if (option === 'contract') {
       if (!contractId) error('A contract must be selected');
-      nfts = await mintknight.getNfts(contractId);
+      result = await mintknight.getNfts(contractId);
     } else if (option === 'wallet') {
       if (!walletId) error('A wallet must be selected');
-      nfts = await mintknight.getNftsByWallet(walletId);
+      result = await mintknight.getNftsByWallet(walletId);
     } else {
       const address = await Prompt.text('Address');
       if (!address) error('An Address is required');
-      nfts = await mintknight.getAllNFTsFromBlockchain(address, {
+      result = await mintknight.getAllNFTsFromBlockchain(address, {
         withMetadata: false,
         // pageKey: '',
       });
     }
+    if (!result.success) error('Error uploading the NFT');
+    if (result.data.status && result.data.status.toLowerCase() === 'failed')
+      error(result.data.error);
 
+    const nfts = result.data;
     if (option === 'address') {
       console.log(nfts);
     } else {
@@ -1582,11 +1562,12 @@ class Actions {
         detail('tokenId', nft.tokenId);
         detail('nftId', nft._id);
         detail('state', nft.state);
-        detail('mediaId', nft.mediaId);
+        if (!!nft.mediaId) detail('mediaId', nft.mediaId);
         if (nft.state == 'minted') {
           detail('owner', nft.walletId);
         }
         if (!!nft.dropId) detail('dropId', nft.dropId);
+        detail('metadata', nft.metadata);
       }
     }
   }
@@ -1602,8 +1583,11 @@ class Actions {
     const nft = result.data;
     title(`\n${nft.name}`);
     detail('Description, ', nft.description);
-    detail('Image', nft.image);
-    if (nft.attributes) log(nft.attributes);
+    detail('Image', !!nft.image ? nft.image : '');
+    console.log(
+      'Attributes:',
+      !!nft.attributes && nft.attributes.length > 0 ? nft.attributes : []
+    );
   }
 
   /**

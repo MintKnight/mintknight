@@ -32,16 +32,15 @@ const check = (args) => {
 };
 
 const detail = (label, value1, option = false) => {
-  let color = '';
+  let color = '#cacfd2';
   switch (option) {
     case 'localhost':
-    case 'signer':
       color = '#32afff';
       break;
     case 'mumbai':
       color = '#34afff';
       break;
-    default:
+    case 'polygon':
       color = '#4e9a06';
       break;
   }
@@ -488,12 +487,12 @@ class Prompt {
   }
 
   static async nft() {
-    warning('\nNFT metadata');
+    warning('\nNFT Properties');
     const questions = [
       {
         type: 'text',
-        name: 'media',
-        message: 'Media Id (mk list media)',
+        name: 'tokenId',
+        message: 'Token ID',
       },
       {
         type: 'text',
@@ -504,6 +503,21 @@ class Prompt {
         type: 'text',
         name: 'description',
         message: 'Description',
+      },
+      {
+        type: 'text',
+        name: 'mediaId',
+        message: 'Media Id (mk list media)',
+      },
+      {
+        type: 'text',
+        name: 'img',
+        message: 'Image file. e.g: ./assets/nft.png',
+      },
+      {
+        type: 'text',
+        name: 'dropId',
+        message: 'Drop Id (mk list drop)',
       },
     ];
     const answers = await prompt(questions, {
