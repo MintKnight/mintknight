@@ -250,7 +250,7 @@ class Actions {
     title('\nNFTs');
     detail('mk add nft', 'Add news NFT/s (draft)');
     detail('mk update nft', 'Update an NFT (draft)');
-    detail('mk mint nft', 'Mint to the selected Contract');
+    detail('mk mint nft', 'Mint an NFT');
     detail('mk transfer nft', 'Transfer an NFT owned by the current Wallet');
     detail('mk info nft', 'Get the metadata for an NFT');
     detail('mk list nft', 'List NFTs');
@@ -1437,29 +1437,33 @@ class Actions {
   }
 
   /**
-   * Mint a new NFT
+   * Mint a existent NFT
    */
   static async mintNFT(nconf) {
     const { mintknight, env, projectId, contractId } = connect(nconf);
+    if (!contractId) error('A contract must be selected');
     // if (checkOwner(env, nconf) === false) error('Invalid Wallet');
-    // Get Nft
-    const nft = await Prompt.nft();
     const { walletId, address } = await Prompt.getWalletId(
       nconf,
       env,
       projectId
     );
-
-    nft.attributes = JSON.stringify(nft.attributes);
-    console.log('nft', nft);
-    // let theNft = await mintknight.addNFT(contractId, nft);
-    // console.log('theNft', theNft);
-    // if (theNft === false) error('Error uploading the NFT');
-    // if (theNft.state === 'failed') error('Failed to upload NFT');
-    const nftId = nft._id;
-
     const minterId = nconf.get(`${env}:${projectId}:walletId`);
     const minter = nconf.get(`${env}:${projectId}:${minterId}`);
+    // Ask for NFT ID
+    const nftId = await Prompt.text('NFT Id (mk list nft)');
+    if (!nftId) error(`NFT Id is required`);
+    // Upload metadata
+    const contract = nconf.get(`${env}:${projectId}:${contractId}`);
+    if (contract.type === 52) {
+      const result = await mintknight.uploadMetadataNFT(nftId);
+      if (!result.success) error('Upload metadata Failed');
+      if (result.data.status && result.data.status.toLowerCase() === 'failed')
+        error(result.data.error);
+      const task = await mintknight.waitTask(result.data.taskId);
+      if (task == false || task.state == 'failed') error(`Upload metadata Failed`);
+    }
+    // Mint
     const result = await mintknight.mintNFT(
       nftId,
       minterId,
@@ -1730,4 +1734,4 @@ class Actions {
 }
 */
 
-module.exports = { Actions };
+module.exports = { Actions, Config };

@@ -1,6 +1,6 @@
 const { log, error, errorNoExit, warning, check, detail } = require('./term');
 const { MintKnight } = require('../src/index');
-const { Actions } = require('./actions');
+const { Config } = require('./actions');
 const ethers = require('ethers');
 const nconf = require('nconf');
 
@@ -114,7 +114,7 @@ class Test {
     config.companyId = result.data._id;
 
     // Save user to local env.
-    await Actions.saveUser(nconf, config);
+    await Config.saveUser(nconf, config);
     check('Company added');
 
     // 4 - Add first project.
@@ -133,7 +133,7 @@ class Test {
     project.token = result.data.token;
 
     // Save project to local env.
-    await Actions.addProject(nconf, project);
+    await Config.addProject(nconf, project);
     check('Got API KEY');
 
     // Set the project Token.
@@ -171,7 +171,7 @@ class Test {
     };
 
     // Save to local env.
-    await Actions.addWallet(nconf, signer);
+    await Config.addWallet(nconf, signer);
 
     // 2 - Add Wallet - owner (onchain), admin of the NFT contracts.
     addWalletRet = await mintknight.addWallet('ref2', 'onchain');
@@ -196,7 +196,7 @@ class Test {
     nftowner.address = taskResult1.contractAddress;
 
     // Save to local env.
-    await Actions.addWallet(nconf, nftowner);
+    await Config.addWallet(nconf, nftowner);
     check('NFT Owner deployed');
 
     // 3 - Add Wallet - minter (onchain), Can mint to the NFT contracts.
@@ -222,7 +222,7 @@ class Test {
     minter.address = taskResult1.contractAddress;
 
     // Save to local env.
-    await Actions.addWallet(nconf, minter);
+    await Config.addWallet(nconf, minter);
 
     // Create a EOA Wallet
     let wallet = new ethers.Wallet(
@@ -277,7 +277,7 @@ class Test {
     contract.contractId = taskResult1.contractId;
 
     // Save to local env.
-    await Actions.addContract(nconf, contract, minter);
+    await Config.addContract(nconf, contract, minter);
 
     // 2 - Add media (the picture all NFTs will share). It is uploaded to arweave.
     await mintknight.addTestMedia();
@@ -287,7 +287,7 @@ class Test {
 
     // 3 - Saves the NFT as draft (using previous mediaId).
     const nft = {
-      media: media.data[0]._id,
+      mediaId: media.data[0]._id,
       name: 'dragon',
       description: 'The Dragon NFT',
       attributes: JSON.stringify([
@@ -380,7 +380,7 @@ class Test {
     owner.address = taskResult1.contractAddress;
 
     // Save to local env.
-    await Actions.addWallet(nconf, owner);
+    await Config.addWallet(nconf, owner);
 
     /*
      * Add Contract for drops
@@ -415,7 +415,7 @@ class Test {
     contract.contractId = taskResult1.contractId;
     check(`Contract address: ${contract.address}`);
     // Save to local env.
-    await Actions.addContract(nconf, contract, owner);
+    await Config.addContract(nconf, contract, owner);
 
     /*
      * Create drops

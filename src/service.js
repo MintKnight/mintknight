@@ -470,6 +470,15 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
+   * Add/Upload an NFT
+   *
+   * @param {string} nftId NFT ID
+   */
+  uploadMetadataNFT(nftId) {
+    return this.apiCall('POST', `nfts/v2/metadata/${nftId}`, {}, 'tokenAuth');
+  }
+
+  /*
    * Mint an NFT
    *
    * @param {string} nftId NFT ID
