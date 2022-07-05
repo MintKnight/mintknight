@@ -865,6 +865,15 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
+   * Upload Media (into Arweave)
+   *
+   * @param {string} mediaId
+   */
+  uploadMedia(mediaId) {
+    return this.apiCall('POST', `media/v2/upload/${mediaId}`, {}, 'tokenAuth');
+  }
+
+  /*
    * Get Media list
    */
   getMedia() {

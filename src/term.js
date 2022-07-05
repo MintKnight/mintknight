@@ -486,7 +486,7 @@ class Prompt {
     return attribute;
   }
 
-  static async nft() {
+  static async nft(addImage = true) {
     warning('\nNFT Properties');
     const questions = [
       {
@@ -511,15 +511,17 @@ class Prompt {
       },
       {
         type: 'text',
-        name: 'img',
-        message: 'Image file. e.g: ./assets/nft.png',
-      },
-      {
-        type: 'text',
         name: 'dropId',
         message: 'Drop Id (mk list drop)',
       },
     ];
+    if (addImage) {
+      questions.push({
+        type: 'text',
+        name: 'img',
+        message: 'Image file. e.g: ./assets/nft.png',
+      });
+    }
     const answers = await prompt(questions, {
       onCancel: cleanup,
       onSubmit: cleanup,

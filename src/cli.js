@@ -200,6 +200,18 @@ const transfer = async (nconf) => {
   }
 };
 
+const upload = async (nconf) => {
+  const element = process.argv[3];
+  switch (element) {
+    case 'media':
+      Actions.uploadMedia(nconf);
+      break;
+    default:
+      error('Invalid element to list (media)');
+      break;
+  }
+};
+
 const deploy = async (nconf) => {
   const element = process.argv[3];
   switch (element) {
@@ -263,8 +275,8 @@ const main = async () => {
       break;
     case 'test':
       break;
-    case 'update':
-      update(nconf);
+    case 'upload':
+      upload(nconf);
       break;
     case 'deploy':
       deploy(nconf);

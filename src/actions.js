@@ -243,9 +243,9 @@ class Actions {
     detail('mk update dropcode', 'Update a drop code');
     detail('mk list dropcode', 'List all Drop codes in a drop');
 
-    title('\nDrop users');
-    detail('mk add dropuser', 'Add a new user');
-    detail('mk list dropuser', 'List all Drop users in the contract');
+    // title('\nDrop users');
+    // detail('mk add dropuser', 'Add a new user');
+    // detail('mk list dropuser', 'List all Drop users in the contract');
 
     title('\nNFTs');
     detail('mk add nft', 'Add news NFT/s (draft)');
@@ -257,6 +257,7 @@ class Actions {
 
     title('\nMedia');
     detail('mk add media <file>', 'Add a new image to the media Library');
+    detail('mk upload media', 'Upload media into Arweave');
     detail('mk list media', 'List media for that contract');
 
     title('\nTokens ERC20');
@@ -650,7 +651,7 @@ class Actions {
       error(result.data.error);
     const theContract = result.data.contract;
     const task = await mintknight.waitTask(result.data.taskId);
-    if (task == false || task.state == 'failed')
+    if (task == false || (task.state && task.state.toLowerCase() == 'failed'))
       error(`Error deploying contract`);
     // Update contract
     theContract.contractId = theContract._id;
@@ -743,8 +744,8 @@ class Actions {
       startDate,
       endDate,
     } = await this.askDropParams();
-
-    const ret = await mintknight.addDrop(contractId, {
+    // Add drop
+    const result = await mintknight.addDrop(contractId, {
       name,
       description,
       dropType,
@@ -755,10 +756,10 @@ class Actions {
       startDate,
       endDate,
     });
-    if (ret === false) error('Error creating Drop');
-    if (ret.status && ret.status.toLowerCase() === 'failed')
-      error('Error creating Drop: ' + ret.error);
-    log('Drop created with id: ' + ret._id);
+    if (!result.success) error('Error creating Drop');
+    if (result.data.status && result.data.status.toLowerCase() === 'failed')
+      error(result.data.error);
+    log('Drop created with id: ' + result.data._id);
   }
 
   /**
@@ -831,9 +832,12 @@ class Actions {
   static async listDrop(nconf) {
     const { mintknight, contractId, walletId } = connect(nconf);
     if (!contractId) error('A contract must be selected');
-    const data = await mintknight.getDrops(contractId);
-    for (let i = 0; i < data.length; i += 1) {
-      const obj = data[i];
+    const result = await mintknight.getDrops(contractId);
+    if (!result.success) error('Error getting drops');
+    if (result.data.status && result.data.status.toLowerCase() === 'failed')
+      error(result.data.error);
+    for (let i = 0; i < result.data.length; i += 1) {
+      const obj = result.data[i];
       // console.log('obj', obj);
       title(`\nname: ${obj.name}`);
       detail('dropType', obj.dropType);
@@ -867,8 +871,8 @@ class Actions {
       startDate,
       endDate,
     } = await this.askDropParams('update');
-
-    const ret = await mintknight.updateDrop(dropId, {
+    // Update drop
+    const result = await mintknight.updateDrop(dropId, {
       name,
       description,
       dropType,
@@ -879,9 +883,9 @@ class Actions {
       startDate,
       endDate,
     });
-    if (ret === false) error('Error updating Drop');
-    if (ret.status && ret.status.toLowerCase() === 'failed')
-      error('Error updating Drop: ' + ret.error);
+    if (!result.success) error('Error updating Drop');
+    if (result.data.status && result.data.status.toLowerCase() === 'failed')
+      error(result.data.error);
     log('Drop updated');
   }
 
@@ -894,16 +898,16 @@ class Actions {
     const dropId = await Prompt.text('Drop Id (mk list drop)');
     if (!dropId) error(`Drop Id is required`);
     const { channel, actions, reference } = await this.askDropStrategyParams();
-
-    const ret = await mintknight.addDropStrategy(dropId, {
+    // Add drop strategy
+    const result = await mintknight.addDropStrategy(dropId, {
       channel,
       actions,
       reference,
     });
-    if (ret === false) error('Error creating Drop strategy');
-    if (ret.status && ret.status.toLowerCase() === 'failed')
-      error('Error creating Drop strategy: ' + ret.error);
-    log('Drop strategy created with id: ' + ret.dropStrategy._id);
+    if (!result.success) error('Error creating Drop strategy');
+    if (result.data.status && result.data.status.toLowerCase() === 'failed')
+      error(result.data.error);
+    log('Drop strategy created with id: ' + result.data.dropStrategy._id);
   }
 
   /**
@@ -940,9 +944,13 @@ class Actions {
     // DropId
     const dropId = await Prompt.text('Drop Id (mk list drop)');
     if (!dropId) error(`Drop Id is required`);
-    const data = await mintknight.getDropStrategies(dropId);
-    for (let i = 0; i < data.length; i += 1) {
-      const obj = data[i];
+    // Get drop strategies
+    const result = await mintknight.getDropStrategies(dropId);
+    if (!result.success) error('Error getting drop strategies');
+    if (result.data.status && result.data.status.toLowerCase() === 'failed')
+      error(result.data.error);
+    for (let i = 0; i < result.data.length; i += 1) {
+      const obj = result.data[i];
       // console.log('obj', obj);
       title(`\nid: ${obj._id}`);
       detail('channel', obj.channel);
@@ -965,16 +973,15 @@ class Actions {
     const { channel, actions, reference } = await this.askDropStrategyParams(
       'update'
     );
-
-    const ret = await mintknight.updateDropStrategy(dropStrategyId, {
+    // Update drop strategies
+    const result = await mintknight.updateDropStrategy(dropStrategyId, {
       channel,
       actions,
       reference,
     });
-
-    if (ret === false) error('Error updating Drop strategy');
-    if (ret.status && ret.status.toLowerCase() === 'failed')
-      error('Error updating Drop strategy: ' + ret.error);
+    if (!result.success) error('Error updating Drop strategy');
+    if (result.data.status && result.data.status.toLowerCase() === 'failed')
+      error(result.data.error);
     log('Drop strategy updated');
   }
 
@@ -983,7 +990,6 @@ class Actions {
    */
   static async newDropCode(nconf) {
     const { mintknight } = connect(nconf);
-
     const choices = [
       {
         title: 'Only one',
@@ -1006,17 +1012,17 @@ class Actions {
     // DropId
     const dropId = await Prompt.text('Drop Id (mk list drop)');
     if (!dropId) error(`Drop Id is required`);
-
+    // Ask for other params
     const { code, maxUsage } = await this.askDropCodeParams();
-
-    const ret = await mintknight.addDropCode(dropId, {
+    // Add drop code
+    const result = await mintknight.addDropCode(dropId, {
       code,
       maxUsage,
     });
-    if (ret === false) error('Error creating Drop code');
-    if (ret.status && ret.status.toLowerCase() === 'failed')
-      error('Error creating Drop code: ' + ret.error);
-    log('Drop code created with id: ' + ret.dropCode._id);
+    if (!result.success) error('Error creating Drop code');
+    if (result.data.status && result.data.status.toLowerCase() === 'failed')
+      error(result.data.error);
+    log('Drop code created with id: ' + result.data.dropCode._id);
   }
 
   /**
@@ -1044,9 +1050,13 @@ class Actions {
     // DropId
     const dropId = await Prompt.text('Drop Id (mk list drop)');
     if (!dropId) error(`Drop Id is required`);
-    const data = await mintknight.getDropCodes(dropId);
-    for (let i = 0; i < data.length; i += 1) {
-      const obj = data[i];
+    // Get drop codes
+    const result = await mintknight.getDropCodes(dropId);
+    if (!result.success) error('Error getting drop codes');
+    if (result.data.status && result.data.status.toLowerCase() === 'failed')
+      error(result.data.error);
+    for (let i = 0; i < result.data.length; i += 1) {
+      const obj = result.data[i];
       // console.log('obj', obj);
       title(`\ncode: ${obj.code}`);
       detail('maxUsage', obj.maxUsage);
@@ -1065,15 +1075,14 @@ class Actions {
     const dropCodeId = await Prompt.text('Drop code Id (mk list dropcode)');
     if (!dropCodeId) error(`Drop code Id is required`);
     const { code, maxUsage } = await this.askDropCodeParams('update');
-
-    const ret = await mintknight.updateDropCode(dropCodeId, {
+    // Update drop code
+    const result = await mintknight.updateDropCode(dropCodeId, {
       code,
       maxUsage,
     });
-
-    if (ret === false) error('Error updating Drop code');
-    if (ret.status && ret.status.toLowerCase() === 'failed')
-      error('Error updating Drop code: ' + ret.error);
+    if (!result.success) error('Error updating Drop code');
+    if (result.data.status && result.data.status.toLowerCase() === 'failed')
+      error(result.data.error);
     log('Drop code updated');
   }
 
@@ -1082,13 +1091,10 @@ class Actions {
    */
   static async addDropCodes(nconf) {
     const { mintknight } = connect(nconf);
-    // DropId
+    // Ask for DropId
     const dropId = await Prompt.text('Drop Id (mk list drop)');
     if (!dropId) error(`Drop Id is required`);
-
-    /*
-     * Ask CSV file
-     */
+    // Ask CSV file
     var csvFilename = await Prompt.text('Csv file');
     // csvFilename = './assets/dropcodes.csv';
     if (!csvFilename) error('Csv file needed. e.g: ./assets/dropcodes.csv');
@@ -1097,11 +1103,11 @@ class Actions {
     var { name, ext } = path.parse(csvFilename);
     if (!['.csv'].includes(ext)) error('Invalid extension. Only csv is valid');
     csvFilename = path.normalize(csvFilename);
-
-    const ret = await mintknight.addDropCodes(dropId, csvFilename);
-    if (ret === false) error('Error uploading Drop codes');
-    if (ret.status && ret.status.toLowerCase() === 'failed')
-      error('Error uploading Drop codes: ' + ret.error);
+    // Add drop codes (bulk upload method)
+    const result = await mintknight.addDropCodes(dropId, csvFilename);
+    if (!result.success) error('Error uploading Drop codes');
+    if (result.data.status && result.data.status.toLowerCase() === 'failed')
+      error(result.data.error);
     log('Drop codes Uploaded');
   }
 
@@ -1115,8 +1121,8 @@ class Actions {
     if (!dropId) error(`Drop Id is required`);
     const { name, email, twitter, telegram, discord, address } =
       await this.askDropUserParams();
-
-    const ret = await mintknight.addDropUser(dropId, {
+    // Add drop user
+    const result = await mintknight.addDropUser(dropId, {
       name,
       email,
       twitter,
@@ -1124,10 +1130,10 @@ class Actions {
       discord,
       address,
     });
-    if (ret === false) error('Error creating Drop user');
-    if (ret.status && ret.status.toLowerCase() === 'failed')
-      error('Error creating Drop user: ' + ret.error);
-    log('Drop user created with id: ' + ret.dropUser._id);
+    if (!result.success) error('Error creating Drop user');
+    if (result.data.status && result.data.status.toLowerCase() === 'failed')
+      error(result.data.error);
+    log('Drop user created with id: ' + result.data.dropUser._id);
   }
 
   /**
@@ -1160,9 +1166,13 @@ class Actions {
     // DropId
     const dropId = await Prompt.text('Drop Id (mk list drop)');
     if (!dropId) error(`Drop Id is required`);
-    const data = await mintknight.getDropUsers(dropId);
-    for (let i = 0; i < data.length; i += 1) {
-      const obj = data[i];
+    // Get drop users
+    const result = await mintknight.getDropUsers(dropId);
+    if (!result.success) error('Error getting drop users');
+    if (result.data.status && result.data.status.toLowerCase() === 'failed')
+      error(result.data.error);
+    for (let i = 0; i < result.data.length; i += 1) {
+      const obj = result.data[i];
       // console.log('obj', obj);
       title(`\nname: ${obj.name}`);
       detail('email', obj.email);
@@ -1181,15 +1191,12 @@ class Actions {
     const { mintknight } = connect(nconf);
     // Check
     if (img === false) error('Image needed. mk add media ./assets/nft.png');
-
     if (!fs.existsSync(img)) error(`File ${img} does not exist`);
     const { name, ext } = path.parse(img);
-
     if (!['.png', '.jpg', '.gif', '.txt', '.pdf', '.mp3', '.mp4'].includes(ext))
       error(
         'Invalid extension. Only .png, .jpg, .gif, .txt, .pdf, .mp3, .mp4  is valid'
       );
-
     // Upload into Arweave or not?
     const choices = [
       {
@@ -1204,7 +1211,6 @@ class Actions {
       },
     ];
     const uploadToArweave = await Select.option(choices);
-
     // Add media
     const result = await mintknight.addMedia(
       img,
@@ -1214,8 +1220,8 @@ class Actions {
     if (!result.success) error('Error adding media');
     if (result.data.status && result.data.status.toLowerCase() === 'failed')
       error(result.data.error);
-
     if (uploadToArweave) {
+      // Upload to arweave
       const task = await mintknight.waitTask(result.data.taskId);
       if (
         task === false ||
@@ -1224,6 +1230,25 @@ class Actions {
         error('Media upload failed');
     }
     log('Media added');
+  }
+
+  /**
+   * Upload media into Arweave
+   */
+  static async uploadMedia(nconf) {
+    const { mintknight } = connect(nconf);
+    // mediaId
+    const mediaId = await Prompt.text('Media Id (mk list media)');
+    if (!mediaId) error(`Media Id is required`);
+    // Upload media
+    const result = await mintknight.uploadMedia(mediaId);
+    if (!result.success) error('Error uploading media');
+    if (result.data.status && result.data.status.toLowerCase() === 'failed')
+      error(result.data.error);
+    const task = await mintknight.waitTask(result.data.taskId);
+    if (task === false || (task.state && task.state.toLowerCase() === 'failed'))
+      error('Media upload failed');
+    log('Media has been uploaded successfully');
   }
 
   /**
@@ -1272,7 +1297,7 @@ class Actions {
     if (result.data.status && result.data.status.toLowerCase() === 'failed')
       error(result.data.error);
     const task = await mintknight.waitTask(result.data.taskId);
-    if (task == false || task.state == 'failed') error(`Error minting tokens`);
+    if (task == false || (task.state && task.state.toLowerCase() == 'failed')) error(`Error minting tokens`);
     log('Tokens Minted');
   }
 
@@ -1283,6 +1308,7 @@ class Actions {
     const { mintknight, contractId } = connect(nconf);
     if (!contractId) error('A contract must be selected');
     const address = await Prompt.text('Public address');
+    if (!address) error('An address is required');
     const result = await mintknight.getToken(contractId, address);
     if (!result.success) error('Error getting token');
     const token = result.data;
@@ -1323,7 +1349,7 @@ class Actions {
     if (result.data.status && result.data.status.toLowerCase() === 'failed')
       error(result.data.error);
     const task = await mintknight.waitTask(result.data.taskId);
-    if (task == false || task.state == 'failed') error(`Transfer Failed`);
+    if (task == false || (task.state && task.state.toLowerCase() == 'failed')) error(`Transfer Failed`);
     log('Token Transferred');
   }
 
@@ -1422,7 +1448,7 @@ class Actions {
   static async updateNft(nconf) {
     const { mintknight, contractId } = connect(nconf);
     // Get Nft
-    const nft = await Prompt.nft();
+    const nft = await Prompt.nft(false);
     // Check properties
     if (!nft.tokenId) error(`Token ID is required`);
     // if (!nft.name) error(`Token Name is required`);
@@ -1461,7 +1487,8 @@ class Actions {
       if (result.data.status && result.data.status.toLowerCase() === 'failed')
         error(result.data.error);
       const task = await mintknight.waitTask(result.data.taskId);
-      if (task == false || task.state == 'failed') error(`Upload metadata Failed`);
+      if (task == false || (task.state && task.state.toLowerCase() == 'failed'))
+        error(`Upload metadata Failed`);
     }
     // Mint
     const result = await mintknight.mintNFT(
@@ -1475,7 +1502,7 @@ class Actions {
     if (result.data.status && result.data.status.toLowerCase() === 'failed')
       error(result.data.error);
     const task = await mintknight.waitTask(result.data.taskId);
-    if (task == false || task.state == 'failed') error(`Mint Failed`);
+    if (task == false || (task.state && task.state.toLowerCase() == 'failed')) error(`Mint Failed`);
     log('NFT Minted');
   }
 
@@ -1507,7 +1534,7 @@ class Actions {
     if (result.data.status && result.data.status.toLowerCase() === 'failed')
       error(result.data.error);
     const task = await mintknight.waitTask(result.data.taskId);
-    if (task == false || task.state == 'failed') error(`Transfer Failed`);
+    if (task == false || (task.state && task.state.toLowerCase() == 'failed')) error(`Transfer Failed`);
     log('NFT Transferred');
   }
 
@@ -1600,8 +1627,8 @@ class Actions {
   static async updateLimits(nconf) {
     const { mintknight } = connect(nconf);
     const projectId = await Prompt.text('ProjectId');
-    const limits = await mintknight.updateLimits(projectId);
-    log(limits);
+    const result = await mintknight.updateLimits(projectId);
+    if (!result.success) error('Error updating limits');
     log('Limits updated');
   }
 
