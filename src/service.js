@@ -563,22 +563,6 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
-   * Update prices the BUY contract
-   * @param {string} contractId Contract ID
-   * @param {string} prices comma separated list of prices
-   * @param {string} walletId Wallet ID
-   * @param {string} address optional address if no walletId
-   */
-  updatePrices(contractId, prices, owner, skey) {
-    return this.apiCall(
-      'PUT',
-      `contracts/v2/${contractId}/prices`,
-      { prices, owner, skey },
-      'tokenAuth'
-    );
-  }
-
-  /*
    * Update Verifier of the BUY Contract.
    * @param {string} contractId Contract ID
    * @param {string} verifier Address of the verifier.
@@ -891,12 +875,7 @@ class MintKnight extends MintKnightBase {
    * Get NFT list by wallet
    */
   getNftsByWallet(walletId) {
-    return this.apiCall(
-      'GET',
-      `nfts/v2/all/wallet/${walletId}`,
-      {},
-      'tokenAuth'
-    );
+    return this.apiCall('GET', `nfts/v2/byWallet/${walletId}`, {}, 'tokenAuth');
   }
 
   /*

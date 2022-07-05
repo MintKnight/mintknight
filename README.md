@@ -166,9 +166,9 @@ mk upload nft
 Set the path of csv file and images zip collection
 - CSV format example:
 ```
-tokenId;name;description;image;price;coin
-1;NFT 1;My NFT 1;mynft.png;20;MATIC
-2;WNFT;Wonderful NFT 2;wonderfulnft.png;20;USDC
+tokenId;name;description;image
+1;NFT 1;My NFT 1;mynft.png
+2;WNFT;Wonderful NFT 2;wonderfulnft.png
 ```
 - The zip file must contain inside all the images: mynft.png, wonderfulnft.png, etc.
 

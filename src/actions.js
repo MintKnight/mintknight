@@ -1685,30 +1685,6 @@ class Actions {
   }
 
   /**
-   * Update minter/owner of a contract
-   */
-  static async updatePrices(nconf) {
-    const { env, mintknight, projectId, contractId } = connect(nconf);
-    if (!contractId) error('A contract must be selected');
-    let prices = await Prompt.text('Prices (separated by coma)');
-    prices = prices.replace(/\s+/g, '');
-    const ownerId = nconf.get(`${env}:${projectId}:walletId`);
-    const owner = nconf.get(`${env}:${projectId}:${ownerId}`);
-    const task = await mintknight.updatePrices(
-      contractId,
-      prices,
-      ownerId,
-      owner.skey
-    );
-    await waitTask(
-      task,
-      mintknight,
-      'Prices updated',
-      'Failed to update prices'
-    );
-  }
-
-  /**
    * Sign to buy a tokenId.
    */
   static async sign(nconf) {

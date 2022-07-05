@@ -147,9 +147,6 @@ const update = async (nconf) => {
     case 'owner':
       Actions.updateContract(nconf, 'owner');
       break;
-    case 'prices':
-      Actions.updatePrices(nconf);
-      break;
     case 'verifier':
       Actions.updateVerifier(nconf);
       break;
@@ -164,7 +161,7 @@ const update = async (nconf) => {
       break;
     default:
       error(
-        'Invalid element to update (nft, minter, owner, verifier, prices, drop, dropstrategy, dropcode)'
+        'Invalid element to update (nft, minter, owner, verifier, drop, dropstrategy, dropcode)'
       );
       break;
   }
