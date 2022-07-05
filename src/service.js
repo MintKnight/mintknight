@@ -905,18 +905,6 @@ class MintKnight extends MintKnightBase {
       'tokenAuth'
     );
   }
-
-  /*
-   * Get NFT metadata
-   */
-  getSignature(contractId, tokens, buyer, walletId, skey) {
-    return this.apiCall(
-      'POST',
-      'wallets/v2/sign',
-      { contractId, tokens, buyer, walletId, skey },
-      'tokenAuth'
-    );
-  }
 }
 
 module.exports = MintKnight;

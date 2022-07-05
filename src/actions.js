@@ -1683,58 +1683,6 @@ class Actions {
       'Failed to update verifier'
     );
   }
-
-  /**
-   * Sign to buy a tokenId.
-   */
-  static async sign(nconf) {
-    const { env, mintknight, projectId, contractId } = connect(nconf);
-    const signerId = nconf.get(`${env}:${projectId}:walletId`);
-    const signer = nconf.get(`${env}:${projectId}:${signerId}`);
-    const tokenId = await Prompt.text('TokenId');
-    const buyer = await Prompt.text('Buyer address');
-    const signature = await mintknight.getSignature(
-      contractId,
-      tokenId,
-      buyer,
-      signerId,
-      signer.skey
-    );
-    log('Signature', signature);
-  }
 }
-
-/**
- * Logout action
- *
- * @param {string} nconf
- */
-/*
-  const logout = async (nconf) => {
-  const {token, mintknight} = connect(nconf)
-  (token === false) && error('Not logged in')
-  const env = nconf.get('env')
-  nconf.set(`${env}:token`, false)
-  nconf.save()
-  log('Logout succesful')
-}
-*/
-
-/**
- * Login action
- *
- * @param {string} nconf
- */
-/*
-  const login = async (nconf) => {
-  const {token, mintknight} = connect(nconf)
-  (token !== false) && error('Already logged in. Logout first (mk logout)')
-  const user = await Prompt.user('Login')
-  let result = await mintknight.loginUser(user.email, user.password)
-  nconf.set('user:token', result.token)
-  nconf.save()
-  log('Login succesful')
-}
-*/
 
 module.exports = { Actions, Config };

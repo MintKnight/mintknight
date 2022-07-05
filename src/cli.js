@@ -267,9 +267,6 @@ const main = async () => {
     case 'transfer':
       transfer(nconf);
       break;
-    case 'sign':
-      Actions.sign(nconf);
-      break;
     case 'test':
       break;
     case 'upload':
