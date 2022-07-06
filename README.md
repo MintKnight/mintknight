@@ -24,7 +24,7 @@ We have two APIs, one for management (users, companies, projects...) and one str
 Example:
 ```javascript
 const MintKnight = require('mintknight');
-const mintknight = new MintKnight(process.env.MINTKNIGHT_API);
+const mintknight = new MintKnight(process.env.MINTKNIGHT_API_SERVICE);
 ```
 
 Learn more about Mintknight API:

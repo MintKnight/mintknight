@@ -1,4 +1,6 @@
 const path = require('path');
+const fs = require('fs');
+const parser = require('csv-parser');
 const nconf = require('nconf');
 require('dotenv').config();
 const { log, title, error } = require('./term');
@@ -50,4 +52,18 @@ const rowsToCsv = (rows) => {
   return csv;
 };
 
-module.exports = { init, rowsToCsv };
+const convertCsv2Array = (csvFilename, delimiter = ';') => {
+  return new Promise((resolve) => {
+    const _csvData = [];
+    fs.createReadStream(csvFilename)
+      .pipe(parser({ separator: delimiter }))
+      .on('data', (csvrow) => {
+        _csvData.push(csvrow);
+      })
+      .on('end', async () => {
+        resolve(_csvData);
+      });
+  });
+};
+
+module.exports = { init, rowsToCsv, convertCsv2Array };

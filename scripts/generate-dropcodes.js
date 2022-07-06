@@ -2,7 +2,7 @@
 const fs = require('fs');
 const { log, title, error, warning, detail } = require('../src/term');
 const { Prompt } = require('../src/term');
-const { rowsToCsv } = require('../src/utils');
+const { rowsToCsv, convertCsv2Array } = require('../src/utils');
 const HOMEMK = (process.env.HOME || process.env.USERPROFILE) + '/.mintknight';
 
 function makeid(length) {
@@ -40,6 +40,15 @@ const main = async () => {
   );
   if (!filename) error(`Filename is needed`);
 
+  // Ask for filename. Contains Drop codes that we don´t want to repeat
+  let dropCodesToSkip = [];
+  const filenameDropCodesToSkip = await Prompt.text(
+    `Path and filename. e.g.: ${HOMEMK}/current_dropcodes.csv`
+  );
+  if (!!filenameDropCodesToSkip) {
+    dropCodesToSkip = await convertCsv2Array(filenameDropCodesToSkip);
+  }
+
   // Build data
   const csvDataTotal = [];
   for (let b = 1; b <= bundles; b++) {
@@ -49,8 +58,18 @@ const main = async () => {
       let found = true;
       while (found) {
         code = makeid(10);
+        if (i === 300) code = '7tA0LsqwFV';
         found = csvDataTotal.find((item) => item.code == code);
-        if (found) console.log('Duplicated code: ' + code);
+        if (found) {
+          console.log('Duplicated code: ' + code);
+        } else {
+          if (dropCodesToSkip.length > 0) {
+            found = dropCodesToSkip.find((item) => item.code == code);
+            if (found) {
+              console.log('Duplicated code: ' + code + ' (CURRENT DROP CODES)');
+            }
+          }
+        }
       }
       csvData.push({ code, maxUsage });
       csvDataTotal.push({ code, maxUsage });
