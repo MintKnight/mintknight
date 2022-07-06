@@ -104,7 +104,6 @@ class MintKnight extends MintKnightBase {
               data: null,
               error: e.message,
               code: 0,
-              retry: false,
             });
         });
     });
@@ -156,7 +155,6 @@ class MintKnight extends MintKnightBase {
               data: null,
               error: e.message,
               code: 0,
-              retry: false,
             });
         });
     });
@@ -288,7 +286,6 @@ class MintKnight extends MintKnightBase {
               data: null,
               error: e.message,
               code: 0,
-              retry: false,
             });
         });
     });
@@ -415,7 +412,6 @@ class MintKnight extends MintKnightBase {
               data: null,
               error: e.message,
               code: 0,
-              retry: false,
             });
         });
     });
@@ -463,7 +459,6 @@ class MintKnight extends MintKnightBase {
               data: null,
               error: e.message,
               code: 0,
-              retry: false,
             });
         });
     });
@@ -780,7 +775,6 @@ class MintKnight extends MintKnightBase {
               data: null,
               error: e.message,
               code: 0,
-              retry: false,
             });
         });
     });
@@ -842,7 +836,6 @@ class MintKnight extends MintKnightBase {
               data: null,
               error: e.message,
               code: 0,
-              retry: false,
             });
         });
     });

@@ -118,7 +118,6 @@ class MintKnightBase {
                 data: null,
                 error: res.data.error,
                 code: res.data.code ? res.data.code : 0,
-                retry: res.data.retry ? true : false,
               });
             return;
           }
@@ -135,7 +134,6 @@ class MintKnightBase {
               data: null,
               error: e.message,
               code: 0,
-              retry: false,
             });
         });
     });
