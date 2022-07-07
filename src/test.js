@@ -266,7 +266,7 @@ class Test {
       'ERC721MinterPauserMutable added',
       'Failed to add ERC721MinterPauserMutable'
     );
-    contract.contractId = addContractRet.data.contract._id;
+    contract.contractId = addContractRet.data._id;
     deployContractRet = await mintknight.deployContract(contract.contractId);
     taskResult1 = await checkTask(
       deployContractRet,
@@ -404,7 +404,7 @@ class Test {
       contract.walletId,
       contract.urlCode
     );
-    contract.contractId = addContractRet.data.contract._id;
+    contract.contractId = addContractRet.data._id;
     deployContractRet = await mintknight.deployContract(contract.contractId);
     taskResult1 = await checkTask(
       deployContractRet,

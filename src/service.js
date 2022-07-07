@@ -248,7 +248,6 @@ class MintKnight extends MintKnightBase {
         name,
         symbol,
         contractType,
-        walletId,
         urlCode,
         baseUri,
         minter: walletId,
@@ -298,7 +297,7 @@ class MintKnight extends MintKnightBase {
    */
   deployContract(contractId) {
     return this.apiCall(
-      'POST',
+      'PUT',
       `contracts/v2/deploy/${contractId}`,
       {},
       'tokenAuth'
@@ -559,16 +558,15 @@ class MintKnight extends MintKnightBase {
 
   /*
    * Update Verifier of the BUY Contract.
-   * @param {string} contractId Contract ID
-   * @param {string} verifier Address of the verifier.
-   * @param {string} walletId Wallet ID
-   * @param {string} address optional address if no walletId
+   * @param {string} contractId |  Contract ID
+   * @param {string} walletId |  Wallet ID
+   * @param {string} owner | address optional address if no walletId
    */
   updateVerifier(contractId, walletId, owner, skey) {
     return this.apiCall(
       'PUT',
-      `contracts/v2/${contractId}/verifier`,
-      { walletId, walletId, owner, skey },
+      `contracts/v2/verifier/${contractId}`,
+      { walletId, owner, skey },
       'tokenAuth'
     );
   }
