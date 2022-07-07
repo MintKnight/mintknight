@@ -595,7 +595,7 @@ class MintKnight extends MintKnightBase {
    */
   deployWallet(walletId) {
     return this.apiCall(
-      'POST',
+      'PUT',
       `wallets/v2/deploy/${walletId}`,
       {},
       'tokenAuth'
