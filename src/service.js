@@ -96,14 +96,23 @@ class MintKnight extends MintKnightBase {
           else resolve({ success: true, data: res.data, error: null });
         })
         .catch((e) => {
-          this.mkError(`${method} ${call} => ${e.message}`);
+
+          const error =
+            e.response && e.response.data && e.response.data.error
+              ? e.response.data.error
+              : e.message;
+          const code =
+            e.response && e.response.data && e.response.data.code
+              ? e.response.data.code
+              : e.message;
+          this.mkError(`${method} ${call} => ${error}`);
           if (this.responseType === 'basic') resolve(false);
           else
             resolve({
               success: false,
               data: null,
-              error: e.message,
-              code: 0,
+              error,
+              code,
             });
         });
     });
@@ -147,14 +156,22 @@ class MintKnight extends MintKnightBase {
           else resolve({ success: true, data: res.data, error: null });
         })
         .catch((e) => {
-          this.mkError(`${method} ${call} => ${e.message}`);
+          const error =
+            e.response && e.response.data && e.response.data.error
+              ? e.response.data.error
+              : e.message;
+          const code =
+            e.response && e.response.data && e.response.data.code
+              ? e.response.data.code
+              : e.message;
+          this.mkError(`${method} ${call} => ${error}`);
           if (this.responseType === 'basic') resolve(false);
           else
             resolve({
               success: false,
               data: null,
-              error: e.message,
-              code: 0,
+              error,
+              code,
             });
         });
     });
@@ -214,6 +231,7 @@ class MintKnight extends MintKnightBase {
         );
         const data = this.responseType === 'basic' ? result : result.data;
         if (
+          data === null ||
           data.state === 'running' ||
           data.state === 'queued' ||
           data.state === 'iddle'
@@ -277,14 +295,22 @@ class MintKnight extends MintKnightBase {
           else resolve({ success: true, data: res.data, error: null });
         })
         .catch((e) => {
-          this.mkError(`${method} ${call} => ${e.message}`);
+          const error =
+            e.response && e.response.data && e.response.data.error
+              ? e.response.data.error
+              : e.message;
+          const code =
+            e.response && e.response.data && e.response.data.code
+              ? e.response.data.code
+              : e.message;
+          this.mkError(`${method} ${call} => ${error}`);
           if (this.responseType === 'basic') resolve(false);
           else
             resolve({
               success: false,
               data: null,
-              error: e.message,
-              code: 0,
+              error,
+              code,
             });
         });
     });
@@ -403,14 +429,22 @@ class MintKnight extends MintKnightBase {
           else resolve({ success: true, data: res.data, error: null });
         })
         .catch((e) => {
-          this.mkError(`${method} ${call} => ${e.message}`);
+          const error =
+            e.response && e.response.data && e.response.data.error
+              ? e.response.data.error
+              : e.message;
+          const code =
+            e.response && e.response.data && e.response.data.code
+              ? e.response.data.code
+              : e.message;
+          this.mkError(`${method} ${call} => ${error}`);
           if (this.responseType === 'basic') resolve(false);
           else
             resolve({
               success: false,
               data: null,
-              error: e.message,
-              code: 0,
+              error,
+              code,
             });
         });
     });
@@ -450,14 +484,22 @@ class MintKnight extends MintKnightBase {
           else resolve({ success: true, data: res.data, error: null });
         })
         .catch((e) => {
-          this.mkError(`${method} ${call} => ${e.message}`);
+          const error =
+            e.response && e.response.data && e.response.data.error
+              ? e.response.data.error
+              : e.message;
+          const code =
+            e.response && e.response.data && e.response.data.code
+              ? e.response.data.code
+              : e.message;
+          this.mkError(`${method} ${call} => ${error}`);
           if (this.responseType === 'basic') resolve(false);
           else
             resolve({
               success: false,
               data: null,
-              error: e.message,
-              code: 0,
+              error,
+              code,
             });
         });
     });
@@ -765,14 +807,22 @@ class MintKnight extends MintKnightBase {
           else resolve({ success: true, data: res.data, error: null });
         })
         .catch((e) => {
-          this.mkError(`${method} ${call} => ${e.message}`);
+          const error =
+            e.response && e.response.data && e.response.data.error
+              ? e.response.data.error
+              : e.message;
+          const code =
+            e.response && e.response.data && e.response.data.code
+              ? e.response.data.code
+              : e.message;
+          this.mkError(`${method} ${call} => ${error}`);
           if (this.responseType === 'basic') resolve(false);
           else
             resolve({
               success: false,
               data: null,
-              error: e.message,
-              code: 0,
+              error,
+              code,
             });
         });
     });
@@ -826,14 +876,22 @@ class MintKnight extends MintKnightBase {
           else resolve({ success: true, data: res.data, error: null });
         })
         .catch((e) => {
-          this.mkError(`${method} ${call} => ${e.message}`);
+          const error =
+            e.response && e.response.data && e.response.data.error
+              ? e.response.data.error
+              : e.message;
+          const code =
+            e.response && e.response.data && e.response.data.code
+              ? e.response.data.code
+              : e.message;
+          this.mkError(`${method} ${call} => ${error}`);
           if (this.responseType === 'basic') resolve(false);
           else
             resolve({
               success: false,
               data: null,
-              error: e.message,
-              code: 0,
+              error,
+              code,
             });
         });
     });

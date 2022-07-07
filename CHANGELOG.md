@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 ### Changed
-- Error Handling. Now error returs a 200 status with {status: 'failed', error: 'Reason'}.
+- Error Handling. Now error returs a 400 status with {success: false, status: 'Failed', error: 'Reason'}.
 - Collections are Now Contracts. Also endpoints and Id have changed /contracts and contractId instead of collectionId.
 
 ### Added

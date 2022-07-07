@@ -107,33 +107,27 @@ class MintKnightBase {
           }
         })
         .then((res) => {
-          const status = res.data.status || false;
-          if (status === 'Failed') {
-            this.mkError(`${method} ${call} => ${res.data.error}`);
-            if (this.responseType === 'basic')
-              throw new Error(`${method} ${call} => ${res.data.error}`);
-            else
-              resolve({
-                success: false,
-                data: null,
-                error: res.data.error,
-                code: res.data.code ? res.data.code : 0,
-              });
-            return;
-          }
           this.mkLog(`${method} ${call} => Success`);
           if (this.responseType === 'basic') resolve(res.data);
           else resolve({ success: true, data: res.data, error: null });
         })
         .catch((e) => {
-          this.mkError(`${method} ${call} => ${e.message}`);
+          const error =
+            e.response && e.response.data && e.response.data.error
+              ? e.response.data.error
+              : e.message;
+          const code =
+            e.response && e.response.data && e.response.data.code
+              ? e.response.data.code
+              : e.message;
+          this.mkError(`${method} ${call} => ${error}`);
           if (this.responseType === 'basic') resolve(false);
           else
             resolve({
               success: false,
               data: null,
-              error: e.message,
-              code: 0,
+              error,
+              code,
             });
         });
     });
