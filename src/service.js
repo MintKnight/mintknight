@@ -404,14 +404,15 @@ class MintKnight extends MintKnightBase {
   addNFT(contractId, nft, imgFilename = null, imgBuffer = null) {
     return new Promise((resolve) => {
       const form = new FormData();
+      form.append('contractId', contractId);
       if (!!imgFilename) {
         if (imgBuffer === null) {
           imgBuffer = fs.readFileSync(imgFilename);
         }
-        form.append('files', imgBuffer, imgFilename);
+        form.append('file', imgBuffer, imgFilename);
       }
       for (var key in nft) {
-        form.append(`nft[${key}]`, nft[key]);
+        form.append(key, nft[key]);
       }
       const config = {
         headers: {
@@ -420,7 +421,7 @@ class MintKnight extends MintKnightBase {
         },
       };
       const method = 'POST';
-      const call = `nfts/v2/${contractId}`;
+      const call = 'nfts/v2';
       return axios
         .post(`${this.api}${call}`, form, config)
         .then((res) => {
@@ -451,7 +452,7 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
-   * Add NFTs at bulk mode
+   * Add NFTs in bulk mode
    *
    * @param {string} contractId Contract ID
    * @param {string} csvFilename CSV File name with path
@@ -525,9 +526,9 @@ class MintKnight extends MintKnightBase {
    */
   mintNFT(nftId, walletId, skey, to = false, address = false) {
     return this.apiCall(
-      'POST',
-      'nfts/v2/mint',
-      { nftId, walletId, skey, to, address },
+      'PUT',
+      `nfts/v2/mint/${nftId}`,
+      { walletId, skey, to, address },
       'tokenAuth'
     );
   }
@@ -535,14 +536,14 @@ class MintKnight extends MintKnightBase {
   /*
    * Update an NFT
    *
-   * @param {string} contractId Contract ID
-   * @param {string} tokenId Token ID
+   * @param {string} contractId | Contract ID
+   * @param {string} nftId | NFT ID
    * @param {object} nft properties
    */
-  updateNFT(contractId, tokenId, nft) {
+  updateNFT(contractId, nftId, nft) {
     return this.apiCall(
       'PUT',
-      `nfts/v2/${contractId}/${tokenId}`,
+      `nfts/v2/${contractId}/${nftId}`,
       { nft },
       'tokenAuth'
     );
@@ -560,8 +561,8 @@ class MintKnight extends MintKnightBase {
   transferNFT(nftId, walletId, skey, to, address) {
     return this.apiCall(
       'PUT',
-      `nfts/v2/${nftId}`,
-      { nftId, walletId, skey, to, address },
+      `nfts/v2/transfer/${nftId}`,
+      { walletId, skey, to, address },
       'tokenAuth'
     );
   }

@@ -1410,6 +1410,8 @@ class Actions {
    */
   static async updateNft(nconf) {
     const { mintknight, contractId } = connect(nconf);
+    const nftId = await Prompt.text('Nft Id');
+    if (!nftId) error(`Nft ID is required`);
     // Get Nft
     const nft = await Prompt.nft(false);
     // Check properties
@@ -1418,7 +1420,7 @@ class Actions {
     // if (!nft.description) error(`Token Description is required`);
     nft.attributes = JSON.stringify(nft.attributes);
     // Update NFT
-    const result = await mintknight.updateNFT(contractId, nft.tokenId, nft);
+    const result = await mintknight.updateNFT(contractId, nftId, nft);
     if (!result.success) error('NFT Updated Failed');
     log('NFT Updated');
   }
@@ -1470,7 +1472,7 @@ class Actions {
     const { mintknight, env, projectId, contractId } = connect(nconf);
     // if (checkOwner(env, nconf) === false) error('Invalid Wallet');
     // Get metadata
-    const nftId = await Prompt.text('NftId');
+    const nftId = await Prompt.text('Nft Id');
     log('Send the NFT To');
     const { walletId, address } = await Prompt.getWalletId(
       nconf,
