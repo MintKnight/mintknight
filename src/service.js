@@ -898,19 +898,19 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
-   * Upload Media (into Arweave)
+   * Upload existent Media (into Arweave)
    *
    * @param {string} mediaId
    */
   uploadMedia(mediaId) {
-    return this.apiCall('POST', `media/v2/upload/${mediaId}`, {}, 'tokenAuth');
+    return this.apiCall('PUT', `media/v2/upload/${mediaId}`, {}, 'tokenAuth');
   }
 
   /*
    * Get Media list
    */
-  getMedia() {
-    return this.apiCall('GET', 'media/v2', {}, 'tokenAuth');
+  getMedias() {
+    return this.apiCall('GET', `media/v2`, {}, 'tokenAuth');
   }
 
   /*

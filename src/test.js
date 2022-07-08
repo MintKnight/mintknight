@@ -281,13 +281,14 @@ class Test {
 
     // 2 - Add media (the picture all NFTs will share). It is uploaded to arweave.
     await mintknight.addTestMedia();
-    const media = await mintknight.getMedia();
-    if (media.data[0].name !== 'dragon.png') error('Media not set');
+    const mediasRet = await mintknight.getMedias();
+    await checkTask(mediasRet, 'Got medias', 'Failed getting medias');
+    if (mediasRet.data[0].name !== 'dragon.png') error('Media not set');
     check('Test media added');
 
     // 3 - Saves the NFT as draft (using previous mediaId).
     const nft = {
-      mediaId: media.data[0]._id,
+      mediaId: mediasRet.data[0]._id,
       name: 'dragon',
       description: 'The Dragon NFT',
       attributes: JSON.stringify([

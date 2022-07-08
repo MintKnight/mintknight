@@ -131,6 +131,17 @@ class Config {
   }
 
   /**
+   * Get projectId
+   *
+   * @param {object} nconf
+   * @returns {string} Project ID
+   */
+  static async getProjectId(nconf) {
+    const env = nconf.get('env');
+    return nconf.get(`${env}:projectId`);
+  }
+
+  /**
    * Add a wallet to the config
    *
    * @param {object} nconf
@@ -1218,7 +1229,7 @@ class Actions {
    */
   static async listMedia(nconf) {
     const { mintknight } = connect(nconf);
-    const result = await mintknight.getMedia();
+    const result = await mintknight.getMedias();
     if (!result.success) error('Error getting media');
     const media = result.data;
     for (let i = 0; i < media.length; i += 1) {
