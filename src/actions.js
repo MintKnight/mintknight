@@ -696,8 +696,9 @@ class Actions {
     const result = await mintknight.getContract(contractId);
     if (!result.success) error('Error getting contract');
     const contract = result.data;
+    title(`\n${contract._id}`);
     if (contract) {
-      warning(`\n${contract.name} (${contract.symbol})`);
+      warning(`${contract.name} (${contract.symbol})`);
       switch (contract.contractType) {
         case 10:
           detail('type', 'ERC20');
@@ -1232,6 +1233,7 @@ class Actions {
     const result = await mintknight.getMedias();
     if (!result.success) error('Error getting media');
     const media = result.data;
+    if (media.length === 0) warning('No medias assigned to this project');
     for (let i = 0; i < media.length; i += 1) {
       // console.log(media[i]);
       title(`\n${media[i]._id}`);
@@ -1409,7 +1411,7 @@ class Actions {
    * Update a NFT
    */
   static async updateNft(nconf) {
-    const { mintknight, contractId } = connect(nconf);
+    const { mintknight } = connect(nconf);
     const nftId = await Prompt.text('Nft Id');
     if (!nftId) error(`Nft ID is required`);
     // Get Nft
@@ -1420,7 +1422,7 @@ class Actions {
     // if (!nft.description) error(`Token Description is required`);
     nft.attributes = JSON.stringify(nft.attributes);
     // Update NFT
-    const result = await mintknight.updateNFT(contractId, nftId, nft);
+    const result = await mintknight.updateNFT(nftId, nft);
     if (!result.success) error('NFT Updated Failed');
     log('NFT Updated');
   }
@@ -1523,7 +1525,7 @@ class Actions {
     let result;
     if (option === 'contract') {
       if (!contractId) error('A contract must be selected');
-      result = await mintknight.getNfts(contractId);
+      result = await mintknight.getNftsByContract(contractId);
     } else if (option === 'wallet') {
       if (!walletId) error('A wallet must be selected');
       result = await mintknight.getNftsByWallet(walletId);
@@ -1554,6 +1556,7 @@ class Actions {
         }
         if (!!nft.dropId) detail('dropId', nft.dropId);
         detail('metadata', nft.metadata);
+        if (!!nft.uri) detail('uri', nft.uri);
       }
     }
   }

@@ -507,12 +507,12 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
-   * Add/Upload an NFT
+   * Upload the NFT´s metadata into Arweave
    *
    * @param {string} nftId NFT ID
    */
   uploadMetadataNFT(nftId) {
-    return this.apiCall('POST', `nfts/v2/metadata/${nftId}`, {}, 'tokenAuth');
+    return this.apiCall('PUT', `nfts/v2/metadata/${nftId}`, {}, 'tokenAuth');
   }
 
   /*
@@ -536,17 +536,11 @@ class MintKnight extends MintKnightBase {
   /*
    * Update an NFT
    *
-   * @param {string} contractId | Contract ID
    * @param {string} nftId | NFT ID
    * @param {object} nft properties
    */
-  updateNFT(contractId, nftId, nft) {
-    return this.apiCall(
-      'PUT',
-      `nfts/v2/${contractId}/${nftId}`,
-      { nft },
-      'tokenAuth'
-    );
+  updateNFT(nftId, nft) {
+    return this.apiCall('PUT', `nfts/v2/${nftId}`, nft, 'tokenAuth');
   }
 
   /*
@@ -915,10 +909,15 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
-   * Get NFT list
+   * Get NFT list by contract
    */
-  getNfts(contractId) {
-    return this.apiCall('GET', `nfts/v2/${contractId}`, {}, 'tokenAuth');
+  getNftsByContract(contractId) {
+    return this.apiCall(
+      'GET',
+      `nfts/v2/byContract/${contractId}`,
+      {},
+      'tokenAuth'
+    );
   }
 
   /*
