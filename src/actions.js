@@ -141,10 +141,6 @@ class Actions {
     nconf.set(`${env}:${projectId}:${wallet.walletId}:name`, wallet.name);
     nconf.set(`${env}:${projectId}:${wallet.walletId}:skey`, wallet.skey);
     nconf.set(`${env}:${projectId}:${wallet.walletId}:address`, wallet.address);
-    nconf.set(
-      `${env}:${projectId}:${wallet.walletId}:contractAddress`,
-      wallet.contractAddress
-    );
     nconf.set(`${env}:${projectId}:walletId`, wallet.walletId);
     nconf.save();
   }
@@ -487,7 +483,7 @@ class Actions {
       if (!!deployWalletRet.taskId) {
         const task = await service.waitTask(deployWalletRet.taskId);
         if (task.state === 'failed') error('Wallet creation failed');
-        wallet.address = task.contractAddress;
+        wallet.address = task.address;
       }
       await Actions.addWallet(nconf, wallet);
     }
@@ -565,7 +561,7 @@ class Actions {
     if (task == false || task.state == 'failed') {
       error(`Error creating contract`);
     } else {
-      contract.address = task.contractAddress;
+      contract.address = task.address;
       contract.contractId = task.contractId;
       await Actions.addContract(nconf, contract, wallet);
     }
@@ -635,10 +631,7 @@ class Actions {
     const env = nconf.get('env');
     const projectId = nconf.get(`${env}:projectId`);
     console.log('projectId', projectId, contractId);
-    nconf.set(
-      `${env}:${projectId}:${contractId}:address`,
-      task.contractAddress
-    );
+    nconf.set(`${env}:${projectId}:${contractId}:address`, task.address);
     nconf.save();
   }
 
