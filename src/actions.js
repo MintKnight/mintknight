@@ -157,10 +157,6 @@ class Config {
     nconf.set(`${env}:${projectId}:${wallet.walletId}:skey`, wallet.skey);
     nconf.set(`${env}:${projectId}:${wallet.walletId}:address`, wallet.address);
     nconf.set(`${env}:${projectId}:${wallet.walletId}:type`, wallet.type);
-    nconf.set(
-      `${env}:${projectId}:${wallet.walletId}:contractAddress`,
-      wallet.contractAddress
-    );
     nconf.set(`${env}:${projectId}:walletId`, wallet.walletId);
     nconf.save();
   }
@@ -527,7 +523,7 @@ class Actions {
       if (!!deployWalletRet.data.taskId) {
         const task = await mintknight.waitTask(deployWalletRet.data.taskId);
         if (task.state === 'failed') error('Wallet creation failed');
-        wallet.address = task.contractAddress;
+        wallet.address = task.address;
       }
     }
     await Config.addWallet(nconf, wallet);
@@ -575,6 +571,50 @@ class Actions {
    * Add a new Contract (draft mode)
    */
   static async newContract(nconf) {
+<<<<<<< HEAD
+=======
+    const { service } = connect(nconf);
+    const { project, wallet } = Actions.info(nconf);
+    // Add contract.
+    const contract = await Prompt.contract(project.name);
+    // urlCode
+    let urlCode = '';
+    if (contract.contractType === 51 || contract.contractType === 52) {
+      urlCode = await Prompt.text('Url code (landing page path)');
+      if (!urlCode) error(`Url code is required`);
+    }
+    // baseUri
+    let baseUri = null;
+    if (contract.contractType === 51) {
+      const _baseUri = await Prompt.text('Base URI (optional))');
+      if (!!_baseUri) baseUri = _baseUri;
+    }
+
+    let task = await service.addContract(
+      contract.name,
+      contract.symbol,
+      contract.contractType,
+      wallet.walletId,
+      contract.contractId,
+      contract.mediaId,
+      urlCode,
+      baseUri
+    );
+    task = await service.waitTask(task.taskId);
+    if (task == false || task.state == 'failed') {
+      error(`Error creating contract`);
+    } else {
+      contract.address = task.address;
+      contract.contractId = task.contractId;
+      await Actions.addContract(nconf, contract, wallet);
+    }
+  }
+
+  /**
+   * Save a new Contract (draft mode)
+   */
+  static async saveContract(nconf) {
+>>>>>>> main
     let name2;
     let ext2;
     const { mintknight } = connect(nconf);
@@ -655,8 +695,16 @@ class Actions {
     if (task == false || (task.state && task.state.toLowerCase() == 'failed'))
       error(`Error deploying contract`);
     // Update contract
+<<<<<<< HEAD
     theContract.contractId = theContract._id;
     await Config.updateContract(nconf, theContract, task.contractAddress);
+=======
+    const env = nconf.get('env');
+    const projectId = nconf.get(`${env}:projectId`);
+    console.log('projectId', projectId, contractId);
+    nconf.set(`${env}:${projectId}:${contractId}:address`, task.address);
+    nconf.save();
+>>>>>>> main
   }
 
   /**

@@ -193,7 +193,7 @@ class Test {
       walletId: addWalletRet.data.wallet._id,
       skey: addWalletRet.data.skey1,
     };
-    nftowner.address = taskResult1.contractAddress;
+    nftowner.address = taskResult1.address;
 
     // Save to local env.
     await Config.addWallet(nconf, nftowner);
@@ -219,7 +219,7 @@ class Test {
       walletId: addWalletRet.data.wallet._id,
       skey: addWalletRet.data.skey1,
     };
-    minter.address = taskResult1.contractAddress;
+    minter.address = taskResult1.address;
 
     // Save to local env.
     await Config.addWallet(nconf, minter);
@@ -273,7 +273,7 @@ class Test {
       'ERC721MinterPauserMutable deployed',
       'Failed to deploy ERC721MinterPauserMutable'
     );
-    contract.address = taskResult1.contractAddress;
+    contract.address = taskResult1.address;
     contract.contractId = taskResult1.contractId;
 
     // Save to local env.
@@ -378,7 +378,7 @@ class Test {
       walletId: addWalletRet.data.wallet._id,
       skey: addWalletRet.data.skey1,
     };
-    owner.address = taskResult1.contractAddress;
+    owner.address = taskResult1.address;
 
     // Save to local env.
     await Config.addWallet(nconf, owner);
@@ -412,7 +412,7 @@ class Test {
       'Contract deployed',
       'Failed to deploy contract'
     );
-    contract.address = taskResult1.contractAddress;
+    contract.address = taskResult1.address;
     contract.contractId = taskResult1.contractId;
     check(`Contract address: ${contract.address}`);
     // Save to local env.
@@ -611,9 +611,9 @@ class Test {
       'Failed to add wallets'
     );
     const wallets = taskResult1.wallets;
-    const contractAddresses = taskResult1.contractAddresses;
+    const addresses = taskResult1.addresses;
     for (let i = 0; i < wallets.length; i++) {
-      detail(wallets[i], contractAddresses[i]);
+      detail(wallets[i], addresses[i]);
     }
   }
 }
