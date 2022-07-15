@@ -96,7 +96,6 @@ class MintKnight extends MintKnightBase {
           else resolve({ success: true, data: res.data, error: null });
         })
         .catch((e) => {
-
           const error =
             e.response && e.response.data && e.response.data.error
               ? e.response.data.error

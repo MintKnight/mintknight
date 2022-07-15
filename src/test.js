@@ -389,7 +389,7 @@ class Test {
     warning('\nDrops - Creating contract for drops\n');
 
     const urlCode = `collection-${makeid(10)}`;
-    const urlLandingPage = `http://localhost:3002/${urlCode}`;
+    const urlLandingPage = `http://localhost:3000/${urlCode}`;
     const contract = {
       name: 'ERC721TestDrops',
       symbol: 'DROPS',
