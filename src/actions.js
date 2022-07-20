@@ -221,6 +221,7 @@ class Actions {
     detail('mk add wallet', 'Add a new wallet');
     detail('mk add signer', 'Add a new signer (wallet off-chain)');
     // detail('mk add eoa', 'Add a new eoa (Externally Owned Account,)');
+    detail('mk deploy wallet', 'Deploys a wallet');
     detail('mk info wallet', 'Queries stats for current wallet');
     detail('mk select wallet', 'Select Active wallet');
 
@@ -527,6 +528,20 @@ class Actions {
       }
     }
     await Config.addWallet(nconf, wallet);
+  }
+
+  /**
+   * Deploys a draft wallet
+   */
+  static async deployWallet(nconf) {
+    const { mintknight } = connect(nconf);
+    const walletId = await Prompt.text('Wallet ID');
+    if (!walletId) error(`Wallet ID is required`);
+    const result = await mintknight.deployWallet(walletId);
+    if (!result.success) error('Error deploying wallet');
+    const task = await mintknight.waitTask(result.data.taskId);
+    if (task == false || (task.state && task.state.toLowerCase() == 'failed'))
+      error(`Error deploying wallet`);
   }
 
   /**

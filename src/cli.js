@@ -212,6 +212,9 @@ const upload = async (nconf) => {
 const deploy = async (nconf) => {
   const element = process.argv[3];
   switch (element) {
+    case 'wallet':
+      Actions.deployWallet(nconf);
+      break;
     case 'contract':
       Actions.deployContract(nconf);
       break;
