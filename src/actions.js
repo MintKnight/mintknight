@@ -813,8 +813,6 @@ class Actions {
     choices = [
       { title: 'USDC', description: 'USDC', value: 'usdc' },
       { title: 'MATIC', description: 'MATIC', value: 'matic' },
-      { title: 'WETH', description: 'WETH', value: 'weth' },
-      { title: 'EUR', description: 'EUR (€)', value: 'eur' },
     ];
     const coin = await Select.option(choices, 'Choose the coin');
     // Start date

@@ -393,8 +393,8 @@ class Test {
     const contract = {
       name: 'ERC721TestDrops',
       symbol: 'DROPS',
-      // contractType: 51, // Mutable
-      contractType: 52, // Inmutable
+      contractType: 51, // Mutable
+      // contractType: 52, // Inmutable
       walletId: owner.walletId,
       urlCode: urlCode,
     };
@@ -450,8 +450,8 @@ class Test {
       dropType: 'raffle', // fifo or raffle
       useCodes: 0, // 0 or 1
       isDirectMinting: 0, // 0 or 1
-      price: 1,
-      coin: 'matic',
+      price: 0.5,
+      coin: 'usdc',
       startDate: '2022-01-01',
       endDate: '2025-12-31',
     };

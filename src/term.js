@@ -357,11 +357,6 @@ class Prompt {
       },
       {
         type: 'text',
-        name: 'thumb',
-        message: "'Thumbnail Image? ./assets/thumbnail.jpg'",
-      },
-      {
-        type: 'text',
         name: 'symbol',
         message: "What's the symbol of the Contract?",
       },
@@ -385,25 +380,12 @@ class Prompt {
             description: 'Fungible Token (ERC20)',
             value: 10,
           },
-          /*
-          {
-            title: 'ERC721 - Buyable',
-            description:
-              'NFT - Can be minted by a different contract (Buy/Auction)',
-            value: 53,
-          },
-          {
-            title: 'ERC721 - HiddenURI',
-            description:
-              'NFT - Initially URI is hidden and it will be revealed as a secret',
-            value: 54,
-          },
-          {
-            title: 'BUY - Buy contracts',
-            description: 'Used to buy from another contract',
-            value: 100,
-          },*/
         ],
+      },
+      {
+        type: 'text',
+        name: 'thumb',
+        message: "'Thumbnail Image? ./assets/thumbnail.jpg'",
       },
     ];
     const answers = await prompt(questions, {
