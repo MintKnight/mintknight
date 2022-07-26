@@ -374,7 +374,7 @@ class Test {
       'Failed to deploy wallet'
     );
     const owner = {
-      name: 'owner',
+      name: 'mk',
       walletId: addWalletRet.data.wallet._id,
       skey: addWalletRet.data.skey1,
     };

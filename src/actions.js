@@ -518,13 +518,30 @@ class Actions {
     wallet.address = addWalletRet.data.wallet.address;
     wallet.skey = addWalletRet.data.skey1;
     wallet.type = walletType;
+
     if (walletType === 'onchain') {
-      let deployWalletRet = await mintknight.deployWallet(walletId);
-      if (!deployWalletRet.success) error('Error adding wallet');
-      if (!!deployWalletRet.data.taskId) {
-        const task = await mintknight.waitTask(deployWalletRet.data.taskId);
-        if (task.state === 'failed') error('Wallet creation failed');
-        wallet.address = task.address;
+      // Deploy wallet?
+      const choices = [
+        {
+          title: 'Deploy wallet',
+          description: 'Deploy wallet into blockchain',
+          value: true,
+        },
+        {
+          title: 'Not to deploy',
+          description: 'Wallet remains on draft into DB',
+          value: false,
+        },
+      ];
+      const deploy = await Select.option(choices);
+      if (deploy) {
+        let deployWalletRet = await mintknight.deployWallet(walletId);
+        if (!deployWalletRet.success) error('Error adding wallet');
+        if (!!deployWalletRet.data.taskId) {
+          const task = await mintknight.waitTask(deployWalletRet.data.taskId);
+          if (task.state === 'failed') error('Wallet creation failed');
+          wallet.address = task.address;
+        }
       }
     }
     await Config.addWallet(nconf, wallet);
@@ -629,6 +646,24 @@ class Actions {
     const theContract = result.data;
     theContract.contractId = theContract._id;
     await Config.addContract(nconf, theContract, wallet);
+
+    // Deploy contract?
+    const choices = [
+      {
+        title: 'Deploy contract',
+        description: 'Deploy contract into blockchain',
+        value: true,
+      },
+      {
+        title: 'Not to deploy',
+        description: 'Contract remains on draft into DB',
+        value: false,
+      },
+    ];
+    const deploy = await Select.option(choices);
+    if (deploy) {
+      await this.deployContract(nconf);
+    }
   }
 
   /**
@@ -725,6 +760,7 @@ class Actions {
           break;
       }
       detail('network', contract.network);
+      if (!!contract.address) detail('address', contract.address);
       detail('status', contract.status);
       if (!!contract.owner) detail('owner', contract.owner);
       if (!!contract.minter) detail('minter', contract.minter);
