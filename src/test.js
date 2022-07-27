@@ -430,6 +430,7 @@ class Test {
       dropType: 'fifo', // fifo or raffle
       useCodes: 1, // 0 or 1
       isDirectMinting: 1, // 0 or 1
+      multiplesMintingsPerAccountAndDrop: 1, // 0 or 1
       price: 0,
       coin: 'matic',
       startDate: '2022-01-01',
@@ -450,6 +451,7 @@ class Test {
       dropType: 'raffle', // fifo or raffle
       useCodes: 0, // 0 or 1
       isDirectMinting: 0, // 0 or 1
+      multiplesMintingsPerAccountAndDrop: 1, // 0 or 1
       price: 0.5,
       coin: 'usdc',
       startDate: '2022-01-01',

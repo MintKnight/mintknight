@@ -788,6 +788,7 @@ class Actions {
       dropType,
       useCodes,
       isDirectMinting,
+      multiplesMintingsPerAccountAndDrop,
       price,
       coin,
       startDate,
@@ -800,6 +801,7 @@ class Actions {
       dropType,
       useCodes,
       isDirectMinting,
+      multiplesMintingsPerAccountAndDrop,
       price,
       coin,
       startDate,
@@ -815,10 +817,10 @@ class Actions {
   static async askDropParams(operation = 'add') {
     // Name
     const name = await Prompt.text('Name');
-    if (!name) error(`Name is required`);
+    if (operation === 'add' && !name) error(`Name is required`);
     // Description
     const description = await Prompt.text('Description');
-    if (!description) error(`Description is required`);
+    if (operation === 'add' && !description) error(`Description is required`);
     var choices;
     // dropType
     choices = [
@@ -842,9 +844,26 @@ class Actions {
       { title: 'No', description: 'Not direct minting', value: 0 },
     ];
     const isDirectMinting = await Select.option(choices, 'Direct minting?');
+    // multiplesMintingsPerAccountAndDrop
+    choices = [
+      {
+        title: 'Yes',
+        description: 'Multiples mintings by the same account & drop',
+        value: 1,
+      },
+      {
+        title: 'No',
+        description: 'Only 1 minting per account & drop',
+        value: 0,
+      },
+    ];
+    const multiplesMintingsPerAccountAndDrop = await Select.option(
+      choices,
+      'Multiples mintings by the same account & drop?'
+    );
     // Price
     const price = await Prompt.text('Price');
-    if (!price) error(`Price is required`);
+    if (operation === 'add' && !price) error(`Price is required`);
     // coin
     choices = [
       { title: 'USDC', description: 'USDC', value: 'usdc' },
@@ -853,10 +872,10 @@ class Actions {
     const coin = await Select.option(choices, 'Choose the coin');
     // Start date
     const startDate = await Prompt.text('Start date (YYYY-MM-DD)');
-    if (!startDate) error(`Start date is required`);
+    if (operation === 'add' && !startDate) error(`Start date is required`);
     // End date
     const endDate = await Prompt.text('End date (YYYY-MM-DD)');
-    if (!endDate) error(`End date is required`);
+    if (operation === 'add' && !endDate) error(`End date is required`);
 
     return {
       name,
@@ -864,6 +883,7 @@ class Actions {
       dropType,
       useCodes,
       isDirectMinting,
+      multiplesMintingsPerAccountAndDrop,
       price,
       coin,
       startDate,
@@ -886,6 +906,10 @@ class Actions {
       detail('dropType', obj.dropType);
       detail('useCodes', obj.useCodes);
       detail('isDirectMinting', obj.isDirectMinting);
+      detail(
+        'multiplesMintingsPerAccountAndDrop',
+        obj.multiplesMintingsPerAccountAndDrop
+      );
       detail('price', obj.price);
       detail('coin', obj.coin);
       detail('startDate', obj.startDate);
@@ -909,6 +933,7 @@ class Actions {
       dropType,
       useCodes,
       isDirectMinting,
+      multiplesMintingsPerAccountAndDrop,
       price,
       coin,
       startDate,
@@ -921,6 +946,7 @@ class Actions {
       dropType,
       useCodes,
       isDirectMinting,
+      multiplesMintingsPerAccountAndDrop,
       price,
       coin,
       startDate,
