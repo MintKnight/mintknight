@@ -453,7 +453,7 @@ class Test {
       isDirectMinting: 0, // 0 or 1
       multiplesMintingsPerAccountAndDrop: 1, // 0 or 1
       price: 0.5,
-      coin: 'usdc',
+      coin: 'matic',
       startDate: '2022-01-01',
       endDate: '2025-12-31',
     };
