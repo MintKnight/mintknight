@@ -545,11 +545,11 @@ class MintKnight extends MintKnightBase {
   /*
    * Transfer one NFT
    *
-   * @param {string} contractId Contract ID
+   * @param {string} nftId | NFT ID
    * @param {string} walletId From Wallet ID
    * @param {string} skey From Wallet SKEY
-   * @param {string} to Wallet ID receiving the tokens
-   * @param {number} tokenId tokenId.
+   * @param {string} to Wallet ID receiving the NFT
+   * @param {string} address | External address
    */
   transferNFT(nftId, walletId, skey, to, address) {
     return this.apiCall(
@@ -563,7 +563,7 @@ class MintKnight extends MintKnightBase {
   /*
    * Get a contract
    *
-   * @param {string} contractId contract ID
+   * @param {string} contractId | contract ID
    */
   getContract(contractId) {
     return this.apiCall('GET', `contracts/v2/${contractId}`, {}, 'tokenAuth');
