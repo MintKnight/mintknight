@@ -38,6 +38,9 @@ const connect = (nconf) => {
     case 'local':
       urlApi = 'http://localhost:3001/';
       break;
+    case 'dev':
+        urlApi = 'https://api.dev.mintknight.com/';
+        break;
     case 'sandbox':
       urlApi = 'https://api.sandbox.mintknight.com/';
       break;

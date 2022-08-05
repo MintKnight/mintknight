@@ -190,6 +190,11 @@ class Prompt {
             value: 'local',
           },
           {
+            title: 'dev',
+            description: 'dev - development environment',
+            value: 'dev',
+          },
+          {
             title: 'sandbox',
             description: 'Sandbox - staging environment',
             value: 'sandbox',
