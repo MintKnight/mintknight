@@ -149,6 +149,7 @@ class Test {
       addContractRet,
       deployContractRet,
       addNFTRet,
+      uploadMetadataRet,
       mintNFTRet,
       transferNFTRet;
 
@@ -243,8 +244,9 @@ class Test {
      * 1 - Deploy ERC721MinterPauserMutable Contract. (type 51)
      * 2 - Add media (the picture all NFTs will share). It is uploaded to arweave.
      * 3 - Saves the NFT as draft (using previous mediaId).
-     * 4 - Mints the NFT (writes to the Blockchain). Uses the minter wallet and mints also to minter.
-     * 5 - Transfers the NFT to the owner.
+     * 4 - Upload the metadata to arweave.
+     * 5 - Mints the NFT (writes to the Blockchain). Uses the minter wallet and mints also to minter.
+     * 6 - Transfers the NFT to the owner.
      */
     warning('\nTest - Deploy NFT Contract : ERC721MinterPauserMutable\n');
 
@@ -300,7 +302,17 @@ class Test {
     await checkTask(addNFTRet, 'NFT added', 'Failed to add NFT');
     const nftId = addNFTRet.data._id;
 
-    // 4 - Mints the NFT (writes to the Blockchain). Uses the minter wallet and mints also to minter.
+    if (contract.contractType === 52) {
+      // 4 - Upload the metadata to arweave
+      uploadMetadataRet = await mintknight.uploadMetadataNFT(nftId);
+      await checkTask(
+        uploadMetadataRet,
+        'Metadata uploaded',
+        'Failed to upload metadata'
+      );
+    }
+
+    // 5 - Mints the NFT (writes to the Blockchain). Uses the minter wallet and mints also to minter.
     mintNFTRet = await mintknight.mintNFT(
       nftId,
       minter.walletId,
@@ -309,7 +321,7 @@ class Test {
     );
     await checkTask(mintNFTRet, 'NFT minted', 'Failed to mint NFT');
 
-    // 5 - Transfers the NFT to the owner.
+    // 6 - Transfers the NFT to the owner.
     transferNFTRet = await mintknight.transferNFT(
       nftId,
       minter.walletId,
@@ -328,6 +340,7 @@ class Test {
       task = await mintknight.addNFT(contract.contractId, nft);
       await checkTask(task, `NFT ${i} saved`, `Failed to save NFT ${i}`);
       const nftId = task.data._id;
+      // Look out! It´s not necessary upload de metadata before. It´s only a test for multitasking
       task = await mintknight.mintNFT(
         nftId,
         minter.walletId,
