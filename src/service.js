@@ -859,6 +859,8 @@ class MintKnight extends MintKnightBase {
           ...form.getHeaders(),
           Authorization: `Bearer ${this.apiKey}`,
         },
+        maxContentLength: Infinity,
+        maxBodyLength: Infinity,
       };
       const method = 'POST';
       const call = `media/v2`;
