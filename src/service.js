@@ -31,23 +31,6 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
-   * Login.
-   *
-   * @param {string} email Email
-   * @param {string} password Password
-   */
-  loginUser(email, password) {
-    return new Promise((resolve) => {
-      this.apiCall('POST', 'users/v2/login', { email, password }, false).then(
-        (res) => {
-          this.token = res.token;
-          resolve(res);
-        }
-      );
-    });
-  }
-
-  /*
    * Set Company information.
    *
    * @param {string} email Email
