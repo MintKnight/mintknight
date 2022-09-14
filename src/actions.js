@@ -1443,13 +1443,15 @@ class Actions {
   static async addNFTs(nconf) {
     const { mintknight, contractId } = connect(nconf);
     if (!contractId) error('A contract must be selected');
+    const csvVersion = 1;
 
     /*
      * Ask CSV file
      */
     var csvFilename = await Prompt.text('Csv file');
-    // csvFilename = './assets/nfts-v2.csv';
-    if (!csvFilename) error('Csv file needed. e.g: ./assets/nfts-v2.csv');
+    // csvFilename = `./assets/nfts-v${csvVersion}.csv`;
+    if (!csvFilename)
+      error(`Csv file needed. e.g: ./assets/nfts-v${csvVersion}.csv`);
     if (!fs.existsSync(csvFilename))
       error(`File ${csvFilename} does not exist`);
     var { name, ext } = path.parse(csvFilename);
@@ -1460,8 +1462,8 @@ class Actions {
      * Ask Zip file
      */
     var zipFilename = await Prompt.text('Zip file');
-    // zipFilename = './assets/animals.zip';
-    if (!zipFilename) error('Csv file needed. e.g: ./assets/animals.zip');
+    // zipFilename = './assets/medias.zip';
+    if (!zipFilename) error('Csv file needed. e.g: ./assets/medias.zip');
     if (!fs.existsSync(zipFilename))
       error(`File ${zipFilename} does not exist`);
     var { name, ext } = path.parse(zipFilename);
@@ -1475,7 +1477,8 @@ class Actions {
       contractId,
       csvFilename,
       zipFilename,
-      dropId
+      dropId,
+      csvVersion
     );
     if (!result.success) error('Error uploading NFTs');
     log('NFTs Uploaded');
@@ -1625,6 +1628,7 @@ class Actions {
         detail('nftId', nft._id);
         detail('state', nft.state);
         if (!!nft.mediaId) detail('mediaId', nft.mediaId);
+        if (!!nft.animationMediaId) detail('animationMediaId', nft.animationMediaId);
         if (nft.state == 'minted') {
           detail('owner', nft.walletId);
         }

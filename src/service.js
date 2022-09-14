@@ -441,7 +441,7 @@ class MintKnight extends MintKnightBase {
    * @param {string} zipFilename ZIP File name with path
    * @param {string} dropId Drop ID (optional)
    */
-  addNFTs(contractId, csvFilename, zipFilename, dropId) {
+  addNFTs(contractId, csvFilename, zipFilename, dropId, csvVersion = 1) {
     return new Promise((resolve) => {
       const form = new FormData();
       const csvFile = fs.readFileSync(csvFilename);
@@ -449,6 +449,7 @@ class MintKnight extends MintKnightBase {
       form.append('files', csvFile, csvFilename);
       form.append('files', zipFile, zipFilename);
       if (!!dropId) form.append('dropId', dropId);
+      form.append('csvVersion', csvVersion);
       const config = {
         headers: {
           ...form.getHeaders(),

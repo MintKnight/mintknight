@@ -512,13 +512,15 @@ class Test {
      * Upload NFTs (Bulk mode) -> Drop 1
      */
     warning('\nDrops - Add NFTs for Drop 1\n');
-    let csvFilename = './assets/nfts-v2.csv';
-    let zipFilename = './assets/animals.zip';
+    let version = 1;
+    let csvFilename = `./assets/nfts-v${version}.csv`;
+    let zipFilename = './assets/medias.zip';
     task = await mintknight.addNFTs(
       contract.contractId,
       csvFilename,
       zipFilename,
-      directMintingDrop._id
+      directMintingDrop._id,
+      version
     );
     await checkTask(
       task,
@@ -530,13 +532,15 @@ class Test {
      * Upload NFTs (Bulk mode) -> Drop 2
      */
     warning('\nDrops - Add NFTs for Drop 2\n');
-    csvFilename = './assets/nfts-v2-2.csv';
-    zipFilename = './assets/animals.zip';
+    version = 2;
+    csvFilename = `./assets/nfts-v${version}.csv`;
+    zipFilename = './assets/medias.zip';
     task = await mintknight.addNFTs(
       contract.contractId,
       csvFilename,
       zipFilename,
-      notDirectMintingDrop._id
+      notDirectMintingDrop._id,
+      version
     );
     await checkTask(
       task,

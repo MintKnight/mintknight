@@ -498,6 +498,11 @@ class Prompt {
       },
       {
         type: 'text',
+        name: 'animationMediaId',
+        message: 'Animation or Video media Id (mk list media)',
+      },
+      {
+        type: 'text',
         name: 'dropId',
         message: 'Drop Id (mk list drop)',
       },

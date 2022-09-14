@@ -105,7 +105,7 @@ Tips: After that, you could do: mk or mk info contract
 ```bash
 mk add media <image path>
 ```
-Example <image path>: assets/prize1.png
+Example <image path>: assets/nft.png
 
 Tips: After that, you could do: mk list media
 
