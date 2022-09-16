@@ -697,6 +697,13 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
+   * Deploy Drop
+   */
+  deployDrop(dropId) {
+    return this.apiCall('PUT', `drops/v2/deploy/${dropId}`, {}, 'tokenAuth');
+  }
+
+  /*
    * Add a new Drop strategy
    */
   addDropStrategy(dropId, data) {

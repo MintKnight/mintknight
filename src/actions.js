@@ -960,6 +960,21 @@ class Actions {
   }
 
   /**
+   * Deploy drop
+   */
+  static async deployDrop(nconf) {
+    const { mintknight } = connect(nconf);
+    // DropId
+    const dropId = await Prompt.text('Drop Id (mk list drop)');
+    if (!dropId) error(`Drop Id is required`);
+    // Deploy drop
+    const result = await mintknight.deployDrop(dropId);
+    if (!result.success) error('Error deploying Drop');
+    console.log(result.data);
+    log('Drop deployed');
+  }
+
+  /**
    * Add a new Drop strategy
    */
   static async newDropStrategy(nconf) {

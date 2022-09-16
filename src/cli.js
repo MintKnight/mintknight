@@ -218,6 +218,9 @@ const deploy = async (nconf) => {
     case 'contract':
       Actions.deployContract(nconf);
       break;
+    case 'drop':
+      Actions.deployDrop(nconf);
+      break;
     default:
       error('Invalid element to list (contract, nft)');
       break;
