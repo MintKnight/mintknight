@@ -71,6 +71,11 @@ async function checkTasks(tasks, times = 1000) {
   }
 }
 class Test {
+  /**
+   *
+   * Init test
+   *
+   */
   static async init() {
     let result,
       config = {};
@@ -140,6 +145,11 @@ class Test {
     mintknight.setApiKey(project.token);
   }
 
+  /**
+   *
+   * Start full test (mk test)
+   *
+   */
   static async go(nconf) {
     await this.init();
     let task,
@@ -362,6 +372,11 @@ class Test {
     log('\nTest finished\n');
   }
 
+  /**
+   *
+   * Start drops test (mk test drops)
+   *
+   */
   static async drops(nconf, skipInit = false) {
     if (!skipInit) await this.init();
     let task,
@@ -407,7 +422,6 @@ class Test {
       name: 'ERC721TestDrops',
       symbol: 'DROPS',
       contractType: 51, // Mutable
-      // contractType: 52, // Inmutable
       walletId: owner.walletId,
       urlCode: urlCode,
     };
@@ -419,17 +433,9 @@ class Test {
       contract.urlCode
     );
     contract.contractId = addContractRet.data._id;
-    deployContractRet = await mintknight.deployContract(contract.contractId);
-    taskResult1 = await checkTask(
-      deployContractRet,
-      'Contract deployed',
-      'Failed to deploy contract'
-    );
-    contract.address = taskResult1.address;
-    contract.contractId = taskResult1.contractId;
-    check(`Contract address: ${contract.address}`);
     // Save to local env.
     await Config.addContract(nconf, contract, owner);
+    check(`Contract ID: ${contract.contractId}`);
 
     /*
      * Create drops
@@ -482,6 +488,7 @@ class Test {
      * Upload only one NFT
      */
     warning('\nDrops - Upload only one NFT\n');
+
     task = await mintknight.addNFT(
       contract.contractId,
       {
@@ -512,6 +519,7 @@ class Test {
      * Upload NFTs (Bulk mode) -> Drop 1
      */
     warning('\nDrops - Add NFTs for Drop 1\n');
+
     let version = 1;
     let csvFilename = `./assets/nfts-v${version}.csv`;
     let zipFilename = './assets/medias.zip';
@@ -532,6 +540,7 @@ class Test {
      * Upload NFTs (Bulk mode) -> Drop 2
      */
     warning('\nDrops - Add NFTs for Drop 2\n');
+
     version = 2;
     csvFilename = `./assets/nfts-v${version}.csv`;
     zipFilename = './assets/medias.zip';
@@ -552,6 +561,7 @@ class Test {
      * Upload drop codes for Direct minting drop
      */
     warning('\nDrops - Upload drop codes\n');
+
     task = await mintknight.addDropCodes(
       directMintingDrop._id,
       './assets/dropcodes.csv'
@@ -560,9 +570,35 @@ class Test {
     check(`Landing page url: ${urlLandingPage}`);
 
     /*
+     * Deploy drops consist of uploading medias and metadatas to Arweave through Bundlr
+     */
+    warning('\nDrops - Deploy/Make drops\n');
+
+    task = await mintknight.deployDrop(directMintingDrop._id);
+    await checkTask(task, 'Deployed drop', 'Failed to deploy drop');
+
+    /*
+     * Now, It´s time to deploy the contract
+     */
+    warning('\nDrops - Deploying the contract\n');
+
+    deployContractRet = await mintknight.deployContract(contract.contractId);
+    taskResult1 = await checkTask(
+      deployContractRet,
+      'Contract deployed',
+      'Failed to deploy contract'
+    );
+    contract.address = taskResult1.address;
+    contract.contractId = taskResult1.contractId;
+    check(`Contract address: ${contract.address}`);
+    // Update contract to local env.
+    await Config.updateContract(nconf, contract, contract.address);
+
+    /*
      * Direct minting
      */
     warning('\nDrops - Direct minting\n');
+
     const buyerAccount = '0x668417616f1502D13EA1f9528F83072A133e8E01';
     // const dropCod = '';
     const dropCod = 'ABCD1';
@@ -608,6 +644,11 @@ class Test {
     }
   }
 
+  /**
+   *
+   * Start wallets test (mk test wallets)
+   *
+   */
   static async wallets(nconf, skipInit = false) {
     if (!skipInit) await this.init();
     let addWalletRet, taskResult1;
