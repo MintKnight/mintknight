@@ -14,12 +14,24 @@ const addConfDir = async () => {
   }
 };
 
-const waitTask = async (task, mintknight, msgOk, msgKo) => {
-  if (task === false) error(msgKo);
-  const result = await mintknight.waitTask(task.taskId);
-  if (result.state === 'failed') error(msgKo);
-  log(msgOk);
-  return result;
+const waitTask = async (result, mintknight, msgOk, msgKo) => {
+  if (
+    result === false ||
+    !result.success ||
+    !result.data ||
+    !result.data.taskId
+  ) {
+    if (!!msgKo) error(msgKo);
+    else error(`Unexpected error`);
+    return false;
+  }
+  const task = await mintknight.waitTask(result.data.taskId);
+  if (task == false || (task.state && task.state.toLowerCase() == 'failed')) {
+    if (!!msgKo) error(msgKo);
+  } else {
+    if (!!msgOk) log(msgOk);
+  }
+  return task;
 };
 
 /**
@@ -236,7 +248,7 @@ class Actions {
     detail('mk select contract', 'Select Active contract');
     // detail('mk update minter', 'Update the contract´s minter');
     // detail('mk update owner', 'Update the contract´s owner');
-    // detail('mk update verifier', 'Update the contract´s verifier');
+    detail('mk update verifier', 'Update the contract´s verifier');
 
     title('\nDrops');
     detail('mk add drop', 'Add a new drop');
@@ -539,12 +551,13 @@ class Actions {
       const deploy = await Select.option(choices);
       if (deploy) {
         let deployWalletRet = await mintknight.deployWallet(walletId);
-        if (!deployWalletRet.success) error('Error adding wallet');
-        if (!!deployWalletRet.data.taskId) {
-          const task = await mintknight.waitTask(deployWalletRet.data.taskId);
-          if (task.state === 'failed') error('Wallet creation failed');
-          wallet.address = task.address;
-        }
+        const task = await waitTask(
+          deployWalletRet,
+          mintknight,
+          ``,
+          `Error deploying wallet`
+        );
+        wallet.address = task.address;
       }
     }
     await Config.addWallet(nconf, wallet);
@@ -558,10 +571,7 @@ class Actions {
     const walletId = await Prompt.text('Wallet ID');
     if (!walletId) error(`Wallet ID is required`);
     const result = await mintknight.deployWallet(walletId);
-    if (!result.success) error('Error deploying wallet');
-    const task = await mintknight.waitTask(result.data.taskId);
-    if (task == false || (task.state && task.state.toLowerCase() == 'failed'))
-      error(`Error deploying wallet`);
+    await waitTask(result, mintknight, ``, `Error deploying wallet`);
   }
 
   /**
@@ -700,9 +710,12 @@ class Actions {
     const result = await mintknight.deployContract(contractId);
     if (!result.success) error('Error deploying contract');
     const theContract = result.data.contract;
-    const task = await mintknight.waitTask(result.data.taskId);
-    if (task == false || (task.state && task.state.toLowerCase() == 'failed'))
-      error(`Error deploying contract`);
+    const task = await waitTask(
+      result,
+      mintknight,
+      ``,
+      `Error deploying contract`
+    );
     // Update contract
     theContract.contractId = theContract._id;
     await Config.updateContract(nconf, theContract, task.address);
@@ -1287,12 +1300,7 @@ class Actions {
     if (!result.success) error('Error adding media');
     if (uploadToArweave) {
       // Upload to arweave
-      const task = await mintknight.waitTask(result.data.taskId);
-      if (
-        task === false ||
-        (task.state && task.state.toLowerCase() === 'failed')
-      )
-        error('Media upload failed');
+      await waitTask(result, mintknight, ``, `Media upload failed`);
     }
     log('Media added');
   }
@@ -1307,11 +1315,12 @@ class Actions {
     if (!mediaId) error(`Media Id is required`);
     // Upload media
     const result = await mintknight.uploadMedia(mediaId);
-    if (!result.success) error('Error uploading media');
-    const task = await mintknight.waitTask(result.data.taskId);
-    if (task === false || (task.state && task.state.toLowerCase() === 'failed'))
-      error('Media upload failed');
-    log('Media has been uploaded successfully');
+    await waitTask(
+      result,
+      mintknight,
+      `Media has been uploaded successfully`,
+      `Error uploading media`
+    );
   }
 
   /**
@@ -1357,10 +1366,7 @@ class Actions {
       walletId,
       address
     );
-    if (!result.success) error('Error minting tokens');
-    const task = await mintknight.waitTask(result.data.taskId);
-    if (task == false || (task.state && task.state.toLowerCase() == 'failed')) error(`Error minting tokens`);
-    log('Tokens Minted');
+    await waitTask(result, mintknight, `Tokens Minted`, `Error minting tokens`);
   }
 
   /**
@@ -1407,11 +1413,7 @@ class Actions {
       walletId,
       address
     );
-    if (!result.success) error('Transfer Failed');
-    const task = await mintknight.waitTask(result.data.taskId);
-    if (task == false || (task.state && task.state.toLowerCase() == 'failed'))
-      error(`Transfer Failed`);
-    log('Token Transferred');
+    await waitTask(result, mintknight, `Token Transferred`, `Transfer Failed`);
   }
 
   /**
@@ -1540,10 +1542,7 @@ class Actions {
     const contract = nconf.get(`${env}:${projectId}:${contractId}`);
     if (contract.type === 52) {
       const result = await mintknight.uploadMetadataNFT(nftId);
-      if (!result.success) error('Upload metadata Failed');
-      const task = await mintknight.waitTask(result.data.taskId);
-      if (task == false || (task.state && task.state.toLowerCase() == 'failed'))
-        error(`Upload metadata Failed`);
+      await waitTask(result, mintknight, ``, `Upload metadata Failed`);
     }
     // Mint
     const result = await mintknight.mintNFT(
@@ -1553,10 +1552,7 @@ class Actions {
       walletId,
       address
     );
-    if (!result.success) error('Mint Failed');
-    const task = await mintknight.waitTask(result.data.taskId);
-    if (task == false || (task.state && task.state.toLowerCase() == 'failed')) error(`Mint Failed`);
-    log('NFT Minted');
+    await waitTask(result, mintknight, `NFT Minted`, `Mint Failed`);
   }
 
   /**
@@ -1583,10 +1579,7 @@ class Actions {
       walletId,
       address
     );
-    if (!result.success) error('Transfer Failed');
-    const task = await mintknight.waitTask(result.data.taskId);
-    if (task == false || (task.state && task.state.toLowerCase() == 'failed')) error(`Transfer Failed`);
-    log('NFT Transferred');
+    await waitTask(result, mintknight, `NFT Transferred`, `Transfer Failed`);
   }
 
   /**
@@ -1684,6 +1677,29 @@ class Actions {
   }
 
   /**
+   * Update verifier
+   */
+  static async updateVerifier(nconf) {
+    const { env, mintknight, projectId, contractId } = connect(nconf);
+    if (!contractId) error('A contract must be selected');
+    const verifier = await Prompt.text('Verifier (wallet Id)');
+    const ownerId = nconf.get(`${env}:${projectId}:walletId`);
+    const owner = nconf.get(`${env}:${projectId}:${ownerId}`);
+    const result = await mintknight.updateVerifier(
+      contractId,
+      verifier,
+      ownerId,
+      owner.skey
+    );
+    await waitTask(
+      result,
+      mintknight,
+      `Verifier updated`,
+      `Failed to update verifier`
+    );
+  }
+
+  /**
    * Update minter/owner of a contract
    */
   static async updateContract(nconf, change) {
@@ -1696,7 +1712,7 @@ class Actions {
     );
     const ownerId = nconf.get(`${env}:${projectId}:walletId`);
     const owner = nconf.get(`${env}:${projectId}:${ownerId}`);
-    const task = await mintknight.updateContract(
+    const result = await mintknight.updateContract(
       contractId,
       change,
       walletId,
@@ -1705,33 +1721,10 @@ class Actions {
       owner.skey
     );
     await waitTask(
-      task,
+      result,
       mintknight,
       `Failed to update ${change}`,
       `${change} updated`
-    );
-  }
-
-  /**
-   * Update verifier
-   */
-  static async updateVerifier(nconf) {
-    const { env, mintknight, projectId, contractId } = connect(nconf);
-    if (!contractId) error('A contract must be selected');
-    const verifier = await Prompt.text('Verifier (wallet Id of a Signer)');
-    const ownerId = nconf.get(`${env}:${projectId}:walletId`);
-    const owner = nconf.get(`${env}:${projectId}:${ownerId}`);
-    const task = await mintknight.updateVerifier(
-      contractId,
-      verifier,
-      ownerId,
-      owner.skey
-    );
-    await waitTask(
-      task,
-      mintknight,
-      'Verifier updated',
-      'Failed to update verifier'
     );
   }
 }
