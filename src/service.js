@@ -334,10 +334,10 @@ class MintKnight extends MintKnightBase {
   /*
    * Get token info
    */
-  getToken(contractId, address) {
+  getToken(contractId, walletId) {
     return this.apiCall(
       'GET',
-      `tokens/v2/${contractId}/${address}`,
+      `tokens/v2/${contractId}/${walletId}`,
       {},
       'tokenAuth'
     );

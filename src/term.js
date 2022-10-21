@@ -318,7 +318,7 @@ class Prompt {
     return answers;
   }
 
-  static async getWalletId(nconf, env, projectId) {
+  static async getWalletId(nconf, env, projectId, useAddress = true) {
     warning('\nChoose a wallet');
     const wallets = nconf.get(`${env}:${projectId}:wallets`);
     const choices = [];
@@ -336,11 +336,13 @@ class Prompt {
       description: 'A Mintknight Wallet',
       value: 'walletId',
     });
-    choices.push({
-      title: '-- Use an Address',
-      description: 'Network public address',
-      value: 'address',
-    });
+    if (useAddress) {
+      choices.push({
+        title: '-- Use an Address',
+        description: 'Network public address',
+        value: 'address',
+      });
+    }
     let walletId = await Select.wallet(choices);
     let address = '';
     if (walletId === 'walletId') {

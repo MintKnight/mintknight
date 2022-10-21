@@ -620,6 +620,7 @@ class Actions {
     let ext2;
     const { mintknight } = connect(nconf);
     const { project, wallet } = Actions.info(nconf);
+    if (!wallet.walletId) error('A wallet must be created and selected');
     // Add contract.
     const contract = await Prompt.contract(project.name);
     if (!!contract.thumb) {
@@ -1373,18 +1374,18 @@ class Actions {
    * Get info token (blance of address)
    */
   static async infoToken(nconf) {
-    const { mintknight, contractId } = connect(nconf);
+    const { mintknight, env, projectId, contractId } = connect(nconf);
     if (!contractId) error('A contract must be selected');
-    const address = await Prompt.text('Public address');
-    if (!address) error('An address is required');
-    const result = await mintknight.getToken(contractId, address);
+    const { walletId } = await Prompt.getWalletId(nconf, env, projectId, false);
+    if (!walletId) error('A walletId is required');
+    const result = await mintknight.getToken(contractId, walletId);
     if (!result.success) error('Error getting token');
     const token = result.data;
-    title(`\n${address}`);
+    if (!!token.address) title(`\n${token.address}`);
     detail('Name', token.name);
     detail('Symbol', token.symbol);
     detail('Total Supply', token.totalSupply);
-    detail('Balance Of address', token.balanceOf);
+    detail('Wallet Balance', token.balanceOf);
   }
 
   /**
@@ -1682,7 +1683,7 @@ class Actions {
   static async updateVerifier(nconf) {
     const { env, mintknight, projectId, contractId } = connect(nconf);
     if (!contractId) error('A contract must be selected');
-    const verifier = await Prompt.text('Verifier (wallet Id)');
+    const verifier = await Prompt.text('New Verifier (wallet Id)');
     const ownerId = nconf.get(`${env}:${projectId}:walletId`);
     const owner = nconf.get(`${env}:${projectId}:${ownerId}`);
     const result = await mintknight.updateVerifier(
@@ -1691,12 +1692,8 @@ class Actions {
       ownerId,
       owner.skey
     );
-    await waitTask(
-      result,
-      mintknight,
-      `Verifier updated`,
-      `Failed to update verifier`
-    );
+    if (result.success) log(`Verifier updated`);
+    else error(`Failed to update verifier`);
   }
 
   /**
