@@ -729,7 +729,7 @@ class Actions {
     const env = nconf.get('env');
     const projectId = nconf.get(`${env}:projectId`);
     const contracts = nconf.get(`${env}:${projectId}:contracts`);
-    if (contracts.length > 10) {
+    if (contracts.length === 1) {
       warning('Only one Contract available. Already selected');
     } else {
       const choices = [];
