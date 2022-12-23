@@ -43,7 +43,7 @@ const main = async () => {
   // Ask for filename. Contains Drop codes that we don´t want to repeat
   let dropCodesToSkip = [];
   const filenameDropCodesToSkip = await Prompt.text(
-    `Path and filename. e.g.: ${HOMEMK}/current_dropcodes.csv`
+    `Skip dropcodes. Path and filename. e.g.: ${HOMEMK}/dropcodes_to_skip.csv`
   );
   if (!!filenameDropCodesToSkip) {
     dropCodesToSkip = await convertCsv2Array(filenameDropCodesToSkip);
