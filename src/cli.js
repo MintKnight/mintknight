@@ -41,9 +41,12 @@ const add = async (nconf) => {
     case 'media':
       Actions.newMedia(nconf, process.argv[4] || false);
       break;
+    case 'medias':
+      Actions.addMedias(nconf);
+      break;
     default:
       error(
-        'Invalid element to add (project, wallet, signer, contract, drop, dropstrategy, dropcode, dropuser, media)'
+        'Invalid element to add (project, wallet, signer, contract, drop, dropstrategy, dropcode, dropuser, media, medias)'
       );
       break;
   }

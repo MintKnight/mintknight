@@ -1307,6 +1307,28 @@ class Actions {
   }
 
   /**
+   * Add medias
+   */
+  static async addMedias(nconf) {
+    const { mintknight } = connect(nconf);
+    // Check
+    var path = await Prompt.text('Images path (folder)');
+    if (!path) error('Path is needed. e.g: ./assets/folder');
+    if (!fs.existsSync(path)) error(`Path ${path} does not exist`);
+    const files = fs.readdirSync(path);
+    console.log('files', files);
+    if (files.length === 0) error(`No images in ${path}`);
+    for (let i = 0; i < files.length; i++) {
+      const imageName = files[i];
+      const imageFile = `${path}/${imageName}`;
+      // Add media
+      console.log(`Adding media: ${imageName}...`);
+      const result = await mintknight.addMedia(imageFile, imageName);
+      if (!result.success) error(`Error adding media: ${imageName}`);
+    }
+  }
+
+  /**
    * Upload media into Arweave
    */
   static async uploadMedia(nconf) {
