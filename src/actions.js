@@ -1316,13 +1316,39 @@ class Actions {
     if (!path) error('Path is needed. e.g: ./assets/folder');
     if (!fs.existsSync(path)) error(`Path ${path} does not exist`);
     const files = fs.readdirSync(path);
-    console.log('files', files);
     if (files.length === 0) error(`No images in ${path}`);
+
+    // **
+    warning('Getting medias assigned to this project..');
+    let mediasNameInProject = {};
+    const result = await mintknight.getMedias();
+    if (!result.success) error('Error getting medias');
+    const medias = result.data;
+    console.log(`${medias.length} medias already in project`);
+    for (let i = 0; i < medias.length; i += 1) {
+      const media = medias[i];
+      mediasNameInProject[media.name] = media;
+    }
+
+    // **
+    warning('Getting files to upload..');
+    console.log(`${files.length} files in folder`);
+    let filesToUpload = [];
     for (let i = 0; i < files.length; i++) {
       const imageName = files[i];
+      if (!!mediasNameInProject[imageName]) continue;
+      filesToUpload.push(imageName);
+    }
+    const totalFiles = filesToUpload.length;
+    console.log(`${totalFiles} files to upload`);
+
+    // **
+    warning('Uploading files..');
+    for (let i = 0; i < totalFiles; i++) {
+      const imageName = filesToUpload[i];
       const imageFile = `${path}/${imageName}`;
       // Add media
-      console.log(`Adding media: ${imageName}...`);
+      console.log(`Adding media: ${imageName}... ${i + 1} of ${totalFiles}`);
       const result = await mintknight.addMedia(imageFile, imageName);
       if (!result.success) error(`Error adding media: ${imageName}`);
     }
