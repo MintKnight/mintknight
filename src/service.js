@@ -506,12 +506,13 @@ class MintKnight extends MintKnightBase {
    * @param {string} skey Minter Wallet SKEY
    * @param {string} to Wallet ID receiving the tokens
    * @param {string} address Alternative address
+   * @param {string} uri
    */
-  mintNFT(nftId, walletId, skey, to = false, address = false) {
+  mintNFT(nftId, walletId, skey, to = false, address = false, uri = null) {
     return this.apiCall(
       'PUT',
       `nfts/v2/mint/${nftId}`,
-      { walletId, skey, to, address },
+      { walletId, skey, to, address, uri },
       'tokenAuth'
     );
   }
