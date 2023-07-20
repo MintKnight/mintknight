@@ -374,13 +374,18 @@ class Prompt {
         choices: [
           {
             title: 'ERC721 - Mutable URI',
-            description: 'NFT, URI points to MintKnight',
+            description: 'NFT, URI points towards MintKnight',
             value: 51,
           },
           {
             title: 'ERC721 - Inmutable URI',
-            description: 'NFT, URI points to Arweave',
+            description: 'NFT, URI points towards Arweave',
             value: 52,
+          },
+          {
+            title: 'ERC721 - Context',
+            description: 'NFT, URI points towards Context',
+            value: 53,
           },
           {
             title: 'ERC20 - Mintable',

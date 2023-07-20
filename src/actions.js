@@ -634,7 +634,11 @@ class Actions {
     }
     // urlCode
     let urlCode = '';
-    if (contract.contractType === 51 || contract.contractType === 52) {
+    if (
+      contract.contractType === 51 ||
+      contract.contractType === 52 ||
+      contract.contractType === 53
+    ) {
       urlCode = await Prompt.text('Url code (landing page path)');
       if (!urlCode) error(`Url code is required`);
     }
@@ -643,8 +647,10 @@ class Actions {
     if (contract.contractType === 51) {
       const _baseUri = await Prompt.text('Base URI (optional))');
       if (!!_baseUri) baseUri = _baseUri;
+    } else if (contract.contractType === 53) {
+      baseUri = await Prompt.text('Base URI');
+      if (!baseUri) error(`Base URI is required`);
     }
-
     // Add contract
     let result = await mintknight.addContract(
       contract.name,
@@ -689,7 +695,7 @@ class Actions {
     const contract = nconf.get(`${env}:${projectId}:${contractId}`);
     // urlCode
     let urlCode = '';
-    if (contract.type === 51 || contract.type === 52) {
+    if (contract.type === 51 || contract.type === 52 || contract.type === 53) {
       urlCode = await Prompt.text('Url code (landing page path)');
       if (!urlCode) error(`Url code is required`);
     } else {
@@ -771,6 +777,9 @@ class Actions {
           break;
         case 52:
           detail('type', 'ERC721 Immutable');
+          break;
+        case 53:
+          detail('type', 'ERC721 Context');
           break;
         default:
           detail('type', 'unknown');
