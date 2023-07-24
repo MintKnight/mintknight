@@ -241,7 +241,9 @@ class MintKnight extends MintKnightBase {
     urlCode = '',
     baseUri = '',
     thumbnail = null,
-    thumbName = null
+    thumbName = null,
+    initialTokenIds = null,
+    initialTokenAddresses = null
   ) {
     return new Promise((resolve) => {
       const contract = {
@@ -252,6 +254,8 @@ class MintKnight extends MintKnightBase {
         baseUri,
         minter: walletId,
         owner: walletId,
+        initialTokenIds,
+        initialTokenAddresses,
       };
       const form = new FormData();
       for (var key in contract) {
