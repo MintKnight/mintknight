@@ -242,8 +242,8 @@ class MintKnight extends MintKnightBase {
     baseUri = '',
     thumbnail = null,
     thumbName = null,
-    initialTokenIds = null,
-    initialTokenAddresses = null
+    initialTokenIds = '',
+    initialTokenAddresses = ''
   ) {
     return new Promise((resolve) => {
       const contract = {
