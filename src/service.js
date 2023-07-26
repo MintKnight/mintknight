@@ -348,6 +348,13 @@ class MintKnight extends MintKnightBase {
   }
 
   /*
+   * Get task
+   */
+  getTask(taskId) {
+    return this.apiCall('GET', `tasks/v2/${taskId}`, {}, 'tokenAuth');
+  }
+
+  /*
    * Transfer tokens
    *
    * @param {string} contractId Contract ID
@@ -762,12 +769,7 @@ class MintKnight extends MintKnightBase {
    * Update Drop code
    */
   updateDropCode(dropCodeId, data) {
-    return this.apiCall(
-      'PUT',
-      `dropCodes/v2/${dropCodeId}`,
-      data,
-      'tokenAuth'
-    );
+    return this.apiCall('PUT', `dropCodes/v2/${dropCodeId}`, data, 'tokenAuth');
   }
 
   /*
